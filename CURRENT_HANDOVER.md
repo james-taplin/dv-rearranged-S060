@@ -1,4 +1,8 @@
-## 1.10.1 = 1.10.0 + merged release-1.9.2 (Claude), RELEASED pre-release, NOT installed, 19 Oct 2026
+## 1.10.1 = 1.10.0 + merged release-1.9.2 (Claude), RELEASED pre-release v1.10.1 (tag 6bbf45b), INSTALLED, 19 Oct 2026
+
+Installed from the released ZIP (5516FF23...7A83; DLL 9EFF86FB...DBDC9E == build, Info.json 1.10.1).
+1.10.0 backup: build/runtime-trial-1.10.1/installed-backup-20261019-221632. Settings kept: on first load
+the one-time migration unticks the high-speed 2-8-x variants in the saved Settings.xml.
 
 James asked to merge the 1.9.2 spawn defaults and Nexus packaging into b99-port,
 then install. Conflicts resolved: Build version 1.10.1; Main UI label kept as
