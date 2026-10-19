@@ -83,6 +83,7 @@ namespace RearrangedS282
                     {
                         articulatedSimulation = ArticulatedSimulation.Ensure(loco);
                         if (id == (int)WheelArrangementType.s2662) ApplyMalletGeometry();
+                        else if (id == (int)WheelArrangementType.s22222) ApplyTriplexGeometry();
                         else ApplyArticulatedGeometry(id);
                     }
                     else
@@ -102,7 +103,7 @@ namespace RearrangedS282
                         .Where(t => t.gameObject.activeInHierarchy).Select(t => t.GetComponent<PoweredWheel>()).ToArray();
                     int total = loco.Bogies.Sum(b => b.Axles.Length);
                     var wheels = WheelArrangement.WheelArrangementNames[id].Split(' ')[0].Split('-').Select(int.Parse).ToArray();
-                    int expectedPowered = WheelArrangement.IsArticulatedId(id) ? (wheels[1] + wheels[2]) / 2 : wheels[1] / 2;
+                    int expectedPowered = WheelArrangement.IsArticulatedId(id) ? wheels.Skip(1).Take(wheels.Length - 2).Sum() / 2 : wheels[1] / 2;
                     if (powered.Length != expectedPowered || total != wheels.Sum() / 2)
                         throw new InvalidOperationException("Active physical axles do not match the selected arrangement.");
                     // Same explicit equal-load approximation as the stage 2 trial.

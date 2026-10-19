@@ -133,70 +133,75 @@ namespace RearrangedS282
             internal TrainCar Car;
             internal SimulationFlow Flow;
             internal bool Ready, Initialized;
-            internal GameObject CopyRoot;
+            internal readonly List<GameObject> Copies = new();
             internal EffectsState Owner;
             internal abstract void Remove();
             protected void Forget()
             {
-                DestroyCopy(CopyRoot); CopyRoot = null;
+                foreach (var copy in Copies) DestroyCopy(copy);
+                Copies.Clear();
                 if (Owner != null) Owner.Audio.Remove(this);
                 Owner = null; Initialized = false;
             }
         }
 
+        // One extra native engine and the transform its presentation follows.
+        internal sealed class Secondary
+        {
+            internal ReciprocatingSteamEngine Engine;
+            internal Transform Root;
+            internal int Index;
+            internal string Name;
+        }
+
         private sealed class ChuffBinding : AudioBinding
         {
             internal AudioClipSimReadersController Controller;
-            internal ChuffClipsSimReader Reader;
+            private readonly List<ChuffClipsSimReader> readers = new();
             internal void Add(EffectsState owner)
             {
-                if (CopyRoot != null || !Ready) return;
-                var engine = owner.Simulation.RearEngine;
+                if (Copies.Count != 0 || !Ready) return;
                 var template = Template<ChuffClipsSimReader>(Car, r => r.chuffEventPortId == owner.Simulation.MainEngine.chuffEventReadOut.id);
                 if (template == null) throw new InvalidOperationException("Native S282 chuff template missing.");
                 Owner = owner; owner.Audio.Add(this);
-                CopyRoot = Copy(template.gameObject, Controller.transform, "rear exhaust");
-                Reader = CopyRoot.GetComponent<ChuffClipsSimReader>();
-                Reader.chuffEventPortId = engine.chuffEventReadOut.id;
-                Reader.exhaustPressurePortId = engine.exhaustPressureReadOut.id;
-                Reader.chuffFrequencyPortId = engine.chuffFrequencyReadOut.id;
-                Reader.cylinderWaterNormalizedPortId = engine.waterInCylindersNormalizedReadOut.id;
-                Reader.ashesInPipesPortId = engine.ashesInPipesReadOut.id;
-                RequirePorts(Flow, Reader.chuffEventPortId, Reader.exhaustPressurePortId, Reader.chuffFrequencyPortId,
-                    Reader.cylinderWaterNormalizedPortId, Reader.cylinderCockControlPortId, Reader.ashesInPipesPortId);
-                Controller.entries = Controller.entries.Append(Reader).ToArray();
-                Initialized = true; Reader.Init(Car, Flow);
+                foreach (var secondary in owner.Secondaries)
+                {
+                    var engine = secondary.Engine;
+                    var copy = Copy(template.gameObject, Controller.transform, secondary.Name + " exhaust"); Copies.Add(copy);
+                    var reader = copy.GetComponent<ChuffClipsSimReader>();
+                    reader.chuffEventPortId = engine.chuffEventReadOut.id;
+                    reader.exhaustPressurePortId = engine.exhaustPressureReadOut.id;
+                    reader.chuffFrequencyPortId = engine.chuffFrequencyReadOut.id;
+                    reader.cylinderWaterNormalizedPortId = engine.waterInCylindersNormalizedReadOut.id;
+                    reader.ashesInPipesPortId = engine.ashesInPipesReadOut.id;
+                    RequirePorts(Flow, reader.chuffEventPortId, reader.exhaustPressurePortId, reader.chuffFrequencyPortId,
+                        reader.cylinderWaterNormalizedPortId, reader.cylinderCockControlPortId, reader.ashesInPipesPortId);
+                    Controller.entries = Controller.entries.Append(reader).ToArray();
+                    readers.Add(reader); Initialized = true; reader.Init(Car, Flow);
+                }
             }
             internal override void Remove()
             {
-                if (Reader != null && Initialized) Safe(Reader.Deinit);
-                if (Controller != null && Reader != null) Controller.entries = Controller.entries.Where(r => r != Reader).ToArray();
-                Reader = null; Forget();
+                if (Initialized) foreach (var reader in readers) Safe(reader.Deinit);
+                if (Controller != null) Controller.entries = Controller.entries.Where(r => !readers.Any(x => ReferenceEquals(x, r))).ToArray();
+                readers.Clear(); Forget();
             }
         }
 
         private sealed class CockBinding : AudioBinding
         {
             internal LayeredAudioSimReadersController Controller;
-            internal CylinderCockLayeredPortReader Reader;
+            private readonly List<CylinderCockLayeredPortReader> readers = new();
             private readonly List<Pose> primaryLeaves = new();
             private readonly List<GameObject> secondaryLeaves = new();
             internal void Add(EffectsState owner)
             {
-                if (CopyRoot != null || !Ready) return;
+                if (Copies.Count != 0 || !Ready) return;
                 var primary = Controller.entries.OfType<CylinderCockLayeredPortReader>()
                     .FirstOrDefault(r => !IsOwnedPresentation(r.transform) && r.crankRotationPortId == owner.Simulation.MainEngine.crankRotationReadOut.id);
                 var template = Template<CylinderCockLayeredPortReader>(Car, r => r.crankRotationPortId == owner.Simulation.MainEngine.crankRotationReadOut.id);
                 if (primary == null || template == null) throw new InvalidOperationException("Native S282 cylinder-cock audio template missing.");
                 Owner = owner; owner.Audio.Add(this);
-                CopyRoot = Copy(template.gameObject, Controller.transform, "rear cylinder-cock audio");
-                Reader = CopyRoot.GetComponent<CylinderCockLayeredPortReader>();
-                var engine = owner.Simulation.RearEngine;
-                Reader.crankRotationPortId = engine.crankRotationReadOut.id;
-                Reader.cylindersInletValveOpenPortId = engine.cylindersInletValveOpen.id;
-                Reader.cylinderCockFlowNormalizedPortId = engine.cylinderCockFlowNormalizedReadOut.id;
-                RequirePorts(Flow, Reader.crankRotationPortId, Reader.cylindersInletValveOpenPortId,
-                    Reader.cylinderCockFlowNormalizedPortId, Reader.cylinderCockControlPortId);
                 foreach (var audio in primary.cylCockAudio)
                 {
                     if (audio == null) continue;
@@ -205,26 +210,37 @@ namespace RearrangedS282
                     audio.transform.SetParent(owner.Front, true);
                     audio.transform.localPosition = owner.FrontOutletLocal(world, audio.transform.localPosition);
                 }
-                foreach (var audio in Reader.cylCockAudio)
+                foreach (var secondary in owner.Secondaries)
                 {
-                    if (audio == null) continue;
-                    // Templates live in audio-prefab coordinates; retain their
-                    // authored car-local outlet coordinates in the live car.
-                    Vector3 carPosition = template.transform.root.InverseTransformPoint(template.cylCockAudio[Array.IndexOf(Reader.cylCockAudio, audio)].transform.position);
-                    audio.transform.SetParent(owner.Rear, false);
-                    audio.transform.localPosition = owner.RearOutletLocal(carPosition);
-                    audio.gameObject.AddComponent<ArticulatedEffectMarker>(); secondaryLeaves.Add(audio.gameObject);
+                    var engine = secondary.Engine;
+                    var copy = Copy(template.gameObject, Controller.transform, secondary.Name + " cylinder-cock audio"); Copies.Add(copy);
+                    var reader = copy.GetComponent<CylinderCockLayeredPortReader>();
+                    reader.crankRotationPortId = engine.crankRotationReadOut.id;
+                    reader.cylindersInletValveOpenPortId = engine.cylindersInletValveOpen.id;
+                    reader.cylinderCockFlowNormalizedPortId = engine.cylinderCockFlowNormalizedReadOut.id;
+                    RequirePorts(Flow, reader.crankRotationPortId, reader.cylindersInletValveOpenPortId,
+                        reader.cylinderCockFlowNormalizedPortId, reader.cylinderCockControlPortId);
+                    foreach (var audio in reader.cylCockAudio)
+                    {
+                        if (audio == null) continue;
+                        // Templates live in audio-prefab coordinates; retain their
+                        // authored car-local outlet coordinates in the live car.
+                        Vector3 carPosition = template.transform.root.InverseTransformPoint(template.cylCockAudio[Array.IndexOf(reader.cylCockAudio, audio)].transform.position);
+                        audio.transform.SetParent(secondary.Root, false);
+                        audio.transform.localPosition = owner.SecondaryOutletLocal(carPosition, secondary);
+                        audio.gameObject.AddComponent<ArticulatedEffectMarker>(); secondaryLeaves.Add(audio.gameObject);
+                    }
+                    Controller.entries = Controller.entries.Append(reader).ToArray();
+                    readers.Add(reader); Initialized = true; reader.Init(Car, Flow);
                 }
-                Controller.entries = Controller.entries.Append(Reader).ToArray();
-                Initialized = true; Reader.Init(Car, Flow);
             }
             internal override void Remove()
             {
-                if (Reader != null && Initialized) Safe(Reader.Deinit);
-                if (Controller != null && Reader != null) Controller.entries = Controller.entries.Where(r => r != Reader).ToArray();
+                if (Initialized) foreach (var reader in readers) Safe(reader.Deinit);
+                if (Controller != null) Controller.entries = Controller.entries.Where(r => !readers.Any(x => ReferenceEquals(x, r))).ToArray();
                 foreach (var pose in primaryLeaves) Safe(pose.Restore); primaryLeaves.Clear();
                 foreach (var leaf in secondaryLeaves) Safe(() => DestroyCopy(leaf)); secondaryLeaves.Clear();
-                Reader = null; Forget();
+                readers.Clear(); Forget();
             }
         }
 
@@ -236,15 +252,27 @@ namespace RearrangedS282
             internal ArticulatedSimulation Simulation => Car.GetComponent<ArticulatedSimulation>();
             internal Transform Front => Car.GetComponent<WheelRearranger>().ArticulatedFrontRoot;
             internal Transform Rear => Car.GetComponent<WheelRearranger>().ArticulatedRearRoot;
+            internal Transform Middle => Car.GetComponent<WheelRearranger>().ArticulatedMiddleRoot;
             internal Vector3 FrontOutletOffset => Car.GetComponent<WheelRearranger>().currentWA == WheelArrangementType.s4444
                 ? Vector3.forward * .35f : Vector3.zero;
+            // The rear engine always; the triplex middle engine while it is active.
+            internal List<Secondary> Secondaries
+            {
+                get
+                {
+                    var list = new List<Secondary> { new Secondary { Engine = Simulation.RearEngine, Root = Rear, Index = 1, Name = "rear" } };
+                    if (Simulation.IsMiddleActive && Middle != null)
+                        list.Add(new Secondary { Engine = Simulation.MiddleEngine, Root = Middle, Index = 2, Name = "middle" });
+                    return list;
+                }
+            }
             // Front outlet in front-engine coordinates, from its native world position.
             internal Vector3 FrontOutletLocal(Vector3 nativeWorld, Vector3 reparentedLocal) =>
-                Car.GetComponent<WheelRearranger>().TryMapArticulatedOutlet(nativeWorld, false, out var mapped)
+                Car.GetComponent<WheelRearranger>().TryMapArticulatedOutlet(nativeWorld, 0, out var mapped)
                     ? mapped : reparentedLocal + FrontOutletOffset;
-            // Rear outlet in rear-engine coordinates, from its authored car-local position.
-            internal Vector3 RearOutletLocal(Vector3 carLocal) =>
-                Car.GetComponent<WheelRearranger>().TryMapArticulatedOutlet(Car.transform.TransformPoint(carLocal), true, out var mapped)
+            // Extra-engine outlet in that engine's coordinates, from its authored car-local position.
+            internal Vector3 SecondaryOutletLocal(Vector3 carLocal, Secondary secondary) =>
+                Car.GetComponent<WheelRearranger>().TryMapArticulatedOutlet(Car.transform.TransformPoint(carLocal), secondary.Index, out var mapped)
                     ? mapped : carLocal + Vector3.back * EngineSeparation;
             private ParticleBinding particles;
             private float nextSearch;
@@ -300,10 +328,9 @@ namespace RearrangedS282
             private readonly List<Pose> primaryLeaves = new();
             private readonly List<GameObject> copies = new();
             private readonly List<ParticlesPortReadersController.ParticlePortReader> engineOutlets = new();
-            private CylinderCockParticlePortReader reader;
+            private readonly List<CylinderCockParticlePortReader> readers = new();
+            private readonly List<(Port events, Action<float> callback)> smoke = new();
             private bool initialized;
-            private Port smokeEvents;
-            private Action<float> smokeCallback;
 
             internal ParticleBinding(EffectsState owner, ParticlesPortReadersController controller)
             { this.owner = owner; this.controller = controller; flow = owner.Simulation.Flow; }
@@ -312,7 +339,7 @@ namespace RearrangedS282
             internal void Add()
             {
                 var main = owner.Simulation.MainEngine;
-                var rear = owner.Simulation.RearEngine;
+                var secondaries = owner.Secondaries;
                 var original = controller.entries.OfType<CylinderCockParticlePortReader>()
                     .FirstOrDefault(r => !IsOwnedPresentation(r.transform) && r.crankRotationPortId == main.crankRotationReadOut.id);
                 var prefab = owner.Car.carLivery.prefab;
@@ -321,72 +348,82 @@ namespace RearrangedS282
                 var template = templateController != null ? templateController.entries.OfType<CylinderCockParticlePortReader>()
                     .FirstOrDefault(r => r.crankRotationPortId == main.crankRotationReadOut.id) : null;
                 if (original == null || template == null) throw new InvalidOperationException("Native cylinder-cock particle template missing.");
-                RequirePorts(flow, rear.crankRotationReadOut.id, template.reverserPortId,
-                    rear.cylindersInletValveOpen.id, rear.cylinderCockFlowNormalizedReadOut.id, template.forwardSpeedPortId);
-                var outletPorts = new Dictionary<string, string>(StringComparer.Ordinal)
+                // Verify every authored outlet and its complete port list, for every
+                // extra engine, before moving native leaves or registering readers.
+                var plans = secondaries.Select(secondary =>
                 {
-                    { main.waterInCylindersNormalizedReadOut.id, rear.waterInCylindersNormalizedReadOut.id },
-                    { main.cylinderCrackFlowNormalizedReadOut.id, rear.cylinderCrackFlowNormalizedReadOut.id }
-                };
-                // Verify every authored outlet and its complete port list before
-                // moving native leaves or registering any extra particle reader.
-                var outletDefinitions = controller.particlePortReaders
-                    .Where(source => source.particlesParent != null && source.particleUpdaters.Any(p => outletPorts.ContainsKey(p.portId)))
-                    .Select(source =>
+                    var engine = secondary.Engine;
+                    RequirePorts(flow, engine.crankRotationReadOut.id, template.reverserPortId,
+                        engine.cylindersInletValveOpen.id, engine.cylinderCockFlowNormalizedReadOut.id, template.forwardSpeedPortId);
+                    var outletPorts = new Dictionary<string, string>(StringComparer.Ordinal)
                     {
-                        var leaf = templateController.transform.Find(LocalPath(source.particlesParent.transform, controller.transform));
-                        if (leaf == null) throw new InvalidOperationException("Native cylinder outlet template missing.");
-                        var updaters = source.particleUpdaters.Select(p => new ParticlesPortReadersController.ParticlePortReader.PortParticleUpdateDefinition
+                        { main.waterInCylindersNormalizedReadOut.id, engine.waterInCylindersNormalizedReadOut.id },
+                        { main.cylinderCrackFlowNormalizedReadOut.id, engine.cylinderCrackFlowNormalizedReadOut.id }
+                    };
+                    var outlets = controller.particlePortReaders
+                        .Where(source => source.particlesParent != null && source.particleUpdaters.Any(p => outletPorts.ContainsKey(p.portId)))
+                        .Select(source =>
                         {
-                            portId = outletPorts.TryGetValue(p.portId, out var id) ? id : p.portId,
-                            inputModifier = p.inputModifier,
-                            propertiesToUpdate = p.propertiesToUpdate
-                        }).ToList();
-                        RequirePorts(flow, updaters.Select(p => p.portId).ToArray());
-                        return new { Source = source, Template = leaf, Updaters = updaters };
-                    }).ToArray();
-                // A live primary's speed/size/emission may already be modulated.
-                // The rear reader must capture authored particle baselines.
-                var root = Copy(template.gameObject, controller.transform, "rear cylinder-cock particles"); copies.Add(root);
-                root.transform.position = original.transform.position; root.transform.rotation = original.transform.rotation;
-                reader = root.GetComponent<CylinderCockParticlePortReader>();
-                reader.crankRotationPortId = rear.crankRotationReadOut.id;
-                reader.cylindersInletValveOpenPortId = rear.cylindersInletValveOpen.id;
-                reader.cylinderCockFlowNormalizedPortId = rear.cylinderCockFlowNormalizedReadOut.id;
-                RequirePorts(flow, reader.crankRotationPortId, reader.reverserPortId,
-                    reader.cylindersInletValveOpenPortId, reader.cylinderCockFlowNormalizedPortId, reader.forwardSpeedPortId);
+                            var leaf = templateController.transform.Find(LocalPath(source.particlesParent.transform, controller.transform));
+                            if (leaf == null) throw new InvalidOperationException("Native cylinder outlet template missing.");
+                            var updaters = source.particleUpdaters.Select(p => new ParticlesPortReadersController.ParticlePortReader.PortParticleUpdateDefinition
+                            {
+                                portId = outletPorts.TryGetValue(p.portId, out var id) ? id : p.portId,
+                                inputModifier = p.inputModifier,
+                                propertiesToUpdate = p.propertiesToUpdate
+                            }).ToList();
+                            RequirePorts(flow, updaters.Select(p => p.portId).ToArray());
+                            return (Source: source, Template: leaf, Updaters: updaters);
+                        }).ToArray();
+                    return (Secondary: secondary, Outlets: outlets);
+                }).ToArray();
                 foreach (var setup in original.cylinderSetups)
                     foreach (var leaf in new[] { setup.frontParticlesParent, setup.rearParticlesParent }) MovePrimary(leaf);
-                foreach (var setup in reader.cylinderSetups)
-                    foreach (var leaf in new[] { setup.frontParticlesParent, setup.rearParticlesParent }) MoveCopy(leaf);
-                controller.entries = controller.entries.Append(reader).ToArray();
-                initialized = true; reader.Init(flow);
-                foreach (var definition in outletDefinitions)
+                foreach (var plan in plans)
                 {
-                    var source = definition.Source;
-                    bool crack = source.particleUpdaters.Any(p => p.portId == main.cylinderCrackFlowNormalizedReadOut.id);
-                    var parent = Copy(definition.Template.gameObject, controller.transform, crack ? "rear cylinder crack" : "rear cylinder water drip"); copies.Add(parent);
-                    parent.transform.position = source.particlesParent.transform.position; parent.transform.rotation = source.particlesParent.transform.rotation;
-                    MovePrimary(source.particlesParent); MoveCopy(parent);
-                    var outlet = new ParticlesPortReadersController.ParticlePortReader
+                    var secondary = plan.Secondary; var engine = secondary.Engine;
+                    // A live primary's speed/size/emission may already be modulated.
+                    // Each extra reader must capture authored particle baselines.
+                    var root = Copy(template.gameObject, controller.transform, secondary.Name + " cylinder-cock particles"); copies.Add(root);
+                    root.transform.position = original.transform.position; root.transform.rotation = original.transform.rotation;
+                    var reader = root.GetComponent<CylinderCockParticlePortReader>();
+                    reader.crankRotationPortId = engine.crankRotationReadOut.id;
+                    reader.cylindersInletValveOpenPortId = engine.cylindersInletValveOpen.id;
+                    reader.cylinderCockFlowNormalizedPortId = engine.cylinderCockFlowNormalizedReadOut.id;
+                    RequirePorts(flow, reader.crankRotationPortId, reader.reverserPortId,
+                        reader.cylindersInletValveOpenPortId, reader.cylinderCockFlowNormalizedPortId, reader.forwardSpeedPortId);
+                    foreach (var setup in reader.cylinderSetups)
+                        foreach (var leaf in new[] { setup.frontParticlesParent, setup.rearParticlesParent }) MoveCopy(leaf, secondary);
+                    controller.entries = controller.entries.Append(reader).ToArray();
+                    readers.Add(reader); initialized = true; reader.Init(flow);
+                    foreach (var definition in plan.Outlets)
                     {
-                        particlesParent = parent,
-                        particlesPortReader = controller,
-                        particleUpdaters = definition.Updaters
-                    };
-                    engineOutlets.Add(outlet); controller.particlePortReaders.Add(outlet); outlet.Init();
-                    foreach (var updater in outlet.particleUpdaters) updater.Init(outlet, flow);
-                }
-                var smoke = controller.entries.OfType<SteamSmokeParticlePortReader>().FirstOrDefault(r => r.chuffEventPortId == main.chuffEventReadOut.id);
-                if (smoke != null && SmokeChuff != null)
-                {
-                    var pulse = AccessTools.MethodDelegate<Action<float>>(SmokeChuff, smoke);
-                    smokeEvents = rear.chuffEventReadOut;
-                    // Both exhaust groups share one native chimney. Retain its
-                    // main pressure response; gate the extra pulse by rear
-                    // pressure. Never add numeric event indices or duplicate fire.
-                    smokeCallback = value => { if (rear.exhaustPressureReadOut.Value > 1f) pulse(value); };
-                    smokeEvents.ValueUpdatedInternally += smokeCallback;
+                        var source = definition.Source;
+                        bool crack = source.particleUpdaters.Any(p => p.portId == main.cylinderCrackFlowNormalizedReadOut.id);
+                        var parent = Copy(definition.Template.gameObject, controller.transform,
+                            secondary.Name + (crack ? " cylinder crack" : " cylinder water drip")); copies.Add(parent);
+                        parent.transform.position = source.particlesParent.transform.position; parent.transform.rotation = source.particlesParent.transform.rotation;
+                        MovePrimary(source.particlesParent); MoveCopy(parent, secondary);
+                        var outlet = new ParticlesPortReadersController.ParticlePortReader
+                        {
+                            particlesParent = parent,
+                            particlesPortReader = controller,
+                            particleUpdaters = definition.Updaters
+                        };
+                        engineOutlets.Add(outlet); controller.particlePortReaders.Add(outlet); outlet.Init();
+                        foreach (var updater in outlet.particleUpdaters) updater.Init(outlet, flow);
+                    }
+                    var smokeReader = controller.entries.OfType<SteamSmokeParticlePortReader>().FirstOrDefault(r => r.chuffEventPortId == main.chuffEventReadOut.id);
+                    if (smokeReader != null && SmokeChuff != null)
+                    {
+                        var pulse = AccessTools.MethodDelegate<Action<float>>(SmokeChuff, smokeReader);
+                        // All exhaust groups share one native chimney. Retain its
+                        // main pressure response; gate each extra pulse by that
+                        // engine's pressure. Never add numeric event indices.
+                        Action<float> callback = value => { if (engine.exhaustPressureReadOut.Value > 1f) pulse(value); };
+                        engine.chuffEventReadOut.ValueUpdatedInternally += callback;
+                        smoke.Add((engine.chuffEventReadOut, callback));
+                    }
                 }
             }
 
@@ -410,13 +447,13 @@ namespace RearrangedS282
                 leaf.transform.localPosition = owner.FrontOutletLocal(world, leaf.transform.localPosition);
             }
 
-            private void MoveCopy(GameObject leaf)
+            private void MoveCopy(GameObject leaf, Secondary secondary)
             {
                 if (leaf == null) return;
                 Vector3 position = owner.Car.transform.InverseTransformPoint(leaf.transform.position);
                 Quaternion rotation = leaf.transform.rotation;
-                leaf.transform.SetParent(owner.Rear, false);
-                leaf.transform.localPosition = owner.RearOutletLocal(position);
+                leaf.transform.SetParent(secondary.Root, false);
+                leaf.transform.localPosition = owner.SecondaryOutletLocal(position, secondary);
                 leaf.transform.rotation = rotation;
                 if (leaf.GetComponent<ArticulatedEffectMarker>() == null) leaf.AddComponent<ArticulatedEffectMarker>();
                 if (!copies.Contains(leaf)) copies.Add(leaf);
@@ -430,10 +467,11 @@ namespace RearrangedS282
 
             internal void Remove()
             {
-                if (smokeEvents != null && smokeCallback != null) smokeEvents.ValueUpdatedInternally -= smokeCallback;
-                smokeEvents = null; smokeCallback = null;
-                if (reader != null && initialized) Safe(reader.Deinit);
-                if (reader != null && controller != null) controller.entries = controller.entries.Where(r => r != reader).ToArray();
+                foreach (var (events, callback) in smoke) events.ValueUpdatedInternally -= callback;
+                smoke.Clear();
+                if (initialized) foreach (var reader in readers) Safe(reader.Deinit);
+                if (controller != null) controller.entries = controller.entries.Where(r => !readers.Any(x => ReferenceEquals(x, r))).ToArray();
+                readers.Clear();
                 foreach (var outlet in engineOutlets)
                 {
                     foreach (var updater in outlet.particleUpdaters) Safe(() => updater.Deinit(flow));
@@ -442,7 +480,7 @@ namespace RearrangedS282
                 engineOutlets.Clear();
                 foreach (var pose in primaryLeaves) Safe(pose.Restore); primaryLeaves.Clear();
                 foreach (var copy in copies) Safe(() => DestroyCopy(copy)); copies.Clear();
-                reader = null; initialized = false;
+                initialized = false;
             }
         }
 

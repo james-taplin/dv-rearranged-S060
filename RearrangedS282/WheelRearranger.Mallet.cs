@@ -28,18 +28,31 @@ namespace RearrangedS282
 
         private readonly List<Transform> malletAssets = new List<Transform>();
         private Transform malletRearL, malletRearR;
-        private bool malletActive;
         private MalletLayout mallet;
+        // Body-frame map of each scaled engine while the Mallet or triplex is
+        // active: 0 front, 1 rear, 2 middle. Null for every other arrangement.
+        private Matrix4x4[] scaledEngineMaps;
 
         private sealed class MalletLayout
         {
             internal float FrontOffset, RearOffset, FrontLastDriver, RearCylinderFront, RearLastDriver, Radius, PinZ, TrailingZ, FirstDriverShift;
-            internal Matrix4x4 Front => Map(FrontOffset);
-            internal Matrix4x4 Rear => Map(RearOffset);
-            // Body-frame mapping of one engine: native drive coordinates scaled in
-            // Y/Z about the rail-level origin, then moved along the track axis.
-            private static Matrix4x4 Map(float offset) =>
-                Matrix4x4.TRS(new Vector3(0f, 0f, offset), Quaternion.identity, new Vector3(1f, MalletScale, MalletScale));
+            internal Matrix4x4 Front => EngineMap(FrontOffset, MalletScale);
+            internal Matrix4x4 Rear => EngineMap(RearOffset, MalletScale);
+        }
+
+        // Body-frame mapping of one engine: native drive coordinates scaled in
+        // Y/Z about the rail-level origin, then moved along the track axis.
+        private static Matrix4x4 EngineMap(float offset, float scale) =>
+            Matrix4x4.TRS(new Vector3(0f, 0f, offset), Quaternion.identity, new Vector3(1f, scale, scale));
+
+        // Front face of the native cylinders in the body frame.
+        private float MeasureNativeCylinderFront()
+        {
+            var body = MalletBody;
+            var bounds = lfCylinder.GetComponent<MeshFilter>().sharedMesh.bounds;
+            return Mathf.Max(
+                body.InverseTransformPoint(lfCylinder.TransformPoint(new Vector3(bounds.center.x, bounds.center.y, bounds.max.z))).z,
+                body.InverseTransformPoint(lfCylinder.TransformPoint(new Vector3(bounds.center.x, bounds.center.y, bounds.min.z))).z);
         }
 
         private Transform MalletBody => articulatedFrontFrame.parent;
@@ -48,11 +61,7 @@ namespace RearrangedS282
         // prepared native geometry rather than hard-coded LMS coordinates.
         private MalletLayout MeasureMallet()
         {
-            var body = MalletBody;
-            var bounds = lfCylinder.GetComponent<MeshFilter>().sharedMesh.bounds;
-            float cylinderFront = Mathf.Max(
-                body.InverseTransformPoint(lfCylinder.TransformPoint(new Vector3(bounds.center.x, bounds.center.y, bounds.max.z))).z,
-                body.InverseTransformPoint(lfCylinder.TransformPoint(new Vector3(bounds.center.x, bounds.center.y, bounds.min.z))).z);
+            float cylinderFront = MeasureNativeCylinderFront();
             float d2 = secondLeftDriveWheel.localPosition.z, d3 = thirdLeftDriveWheel.localPosition.z;
             float s = MalletScale;
             var layout = new MalletLayout { Radius = s * secondLeftDriveWheel.localPosition.y,
@@ -104,7 +113,7 @@ namespace RearrangedS282
             malletRearL.localPosition = malletRearR.localPosition = new Vector3(0f, 0f, mallet.RearOffset);
             malletRearL.localScale = new Vector3(-1f, s, s); malletRearR.localScale = new Vector3(1f, s, s);
             malletRearL.gameObject.SetActive(true); malletRearR.gameObject.SetActive(true);
-            malletActive = true;
+            scaledEngineMaps = new[] { mallet.Front, mallet.Rear };
             BindMalletAnimation();
             BindMalletBrakeHeat();
 
@@ -160,9 +169,9 @@ namespace RearrangedS282
             var created = new List<Transform>();
             try
             {
-                malletRearL = CloneMalletDrive(driveL, lfAnimator, "[Rearranged Mallet rear drivetrain L]");
+                malletRearL = CloneEngineDrive(driveL, lfAnimator, "[Rearranged Mallet rear drivetrain L]", articulatedRearRoot, d => ConfigureMalletDrive(d, true));
                 created.Add(malletRearL);
-                malletRearR = CloneMalletDrive(driveR, rfAnimator, "[Rearranged Mallet rear drivetrain R]");
+                malletRearR = CloneEngineDrive(driveR, rfAnimator, "[Rearranged Mallet rear drivetrain R]", articulatedRearRoot, d => ConfigureMalletDrive(d, true));
                 created.Add(malletRearR);
                 foreach (var source in MalletStaticParts())
                 {
@@ -184,16 +193,16 @@ namespace RearrangedS282
             }
         }
 
-        private Transform CloneMalletDrive(Transform source, Animator sourceAnimator, string name)
+        private Transform CloneEngineDrive(Transform source, Animator sourceAnimator, string name, Transform parent, Action<Transform> configure)
         {
-            var clone = Object.Instantiate(source.gameObject, articulatedRearRoot).transform;
+            var clone = Object.Instantiate(source.gameObject, parent).transform;
             clone.name = name;
             clone.gameObject.SetActive(false);
             // Presentation only: copied oil providers/port readers must not create
             // duplicate native circuits. The native Animator itself is retained.
             foreach (var behaviour in clone.GetComponentsInChildren<MonoBehaviour>(true))
             { behaviour.enabled = false; Object.Destroy(behaviour); }
-            ConfigureMalletDrive(clone, true);
+            configure(clone);
             var mirror = clone.gameObject.AddComponent<MalletAnimatorMirror>();
             mirror.Source = sourceAnimator; mirror.Target = clone.GetComponent<Animator>();
             return clone;
@@ -242,35 +251,39 @@ namespace RearrangedS282
                     if (child.name.EndsWith("LOD1", StringComparison.Ordinal)) child.gameObject.SetActive(false);
         }
 
-        private void BindMalletAnimation()
+        private void BindMalletAnimation() => BindScaledEngineAnimation(malletRearL, malletRearR);
+
+        // Adds cloned engines (alternating left, right) to the native wheel
+        // animation, with the same per-side start offsets as the front engine.
+        private void BindScaledEngineAnimation(params Transform[] clones)
         {
             articulatedRotation = loco.GetComponentsInChildren<PoweredWheelRotationViaAnimation>(true)
                 .FirstOrDefault(r => r.animatorSetups != null && r.animatorSetups.Any(s => s.animator == lfAnimator));
             if (articulatedRotation == null) throw new InvalidOperationException("Native S282 wheel animation controller was not found.");
             articulatedOriginalAnimators = articulatedRotation.animatorSetups;
             float Offset(Animator a) => articulatedOriginalAnimators.First(s => s.animator == a).startTimeOffset;
-            var rearLeft = malletRearL.GetComponent<Animator>(); var rearRight = malletRearR.GetComponent<Animator>();
-            articulatedRotation.animatorSetups = articulatedOriginalAnimators.Concat(new[] {
-                new PoweredWheelRotationViaAnimation.AnimatorStartTimeOffsetPair {animator=rearLeft, startTimeOffset=Offset(lfAnimator)},
-                new PoweredWheelRotationViaAnimation.AnimatorStartTimeOffsetPair {animator=rearRight, startTimeOffset=Offset(rfAnimator)}
-            }).ToArray();
-            // Both engines share the native crank phase, as on the 2-4-4-2.
-            foreach (var pair in new[] { (lfAnimator, rearLeft), (rfAnimator, rearRight) })
+            var pairs = clones.Select((clone, i) => (source: i % 2 == 0 ? lfAnimator : rfAnimator, target: clone.GetComponent<Animator>())).ToArray();
+            articulatedRotation.animatorSetups = articulatedOriginalAnimators.Concat(pairs.Select(p =>
+                new PoweredWheelRotationViaAnimation.AnimatorStartTimeOffsetPair {animator=p.target, startTimeOffset=Offset(p.source)})).ToArray();
+            // Every engine shares the native crank phase, as on the 2-4-4-2.
+            foreach (var pair in pairs)
             {
-                var state = pair.Item1.GetCurrentAnimatorStateInfo(0);
-                pair.Item2.Play(state.shortNameHash, 0, state.normalizedTime % 1f);
+                var state = pair.source.GetCurrentAnimatorStateInfo(0);
+                pair.target.Play(state.shortNameHash, 0, state.normalizedTime % 1f);
             }
         }
 
-        private void BindMalletBrakeHeat()
+        private void BindMalletBrakeHeat() => BindEngineBrakeHeat(new[] { malletRearL, malletRearR }, 1, 2, 3);
+
+        private void BindEngineBrakeHeat(Transform[] drives, params int[] shoes)
         {
             var controller = GetComponent<BrakesOverheatingController>();
             if (controller == null) return;
             var original = controller.brakeRenderers;
-            var rearShoes = new[] { malletRearL, malletRearR }.SelectMany(d => Enumerable.Range(1, 3)
+            var added = drives.SelectMany(d => shoes
                 .Select(i => RequireArticulatedPart(d, "s282a_brake_shoes(Clone)/s282a_brake_shoe_" + i).GetComponent<MeshRenderer>()));
             restoreArticulatedBrakeRenderers = () => { if (controller != null) controller.brakeRenderers = original; };
-            controller.brakeRenderers = original.Concat(rearShoes).Distinct().ToArray();
+            controller.brakeRenderers = original.Concat(added).Distinct().ToArray();
         }
 
         private void UpdateMalletSparks()
@@ -291,18 +304,18 @@ namespace RearrangedS282
         }
 
         // Cylinder-cock, drip and crack outlets follow the scaled engines.
-        internal bool TryMapArticulatedOutlet(Vector3 nativeWorld, bool rear, out Vector3 engineLocal)
+        internal bool TryMapArticulatedOutlet(Vector3 nativeWorld, int engine, out Vector3 engineLocal)
         {
             engineLocal = default;
-            if (!malletActive || mallet == null || articulatedFrontFrame == null) return false;
-            var native = MalletBody.InverseTransformPoint(nativeWorld);
-            engineLocal = (rear ? mallet.Rear : mallet.Front).MultiplyPoint3x4(native);
+            if (scaledEngineMaps == null || engine < 0 || engine >= scaledEngineMaps.Length || articulatedFrontFrame == null) return false;
+            engineLocal = scaledEngineMaps[engine].MultiplyPoint3x4(MalletBody.InverseTransformPoint(nativeWorld));
             return true;
         }
 
         private void SuspendMalletGeometry()
         {
-            malletActive = false;
+            scaledEngineMaps = null;
+            SuspendTriplexGeometry();
             foreach (var asset in malletAssets) if (asset != null) asset.gameObject.SetActive(false);
             if (malletRearL != null) malletRearL.gameObject.SetActive(false);
             if (malletRearR != null) malletRearR.gameObject.SetActive(false);

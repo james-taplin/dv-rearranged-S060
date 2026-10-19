@@ -1,3 +1,31 @@
+Rearranged S282 B99 - 1.6.0 Triplex trial
+
+NEW IN 1.6.0: 2-2-2-2-2 ARTICULATED TRIPLEX (radio ID 38)
+Three single-driver engines. Each is a uniformly scaled copy of the native S282
+drivetrain and cylinders showing only its main-rod driver, with main rod,
+crosshead and valve gear but no coupling rods. To fit three engines plus leading
+and trailing trucks, the scale is about 0.53 (roughly 0.75 m drivers); the
+exact layout is logged as "Articulated S282 2-2-2-2-2: ...".
+Front engine swings on the usual pin/aim constraints, its hinge carried by the
+middle engine. The middle engine pivots ahead of the rear cylinders and turns
+about 40% of the front bogie angle (visual only). Rear engine boiler-fixed.
+Every S282 now carries a dormant third steam engine in its simulation. Old
+saves load with an empty, uncracked state for it. The triplex runs main + rear
++ middle (each extra engine the same size as the duplex rear engine).
+Middle-engine chuff, cylinder-cock audio and particles are added.
+
+PRIORITY TESTS FOR 1.6.0
+1. Load an existing save with S282s: no errors, stock and other layouts behave
+   as before (the dormant middle engine must add nothing).
+2. Select 2-2-2-2-2 on a stationary S282: three drivers, three cylinder pairs,
+   main rods and valve gear moving on all three engines.
+3. Curves: front swings most, middle a little, rear fixed. Check clipping
+   between engines.
+4. Full regulator: slip, sparks on three axles, chuffs and cocks from all three.
+5. Switch back to stock and to the 2-6-6-2/2-4-4-2: nothing left over.
+   Save/reload with the triplex selected.
+6. Structural test now covers 39 layouts.
+
 Rearranged S282 B99 - 1.5.1 Mallet trial
 
 NEW IN 1.5.1 (articulated LOD fix + diagnostics)

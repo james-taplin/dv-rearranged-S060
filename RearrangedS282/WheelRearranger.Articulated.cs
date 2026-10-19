@@ -41,6 +41,8 @@ namespace RearrangedS282
         // Particles/audio can preserve their native world pose when attached.
         internal Transform ArticulatedFrontRoot => articulatedFrontRoot;
         internal Transform ArticulatedRearRoot => articulatedRearRoot;
+        // Triplex only: the swinging middle engine. Null for other arrangements.
+        internal Transform ArticulatedMiddleRoot => articulatedMiddleRoot != null && articulatedMiddleRoot.gameObject.activeInHierarchy ? articulatedMiddleRoot : null;
         internal bool ArticulatedGeometryActive => articulatedFrontFrame != null &&
             articulatedFrontFrame.gameObject.activeInHierarchy && articulatedPosition != null &&
             articulatedPosition.constraintActive && articulatedAim != null && articulatedAim.constraintActive &&
@@ -314,12 +316,15 @@ namespace RearrangedS282
                 ": native pin/aim constraints; four physical powered axles retained in two native bogies.");
         }
 
-        private void AlignNativeAxle(Transform axle, Transform wheel, bool front)
+        private void AlignNativeAxle(Transform axle, Transform wheel, bool front) =>
+            AlignNativeAxle(axle, wheel, front ? articulatedFrontRoot : articulatedRearRoot);
+
+        private void AlignNativeAxle(Transform axle, Transform wheel, Transform engineRoot)
         {
             axle.position = wheel.position;
             var powered = axle.GetComponent<PoweredWheel>();
             if (powered == null) throw new InvalidOperationException("Native articulated powered axle is missing its component.");
-            var anchor = NewArticulatedRoot("[powered axle anchor]", front ? articulatedFrontRoot : articulatedRearRoot);
+            var anchor = NewArticulatedRoot("[powered axle anchor]", engineRoot);
             anchor.position = wheel.position;
             anchor.rotation = transform.rotation;
             articulatedPoweredAnchors.Add(new PoweredAnchorState {wheel=powered, original=powered.wheelTransform, generated=anchor});
@@ -420,23 +425,38 @@ namespace RearrangedS282
                     // LMS frame_* is the main bar frame (z -1.67..6.48) which spans
                     // the pin. subframe_* is only the firebox section behind it
                     // (z -4.29..-1.60), so it stays boiler-fixed and uncut.
+                    // Cut front to back: one cut per pin, one piece per engine. The
+                    // triplex adds its middle hinge as a second cut.
+                    var pins=new List<Vector3> {worldPin};
+                    var owners=new List<(Transform root,string label)> {(articulatedFrontRoot,"front")};
+                    if(id==ArticulatedSimulation.TriplexId && triplex!=null)
+                    { pins.Add(articulatedFrontFrame.parent.TransformPoint(new Vector3(0f,0f,triplex.MiddlePinZ))); owners.Add((articulatedMiddleRoot,"middle")); }
+                    owners.Add((articulatedRearRoot,"rear"));
                     foreach(string name in ArticulatedSplitFrames)
                     {
                         var source=RequireArticulatedPart(splitLoco,name);
                         var mesh=source.GetComponent<MeshFilter>().sharedMesh;
-                        var point=source.InverseTransformPoint(worldPin);
                         var normal=source.localToWorldMatrix.transpose.MultiplyVector(transform.forward).normalized;
-                        foreach(bool front in new[] {true,false})
+                        var remaining=mesh;
+                        for(int piece=0;piece<owners.Count;piece++)
                         {
-                            var split=ArticulatedFrameClipper.Clip(mesh,point,normal,front);
-                            articulatedMeshes.Add(split);
-                            if(split.triangles.Length==0)
-                                throw new InvalidOperationException("S282 frame does not span its measured articulation pin: "+name+
-                                    " (local pin "+point.ToString("F3")+", mesh bounds "+mesh.bounds.min.ToString("F3")+".."+mesh.bounds.max.ToString("F3")+")");
+                            Mesh split;
+                            if(piece<pins.Count)
+                            {
+                                var point=source.InverseTransformPoint(pins[piece]);
+                                split=ArticulatedFrameClipper.Clip(remaining,point,normal,true);
+                                var rest=ArticulatedFrameClipper.Clip(remaining,point,normal,false);
+                                articulatedMeshes.Add(split); articulatedMeshes.Add(rest);
+                                if(split.triangles.Length==0 || rest.triangles.Length==0)
+                                    throw new InvalidOperationException("S282 frame does not span its measured articulation pin: "+name+
+                                        " (local pin "+point.ToString("F3")+", mesh bounds "+mesh.bounds.min.ToString("F3")+".."+mesh.bounds.max.ToString("F3")+")");
+                                remaining=rest;
+                            }
+                            else split=remaining;
                             var part=Object.Instantiate(source.gameObject,source.parent).transform;
-                            part.name="[Rearranged "+(front?"front":"rear")+" frame "+id+"] "+name;
+                            part.name="[Rearranged "+owners[piece].label+" frame "+id+"] "+name;
                             part.GetComponent<MeshFilter>().sharedMesh=split;
-                            part.SetParent(front?articulatedFrontRoot:articulatedRearRoot,true);
+                            part.SetParent(owners[piece].root,true);
                             parts.Add(part); articulatedAssets.Add(part);
                         }
                     }
@@ -521,6 +541,7 @@ namespace RearrangedS282
             var coarse=new HashSet<Renderer>(groups.SelectMany(g=>g.lods.Skip(1).SelectMany(l=>l.renderers)).Where(r=>r!=null));
             coarse.ExceptWith(groups.SelectMany(g=>g.lods[0].renderers).Where(r=>r!=null));
             var extras=articulatedFrontRoot.GetComponentsInChildren<Renderer>(true).Concat(articulatedRearRoot.GetComponentsInChildren<Renderer>(true))
+                .Concat(articulatedMiddleRoot!=null ? articulatedMiddleRoot.GetComponentsInChildren<Renderer>(true) : Array.Empty<Renderer>())
                 .Where(r=>r!=null && !(r is ParticleSystemRenderer) && r.gameObject.activeInHierarchy && r.enabled && !coarse.Contains(r)).Distinct().ToArray();
             foreach(var r in extras)
                 if(!owner.ContainsKey(r)) owner[r]=r.GetComponentsInParent<LODGroup>(true).FirstOrDefault(g=>groups.Any(x=>x.group==g)) ?? bodyGroup;

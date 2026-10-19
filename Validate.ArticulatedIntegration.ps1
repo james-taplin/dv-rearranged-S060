@@ -62,7 +62,7 @@ try {
         }
     }
     $catalogue = TypeOf $candidate 'RearrangedS282.WheelArrangement'
-    Check (($catalogue.Fields | Where-Object Name -EQ 'SupportedCount').Constant -eq 38) 'Compiled catalogue contains 33 normal conventional, three articulated (incl. 2-6-6-2), the zero-driver novelty and the giant-driver prototype'
+    Check (($catalogue.Fields | Where-Object Name -EQ 'SupportedCount').Constant -eq 39) 'Compiled catalogue contains 33 normal conventional, four articulated (incl. 2-6-6-2 and 2-2-2-2-2), the zero-driver novelty and the giant-driver prototype'
     $oldEnum = TypeOf $baseline 'RearrangedS282.WheelArrangementType'
     $newEnum = TypeOf $candidate 'RearrangedS282.WheelArrangementType'
     $oldIds = @($oldEnum.Fields | Where-Object HasConstant)
@@ -71,12 +71,12 @@ try {
         $newId = @($newEnum.Fields | Where-Object Name -CEQ $oldId.Name)
         Check ($newId.Count -eq 1 -and $newId[0].Constant -eq $oldId.Constant) ("Saved arrangement ID remains unchanged: $($oldId.Name)=$($oldId.Constant)")
     }
-    foreach ($addedId in @(@('s260',34),@('s240',35),@('s222',36),@('s2662',37))) {
+    foreach ($addedId in @(@('s260',34),@('s240',35),@('s222',36),@('s2662',37),@('s22222',38))) {
         Check (($newEnum.Fields | Where-Object Name -CEQ $addedId[0]).Constant -eq $addedId[1]) ("New arrangement appends its stable ID: $($addedId[0])=$($addedId[1])")
     }
     $compiledNames = @((MethodOf $catalogue '.cctor').Body.Instructions | Where-Object { $_.OpCode.Name -eq 'ldstr' } | ForEach-Object Operand)
-    Check ($compiledNames.Count -eq 38) 'Compiled name table contains exactly 38 arrangements'
-    foreach ($entry in @(@(34,'2-6-0 Mogul'),@(35,'2-4-0'),@(36,'2-2-2 Giant-driver clearance prototype'),@(37,'2-6-6-2 Articulated Mallet'))) {
+    Check ($compiledNames.Count -eq 39) 'Compiled name table contains exactly 39 arrangements'
+    foreach ($entry in @(@(34,'2-6-0 Mogul'),@(35,'2-4-0'),@(36,'2-2-2 Giant-driver clearance prototype'),@(37,'2-6-6-2 Articulated Mallet'),@(38,'2-2-2-2-2 Articulated Triplex'))) {
         Check ($compiledNames[$entry[0]] -ceq $entry[1]) ("New catalogue name remains parseable at ID $($entry[0]): $($entry[1])")
     }
     Check ($null -ne (TypeOf $candidate 'RearrangedS282.B99ExplosionMaterials')) 'Added gear integrates with native explosion material swaps'
@@ -96,6 +96,9 @@ try {
     Check ($null -ne (MethodOf $wheel 'ApplyMalletGeometry') -and $switchOps.Contains('ApplyMalletGeometry(')) 'Conventional switch routes the 2-6-6-2 to its Mallet geometry'
     Check ($switchOps.IndexOf('ApplyMalletGeometry(') -lt $switchOps.IndexOf('B99PhysicsState::Apply(')) 'Mallet axles align before native physics registers the selected axle list'
     Check ((MethodBody (MethodOf $wheel 'SuspendArticulatedGeometry')).Contains('SuspendMalletGeometry(')) 'Articulated suspension also hides Mallet rear assets'
+    Check ($null -ne (MethodOf $wheel 'ApplyTriplexGeometry') -and $switchOps.Contains('ApplyTriplexGeometry(')) 'Conventional switch routes the 2-2-2-2-2 to its triplex geometry'
+    Check ($switchOps.IndexOf('ApplyTriplexGeometry(') -lt $switchOps.IndexOf('B99PhysicsState::Apply(')) 'Triplex axles align before native physics registers the selected axle list'
+    Check ((MethodBody (MethodOf $wheel 'SuspendMalletGeometry')).Contains('SuspendTriplexGeometry(')) 'Articulated suspension also hides triplex middle/rear assets and constraints'
     foreach ($transitionName in @('TrySwitchConventional','RestoreConventionalStock')) {
         $ops = MethodBody (MethodOf $wheel $transitionName)
         Check ($ops.IndexOf('SuspendAdditionalGeometry(') -ge 0 -and $ops.IndexOf('SuspendAdditionalGeometry(') -lt $ops.IndexOf('GeometryState::Restore(')) ("Lazy prototype renderers are suspended before geometry restoration: $transitionName")

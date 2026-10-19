@@ -22,6 +22,9 @@ namespace RearrangedS282
     {
         internal const string MainEngineId = "steamEngine";
         internal const string RearEngineId = "rearrangedRearSteamEngine";
+        // Third engine for the triplex. Present (dormant) on every S282 graph so
+        // that arrangement can be selected without rebuilding the native flow.
+        internal const string MiddleEngineId = "rearrangedMiddleSteamEngine";
         private const string TorqueId = "rearrangedEngineTorque";
         private const string ExhaustId = "rearrangedEngineExhaust";
         private const string IntakeId = "rearrangedEngineIntake";
@@ -32,18 +35,21 @@ namespace RearrangedS282
         private SimConnectionDefinition originalGraph, ownedGraph;
         private GameObject definitions;
         private string[] originalDamagers, originalHealth;
-        private ArticulatedRearEngine rear;
+        private ArticulatedRearEngine rear, middle;
         private Port torqueSum, exhaustSum, intakeSum;
         private string failure;
 
         internal bool IsActive => rear != null && rear.Active;
         internal ReciprocatingSteamEngine MainEngine { get; private set; }
         internal ReciprocatingSteamEngine RearEngine => rear;
+        internal ReciprocatingSteamEngine MiddleEngine => middle;
+        internal bool IsMiddleActive => middle != null && middle.Active;
         internal SimulationFlow Flow { get; private set; }
         internal float RearCapacityFraction { get; private set; }
 
         // Matches WheelArrangement.IsArticulatedId; kept literal so the graph probe compiles alone.
-        internal static bool IsDuplexId(int id) => id == 31 || id == 32 || id == 37;
+        internal static bool IsDuplexId(int id) => id == 31 || id == 32 || id == 37 || id == TriplexId;
+        internal const int TriplexId = 38;
 
         internal static void Register(Harmony harmony)
         {
@@ -90,7 +96,7 @@ namespace RearrangedS282
             if (!IsS282(car)) throw new InvalidOperationException("Articulated simulation supports the S282 only.");
             var owner = car.GetComponent<ArticulatedSimulation>();
             if (owner == null || owner.Flow == null || owner.Flow != car.SimController?.simFlow ||
-                owner.MainEngine == null || owner.rear == null || owner.failure != null)
+                owner.MainEngine == null || owner.rear == null || owner.middle == null || owner.failure != null)
                 throw new InvalidOperationException("The S282's articulated native simulation is not ready. " +
                     (owner?.failure ?? "This car initialized before the articulated simulation patch.") +
                     " Reload the save or respawn this car before selecting an articulated arrangement.");
@@ -103,7 +109,7 @@ namespace RearrangedS282
             if (Flow != null) Owners.Remove(Flow);
             Flow = null;
             MainEngine = null;
-            rear = null;
+            rear = middle = null;
             failure = null;
             if (ownedGraph != null && sim == controller && sim.connectionsDefinition == ownedGraph) return;
             RollBackPreparation();
@@ -115,7 +121,7 @@ namespace RearrangedS282
             var order = originalGraph.executionOrder;
             Require(order != null && order.All(c => c != null), "Native S282 execution order contains a missing component.");
             Require(order.Select(c => c.ID).Distinct().Count() == order.Length, "Native S282 component IDs are duplicated.");
-            Require(!order.Any(c => c.ID.StartsWith("rearrangedEngine", StringComparison.Ordinal) || c.ID == RearEngineId),
+            Require(!order.Any(c => c.ID.StartsWith("rearrangedEngine", StringComparison.Ordinal) || c.ID == RearEngineId || c.ID == MiddleEngineId),
                 "Another articulated engine graph already exists.");
             var main = order.OfType<ReciprocatingSteamEngineDefinition>().Single(c => c.ID == MainEngineId);
             Require(main.numCylinders == 2 && Positive(main.cylinderBore) && Positive(main.pistonStroke) &&
@@ -151,6 +157,12 @@ namespace RearrangedS282
             aux.cylinderBore = main.cylinderBore * Mathf.Sqrt(RearCapacityFraction);
             aux.steamChestVolume = main.steamChestVolume * RearCapacityFraction;
             aux.throttleMaxFlow = main.throttleMaxFlow * RearCapacityFraction;
+            // The triplex middle engine is an identical second auxiliary pair.
+            var auxMiddle = definitions.AddComponent<ArticulatedRearEngineDefinition>();
+            foreach (var field in typeof(ReciprocatingSteamEngineDefinition).GetFields(BindingFlags.Instance | BindingFlags.Public))
+                if (!field.IsInitOnly && (field.FieldType == typeof(float) || field.FieldType == typeof(int)))
+                    field.SetValue(auxMiddle, field.GetValue(aux));
+            auxMiddle.ID = MiddleEngineId;
             // Physical rear cylinders retain native lubrication, condensate,
             // cracking and damage. L74's virtual-assist damage suppression does
             // not apply to this second physical pair.
@@ -164,7 +176,8 @@ namespace RearrangedS282
             var originalMainReferences = refs.Where(c => c.portReferenceId.StartsWith(MainEngineId + ".", StringComparison.Ordinal)).ToArray();
             Require(originalMainReferences.Length == 8, "Native S282 steam-engine reference wiring has changed.");
             foreach (var reference in originalMainReferences)
-                refs.Add(new PortReferenceConnection(RearEngineId + reference.portReferenceId.Substring(MainEngineId.Length), reference.portId));
+                foreach (var engineId in new[] { RearEngineId, MiddleEngineId })
+                    refs.Add(new PortReferenceConnection(engineId + reference.portReferenceId.Substring(MainEngineId.Length), reference.portId));
             Pair(refs, TorqueId, "TORQUE_OUT");
             Pair(refs, ExhaustId, "EXHAUST_FLOW");
             Pair(refs, IntakeId, "INTAKE_FLOW");
@@ -179,12 +192,12 @@ namespace RearrangedS282
             exhaustReference.portId = ExhaustId + ".OUT";
             // Keep exhaust.ENGINE_MAX_FLOW on the initialized native main.MAX_FLOW:
             // SteamExhaust caches it before any tick-computed sum exists (as L74).
-            var extendedOrder = new List<SimComponentDefinition>(order.Length + 4);
+            var extendedOrder = new List<SimComponentDefinition>(order.Length + 5);
             foreach (var item in order)
             {
                 if (item.ID == "steamConsumptionCalculator") extendedOrder.Add(intake);
                 extendedOrder.Add(item);
-                if (ReferenceEquals(item, main)) extendedOrder.AddRange(new SimComponentDefinition[] { aux, torque, exhaust });
+                if (ReferenceEquals(item, main)) extendedOrder.AddRange(new SimComponentDefinition[] { aux, auxMiddle, torque, exhaust });
             }
             ownedGraph.executionOrder = extendedOrder.ToArray();
             ownedGraph.connections = wires.ToArray();
@@ -194,8 +207,10 @@ namespace RearrangedS282
             Require(originalDamagers != null && originalDamagers.Contains(MainEngineId + ".GENERATED_MECHANICAL_DAMAGE") &&
                 originalHealth != null && originalHealth.Contains(MainEngineId + ".HEALTH_STATE_EXT_IN"),
                 "Native S282 engine damage/service wiring is missing.");
-            damage.mechanicalPTDamagerPortIds = originalDamagers.Concat(new[] { RearEngineId + ".GENERATED_MECHANICAL_DAMAGE" }).ToArray();
-            damage.mechanicalPTHealthStateExternalInPortIds = originalHealth.Concat(new[] { RearEngineId + ".HEALTH_STATE_EXT_IN" }).ToArray();
+            damage.mechanicalPTDamagerPortIds = originalDamagers.Concat(new[] { RearEngineId + ".GENERATED_MECHANICAL_DAMAGE",
+                MiddleEngineId + ".GENERATED_MECHANICAL_DAMAGE" }).ToArray();
+            damage.mechanicalPTHealthStateExternalInPortIds = originalHealth.Concat(new[] { RearEngineId + ".HEALTH_STATE_EXT_IN",
+                MiddleEngineId + ".HEALTH_STATE_EXT_IN" }).ToArray();
             sim.connectionsDefinition = ownedGraph;
         }
 
@@ -203,7 +218,8 @@ namespace RearrangedS282
         {
             var sum = definitions.AddComponent<MultiplePortSumDefinition>();
             sum.ID = id;
-            sum.inputs = new[] { new PortReferenceDefinition(valueType, "MAIN"), new PortReferenceDefinition(valueType, "REAR") };
+            sum.inputs = new[] { new PortReferenceDefinition(valueType, "MAIN"), new PortReferenceDefinition(valueType, "REAR"),
+                new PortReferenceDefinition(valueType, "MIDDLE") };
             sum.output = new PortDefinition(type, valueType, "OUT");
             return sum;
         }
@@ -212,6 +228,7 @@ namespace RearrangedS282
         {
             refs.Add(new PortReferenceConnection(sum + ".MAIN", MainEngineId + "." + output));
             refs.Add(new PortReferenceConnection(sum + ".REAR", RearEngineId + "." + output));
+            refs.Add(new PortReferenceConnection(sum + ".MIDDLE", MiddleEngineId + "." + output));
         }
 
         private void Bind(SimulationFlow flow)
@@ -219,6 +236,7 @@ namespace RearrangedS282
             Require(flow != null, "Native S282 flow was not initialized.");
             MainEngine = flow.OrderedSimComps.OfType<ReciprocatingSteamEngine>().Single(c => c.id == MainEngineId);
             rear = flow.OrderedSimComps.OfType<ArticulatedRearEngine>().Single(c => c.id == RearEngineId);
+            middle = flow.OrderedSimComps.OfType<ArticulatedRearEngine>().Single(c => c.id == MiddleEngineId);
             Require(flow.TryGetPort(TorqueId + ".OUT", out torqueSum) &&
                 flow.TryGetPort(ExhaustId + ".OUT", out exhaustSum) && flow.TryGetPort(IntakeId + ".OUT", out intakeSum),
                 "Native articulated aggregation ports were not constructed.");
@@ -231,20 +249,27 @@ namespace RearrangedS282
         internal void Apply(int id)
         {
             if (!IsDuplexId(id)) throw new ArgumentOutOfRangeException(nameof(id), "Only articulated arrangements use the articulated engine graph.");
-            Require(Flow != null && MainEngine != null && rear != null && failure == null,
+            Require(Flow != null && MainEngine != null && rear != null && middle != null && failure == null,
                 "The articulated S282 native simulation is not initialized.");
-            if (rear.Active) return;
-            // Both visual engine groups use the same native powered-wheel phase.
-            rear.crankRotation = MainEngine.crankRotation;
-            rear.prevCrankRotation = MainEngine.crankRotation;
-            rear.crankRotationReadOut.Value = MainEngine.crankRotationReadOut.Value;
-            rear.Active = true;
+            Activate(rear);
+            if (id == TriplexId) Activate(middle);
+        }
+
+        private void Activate(ArticulatedRearEngine engine)
+        {
+            if (engine.Active) return;
+            // Every visual engine group uses the same native powered-wheel phase.
+            engine.crankRotation = MainEngine.crankRotation;
+            engine.prevCrankRotation = MainEngine.crankRotation;
+            engine.crankRotationReadOut.Value = MainEngine.crankRotationReadOut.Value;
+            engine.Active = true;
         }
 
         internal void Restore()
         {
             if (rear == null) return;
             rear.Disable();
+            middle?.Disable();
             // Clear the last aggregate immediately, before the next native Tick.
             // All sums subsequently pass the unmodified main engine through.
             if (MainEngine == null) return;
@@ -255,11 +280,13 @@ namespace RearrangedS282
 
         private static void LoadLegacyState(SimulationFlow __instance, ref JObject savedData)
         {
-            if (savedData == null || savedData[RearEngineId] != null || !Owners.TryGetValue(__instance, out _)) return;
+            if (savedData == null || (savedData[RearEngineId] != null && savedData[MiddleEngineId] != null) ||
+                !Owners.TryGetValue(__instance, out _)) return;
             // Native RSE treats the presence of cylCracked as true, even when its
             // JSON value is false. Its correct uncracked default is an EMPTY object.
             var compatible = (JObject)savedData.DeepClone();
-            compatible[RearEngineId] = new JObject();
+            foreach (var id in new[] { RearEngineId, MiddleEngineId })
+                if (compatible[id] == null) compatible[id] = new JObject();
             savedData = compatible;
         }
 
@@ -280,7 +307,7 @@ namespace RearrangedS282
             originalDamagers = originalHealth = null;
             Flow = null;
             MainEngine = null;
-            rear = null;
+            rear = middle = null;
             torqueSum = exhaustSum = intakeSum = null;
         }
 

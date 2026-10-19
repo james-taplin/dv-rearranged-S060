@@ -78,6 +78,9 @@ path, not the articulated one.
    Status 19 Oct: built and offline-validated as 1.5.0, awaiting in-game test.
 2. Phase 2 graph change first (third engine dormant on all S282s), checked by
    save/reload of old saves, then the triplex geometry.
+   Status 19 Oct: built and offline-validated as 1.6.0, not installed. Scale came
+   out ~0.53 (not the 0.6-0.7 estimated): native engines are 5.48 m from
+   cylinder front to main driver. Middle engine swings 40% of the front angle.
 3. Phase 3: 4-14-4, after the triplex is tested.
 
 ## Not in scope

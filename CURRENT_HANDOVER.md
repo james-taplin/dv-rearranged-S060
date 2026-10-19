@@ -1,3 +1,29 @@
+## 1.6.0 2-2-2-2-2 triplex built (Claude), NOT installed, 19 Oct 2026
+
+Built while James tests 1.5.1 (installed); do not install over his test.
+James also had the CR-style smoke deflectors mod moved to the Recycle Bin.
+New ID 38 = s22222 "2-2-2-2-2 Articulated Triplex" (NEW_LAYOUTS_PLAN Phase 2).
+Simulation: every S282 graph now has a dormant third engine
+rearrangedMiddleSteamEngine (copy of the rear aux definition), sums take
+MAIN/REAR/MIDDLE, damage/health IDs appended, LoadLegacyState adds empty
+rear AND middle state when missing. Apply(38) activates rear+middle; other
+articulated IDs activate rear only. IsDuplexId literal 31/32/37/38.
+Effects: bindings now hold one copy per secondary engine (rear, plus middle
+when active); outlets via TryMapArticulatedOutlet(world, engineIndex 0/1/2).
+Geometry (WheelRearranger.Triplex.cs): MeasureTriplex picks the largest scale
+fitting 3 engines (cylinder front -> main driver d3 = 5.48 m native) between the
+front cylinders advanced 0.5 m and the 12-coupled trailing-axle position;
+~0.53 expected. Single-driver engines show d3 only (no coupling rods). Front =
+native drive; middle/rear = cloned drives + LMS static clones. Middle frame has
+its own Position/Aim constraints (aim = 0.4 Axle_F + 0.6 rest point);
+articulatedPin is reparented under the middle root so the front hinge follows.
+Frame split is now N-way (pins list). Powered axles: driveAxle1 front, 2 middle
+(both front bogie), 3 rear; 5 axles total. Powered-count formula generalised to
+sum of middle Whyte entries (TrySwitchConventional and Stage2RuntimeChecks).
+Validation: GraphProbe updated (40 checks), RandomLifecycle 1,358,
+ArticulatedIntegration 130, all other suites pass. No game run.
+DLL 9DD5FAEF86F4E83BA9EC9AA4B56CC3EE444CD6773ED13F9D013BF3E4799E9DBD.
+
 ## 1.5.1 articulated LOD fix + render report built (Claude), INSTALLED 19 Oct 2026
 
 Installed on James's go-ahead; install rebuild of the same clean source gave DLL

@@ -86,7 +86,7 @@ namespace RearrangedS282
                             throw new InvalidOperationException("Native oilcup circuit or position binding changed.");
                         var wheels = WheelArrangement.WheelArrangementNames[id].Split(' ')[0].Split('-').Select(int.Parse).ToArray();
                         int total = wheels.Sum() / 2;
-                        int powered = WheelArrangement.IsArticulatedId(id) ? (wheels[1] + wheels[2]) / 2 : wheels[1] / 2;
+                        int powered = WheelArrangement.IsArticulatedId(id) ? wheels.Skip(1).Take(wheels.Length - 2).Sum() / 2 : wheels[1] / 2;
                         if ((int)changed["axles"] != total || (int)changed["entityAxles"] != total ||
                             (int)changed["powered"] != powered || (int)changed["poweredPort"] != powered)
                             throw new InvalidOperationException("Axle counts disagree with the selected arrangement.");
