@@ -52,6 +52,7 @@ namespace RearrangedS282
 		s02220 = 40,
 		s08880 = 41,
 		s2680 = 42,
+		s28882 = 43,
 		/*s2680,
 		s4664*/
 	}
@@ -59,16 +60,22 @@ namespace RearrangedS282
 	public static class WheelArrangement
 	{
 		// Legacy numeric IDs and name-table positions are save compatibility data.
-		// IDs 31/32/37/38/40/41/42 identify articulated conversions; ID 33 is the unpowered novelty.
+		// IDs 31/32/37/38/40-43 identify articulated conversions; ID 33 is the unpowered novelty.
 		// New conventional IDs are appended; never insert into the legacy range.
 		public static bool IsStandardId(int id) => id >= 0 && id <= (int)WheelArrangementType.s4122;
 		public static bool IsConventionalId(int id) => IsStandardId(id) ||
 			(id >= (int)WheelArrangementType.s260 && id <= (int)WheelArrangementType.s222) || id == (int)WheelArrangementType.s4144;
 		public static bool IsArticulatedId(int id) => id == (int)WheelArrangementType.s2442 || id == (int)WheelArrangementType.s4444 ||
 			id == (int)WheelArrangementType.s2662 || id == (int)WheelArrangementType.s22222 || id == (int)WheelArrangementType.s02220 ||
-			id == (int)WheelArrangementType.s08880 || id == (int)WheelArrangementType.s2680;
+			id == (int)WheelArrangementType.s08880 || id == (int)WheelArrangementType.s2680 || id == (int)WheelArrangementType.s28882;
 		public static bool IsSupportedId(int id) => IsConventionalId(id) || IsArticulatedId(id) || id == (int)WheelArrangementType.s404;
-		public const int SupportedCount = 43;
+		public const int SupportedCount = 44;
+
+		// Wheels physically on the locomotive car. The 2-8-8-8-2's third engine
+		// and trailing truck ride under the tender, a separate car.
+		public static int[] LocomotiveWheels(int id) =>
+			(id == (int)WheelArrangementType.s28882 ? "2-8-8-0" : WheelArrangementNames[id].Split(' ')[0])
+			.Split('-').Select(int.Parse).ToArray();
 
 		public static int NormalizeSavedId(int id) => IsStandardId(id) ? id : (int)WheelArrangementType.s282;
 
@@ -147,6 +154,7 @@ namespace RearrangedS282
 			"0-2-2-2-0 Articulated Triplex",
 			"0-8-8-0 Angus",
 			"2-6-8-0 Gt. Northern",
+			"2-8-8-8-2 Erie Triplex",
 			/*"2-6-8-0",
 			"4-6-6-4 Challenger"*/
 		};
@@ -196,6 +204,7 @@ namespace RearrangedS282
 			0,//"0-2-2-2-0 Articulated Triplex",
 			0,//"0-8-8-0 Angus",
 			2,//"2-6-8-0 Gt. Northern",
+			4,//"2-8-8-8-2 Erie Triplex",
 		};
 	}
 }

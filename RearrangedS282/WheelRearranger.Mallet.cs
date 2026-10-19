@@ -356,6 +356,7 @@ namespace RearrangedS282
                     break;
                 case WheelArrangementType.s08880:
                 case WheelArrangementType.s2680:
+                case WheelArrangementType.s28882:
                     yield return Make("front engine", driveL, articulatedFrontRoot, articulatedPin);
                     yield return Make("rear engine", bigMalletRearL, articulatedRearRoot, null);
                     break;
@@ -378,6 +379,7 @@ namespace RearrangedS282
         {
             scaledEngineMaps = null;
             SuspendTriplexGeometry();
+            DetachTenderEngine();
             SuspendBigMalletGeometry();
             foreach (var asset in malletAssets) if (asset != null) asset.gameObject.SetActive(false);
             if (malletRearL != null) malletRearL.gameObject.SetActive(false);

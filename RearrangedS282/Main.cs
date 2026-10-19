@@ -54,7 +54,7 @@ namespace RearrangedS282
 				stage2Harmony.CreateClassProcessor(typeof(CommsRadio_Awake_Patch)).Patch();
 				modEntry.OnGUI = entry => {
 #if B99_ALL_STANDARD
-					GUILayout.Label("43 ARRANGEMENTS — BIG MALLET TEST BUILD\n" +
+					GUILayout.Label("44 ARRANGEMENTS — ERIE TRIPLEX TEST BUILD\n" +
 						"Use Wheel Rearranger on the comms radio. Stop and close the regulator first.\n" +
 						"Selections are saved with each locomotive. Loaded arrangements wait until switching is safe.\n" +
 						"First conversion may take a few seconds to prepare rods.");

@@ -26,6 +26,7 @@ namespace RearrangedS282
         private void FixedUpdate()
         {
             var car = loco != null ? loco : GetComponent<TrainCar>();
+            TickTenderEngine(car);
             bool drag = Main.settings != null && Main.settings.curveDrag, squeal = Main.settings != null && Main.settings.curveSqueal;
             float dt = Time.fixedDeltaTime;
             if (car == null || (!drag && !squeal) || currentWA == WheelArrangementType.s282 || car.derailed ||

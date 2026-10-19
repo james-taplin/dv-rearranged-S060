@@ -85,6 +85,8 @@ namespace RearrangedS282
                     foreach (var group in rearranger.DescribeDriverGroups()) groups.Add(Group(car, bogies, up, group, weight));
                 result["groups"] = groups;
                 if (rearranger != null) result["drag"] = rearranger.CurveDragReport();
+                var tender = rearranger?.TenderEngineReport();
+                if (tender != null) result["tenderEngine"] = tender;
                 return result;
             }
             catch (Exception ex) { return new JObject { ["error"] = ex.GetType().Name + ": " + ex.Message }; }

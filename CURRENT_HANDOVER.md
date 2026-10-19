@@ -1,3 +1,44 @@
+## 1.10.0 Erie triplex 2-8-8-8-2, tender engine stage 1 (Claude), RELEASED pre-release, NOT installed, 19 Oct 2026
+
+James asked for the faithful option: the tender engine drawn on the tender car,
+with its pull applied to the tender's bogies and its grip taken from the
+tender's own weight.
+- Catalogue: s28882 = 43, "2-8-8-8-2 Erie Triplex". WheelArrangement.LocomotiveWheels
+  returns "2-8-8-0" for it (used by the Conventional and Stage2RuntimeChecks axle
+  checks). The loco half is the BigMallet path with an eight-coupled front and a
+  leading truck (scale about 0.71, UNVERIFIED).
+- Simulation: the middle engine (ArticulatedRearEngine) has TenderMode. After
+  each tick its torque and exhaust are moved into TenderTorque/TenderExhaust and
+  its ports are zeroed, so the loco's traction and blast sums exclude it; the
+  previous values are restored before the next tick, keeping the native smoothing.
+  Its intake (steam demand) stays in the sum. Apply(43) sets TenderMode;
+  SetTenderEngine(bool) activates or disables it. Restore clears it.
+- WheelRearranger.TenderEngine.cs, polled from FixedUpdate (TickTenderEngine):
+  - Wanted = this layout + loco not derailed + rear coupler on a car with
+    CarTypes.IsTender && TrainCarType.Tender, not derailed.
+  - Attach builds visuals: clones of the eight-coupled rear drives and static
+    clones on "[Rearranged tender engine]" under the tender, with the cylinder
+    front at tender z -0.35. It hides the tender bogie frames, brakes and
+    wheelsets except the rearmost (the trailing truck), and adds the tender
+    animators to the loco's wheel animation.
+  - Force: TenderTorque / (0.712 s), clamped to 0.24 x tender TotalMass x g x 0.8,
+    split over the tender bogies along the loco's direction. The tender is
+    woken if it's asleep.
+  - Detach on uncouple, derail, switch (SuspendMalletGeometry) and loco
+    OnDestroy; dead animators are filtered out.
+  - Diagnostics: "tenderEngine" block.
+  - ArticulatedEffects skips the middle engine in tender mode.
+- Not done (later stages): tender exhaust stack, chuff and smoke; tender cylinder
+  cocks; tender slip visuals and sparks (it only clamps); tender brake heat;
+  tender LODs; non-S282 tenders (the engine just stays off).
+- NOT seen in game: tender/body frame alignment, clearance under the tender
+  tank, force sign with a reversed tender.
+- Tests: GraphProbe adds 7 tender-engine checks; catalogue 1,397 (44 IDs),
+  integration 144; the other suites pass. ZIP SHA256 51317df4615d58c7fa3994bfe28437231e6784dd757e53323cb4a47de6f5eda8.
+
+TODO (James, 19 Oct): the next Nexus release must restrict random spawning to
+the useful, non-meme arrangements. List to be agreed.
+
 ## 1.9.1 0-8-8-0 Angus + 2-6-8-0 Gt. Northern (Claude), RELEASED pre-release v1.9.1 (tag ecc6f39), INSTALLED, 19 Oct 2026
 
 Installed from the released ZIP (518EE44E...41F6; DLL A8955B6F...C724A == build, Info.json 1.9.1).

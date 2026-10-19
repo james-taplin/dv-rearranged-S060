@@ -42,6 +42,10 @@ namespace RearrangedS282
 
         internal static bool IsBigMallet(int id) => id == (int)WheelArrangementType.s08880 || id == (int)WheelArrangementType.s2680;
 
+        // Front engine eight-coupled (0-8-8-0 and the Erie's 2-8-8-0 loco half)?
+        private static bool FrontEightCoupled(WheelArrangementType kind) => kind != WheelArrangementType.s2680;
+        private static bool HasLeadingTruck(WheelArrangementType kind) => kind != WheelArrangementType.s08880;
+
         // Extra powered axles in use by the current layout (for the powered list).
         private IEnumerable<Transform> BigMalletExtraAxles() => bigMalletAxles.Where(t => t != null);
 
@@ -52,7 +56,7 @@ namespace RearrangedS282
             float d2 = secondLeftDriveWheel.localPosition.z, d3 = thirdLeftDriveWheel.localPosition.z, d4 = fourthLeftDriveWheel.localPosition.z;
             float radius = secondLeftDriveWheel.localPosition.y;
             if (d2 <= d3 || d3 <= d4) throw new InvalidOperationException("Native S282 driver order is unexpected.");
-            int frontCoupled = kind == WheelArrangementType.s08880 ? 4 : 3;
+            int frontCoupled = FrontEightCoupled(kind) ? 4 : 3;
             float front = cylinderFront + (kind == WheelArrangementType.s08880 ? AngusFrontExtra : 0f);
             float frontLastNative = frontCoupled == 4 ? d4 : d3;
             // Last driver's rear edge where the 2-2-2-2-2's trailing wheel ends.
@@ -75,31 +79,31 @@ namespace RearrangedS282
             bigMallet = MeasureBigMallet(kind);
             EnsureBigMalletAssets(bigMallet);
             float s = bigMallet.Scale;
-            bool angus = kind == WheelArrangementType.s08880;
+            bool angus = kind == WheelArrangementType.s08880, eight = FrontEightCoupled(kind);
             ResetBody(); ResetToFourCoupled(); HideLeadingWheels(); HideTrailingWheels();
-            if (!angus) ShowTwoLeadingWheels();
+            if (HasLeadingTruck(kind)) ShowTwoLeadingWheels();
             setWheelRadius(.712f * s);
 
             driveL.localPosition = driveR.localPosition = new Vector3(0f, 0f, bigMallet.FrontOffset);
             driveL.localScale = new Vector3(-1f, s, s); driveR.localScale = new Vector3(1f, s, s);
-            if (angus) { ConfigureEightCoupledDrive(driveL, false); ConfigureEightCoupledDrive(driveR, false); }
+            if (eight) { ConfigureEightCoupledDrive(driveL, false); ConfigureEightCoupledDrive(driveR, false); }
             else { ConfigureMalletDrive(driveL, false); ConfigureMalletDrive(driveR, false); }
             leftReachRod.gameObject.SetActive(false); rightReachRod.gameObject.SetActive(false);
             foreach (var part in new[] { lDryPipe, rDryPipe, reachRodSupport, lubricatorSupport, fOilLines })
                 part.gameObject.SetActive(false);
             foreach (var part in new[] { leftFifthBrakeCaliper, rightFifthBrakeCaliper, leftSixthBrakeCaliper, rightSixthBrakeCaliper })
                 part.gameObject.SetActive(false);
-            if (!angus)
+            if (!eight)
             {
                 leftFourthBrakeCaliper.gameObject.SetActive(false); rightFourthBrakeCaliper.gameObject.SetActive(false);
                 RequireArticulatedPart(splitLoco, "s282a_suspension_l_4").gameObject.SetActive(false);
                 RequireArticulatedPart(splitLoco, "s282a_suspension_r_4").gameObject.SetActive(false);
             }
 
-            var frontStatic = angus ? EightCoupledStaticParts() : MalletStaticParts();
+            var frontStatic = eight ? EightCoupledStaticParts() : MalletStaticParts();
             foreach (var part in frontStatic)
             {
-                if (!angus) PreShiftBigMalletPart(part);
+                if (!eight) PreShiftBigMalletPart(part);
                 MapMalletPart(part, bigMallet.Front);
             }
             var colliders = MalletColliders.Select(path => transform.Find(path)).Where(t => t != null).ToArray();
@@ -116,11 +120,11 @@ namespace RearrangedS282
             // Front engine axles in the native front bogie, rear engine in the rear.
             driveAxle5.gameObject.SetActive(true); driveAxle6.gameObject.SetActive(true);
             bigMalletRearAxle.gameObject.SetActive(true);
-            bigMalletFrontAxle.gameObject.SetActive(angus);
+            bigMalletFrontAxle.gameObject.SetActive(eight);
             AlignNativeAxle(driveAxle1, firstLeftDriveWheel, true);
             AlignNativeAxle(driveAxle2, secondLeftDriveWheel, true);
             AlignNativeAxle(driveAxle6, thirdLeftDriveWheel, true);
-            if (angus) AlignNativeAxle(bigMalletFrontAxle, fourthLeftDriveWheel, true);
+            if (eight) AlignNativeAxle(bigMalletFrontAxle, fourthLeftDriveWheel, true);
             AlignNativeAxle(driveAxle3, RequireArticulatedPart(bigMalletRearL, "s282_wheels_driving_1"), false);
             AlignNativeAxle(driveAxle4, RequireArticulatedPart(bigMalletRearL, "s282_wheels_driving_2"), false);
             AlignNativeAxle(driveAxle5, RequireArticulatedPart(bigMalletRearL, "s282_wheels_driving_3"), false);
@@ -131,7 +135,7 @@ namespace RearrangedS282
             UpdateMalletSparks();
             ConfigureNativeArticulation((int)kind, bigMallet.PinZ);
             BindArticulatedLods();
-            Main.Logger.Log($"Articulated S282 {(angus ? "0-8-8-0" : "2-6-8-0")}: scale {s:0.000}, {2f * bigMallet.Radius:0.00} m drivers; " +
+            Main.Logger.Log($"Articulated S282 {(angus ? "0-8-8-0" : eight ? "2-8-8-8-2 (loco 2-8-8-0)" : "2-6-8-0")}: scale {s:0.000}, {2f * bigMallet.Radius:0.00} m drivers; " +
                 $"engines at {bigMallet.FrontOffset:0.00}/{bigMallet.RearOffset:0.00}, pin {bigMallet.PinZ:0.00}, " +
                 $"rear cylinders {bigMallet.RearCylinderFront:0.00}, last driver {bigMallet.RearLastDriver:0.00} (body z).");
         }

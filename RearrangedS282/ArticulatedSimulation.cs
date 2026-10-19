@@ -44,11 +44,16 @@ namespace RearrangedS282
         internal ReciprocatingSteamEngine RearEngine => rear;
         internal ReciprocatingSteamEngine MiddleEngine => middle;
         internal bool IsMiddleActive => middle != null && middle.Active;
+        internal bool IsTenderEngine => middle != null && middle.TenderMode;
+        internal float TenderTorque => middle != null ? middle.TenderTorque : 0f;
         internal SimulationFlow Flow { get; private set; }
         internal float RearCapacityFraction { get; private set; }
 
         // Matches WheelArrangement.IsArticulatedId; kept literal so the graph probe compiles alone.
-        internal static bool IsDuplexId(int id) => id == 31 || id == 32 || id == 37 || id == 41 || id == 42 || IsTriplexId(id);
+        internal static bool IsDuplexId(int id) => id == 31 || id == 32 || id == 37 || id == 41 || id == 42 || id == TenderTriplexId || IsTriplexId(id);
+        // 2-8-8-8-2: the third (middle) engine sits under the tender; its pull and
+        // exhaust go to the tender, not the loco's traction and blast.
+        internal const int TenderTriplexId = 43;
         internal const int TriplexId = 38, TrucklessTriplexId = 40;
         internal static bool IsTriplexId(int id) => id == TriplexId || id == TrucklessTriplexId;
 
@@ -253,7 +258,17 @@ namespace RearrangedS282
             Require(Flow != null && MainEngine != null && rear != null && middle != null && failure == null,
                 "The articulated S282 native simulation is not initialized.");
             Activate(rear);
+            middle.TenderMode = id == TenderTriplexId;
+            // The tender engine runs only while a tender carries it (SetTenderEngine).
             if (IsTriplexId(id)) Activate(middle);
+        }
+
+        // The 2-8-8-8-2's tender engine: on while an S282 tender is coupled.
+        internal void SetTenderEngine(bool attached)
+        {
+            if (middle == null || !middle.TenderMode) return;
+            if (attached) Activate(middle);
+            else middle.Disable();
         }
 
         private void Activate(ArticulatedRearEngine engine)
@@ -271,6 +286,7 @@ namespace RearrangedS282
             if (rear == null) return;
             rear.Disable();
             middle?.Disable();
+            if (middle != null) middle.TenderMode = false;
             // Clear the last aggregate immediately, before the next native Tick.
             // All sums subsequently pass the unmodified main engine through.
             if (MainEngine == null) return;
@@ -329,6 +345,11 @@ namespace RearrangedS282
     internal sealed class ArticulatedRearEngine : ReciprocatingSteamEngine
     {
         internal bool Active;
+        // Tender engine: after each tick the pull and exhaust are moved out of the
+        // ports the loco sums read, and kept here for the tender. The previous
+        // values are put back before the next tick so the native smoothing holds.
+        internal bool TenderMode;
+        internal float TenderTorque, TenderExhaust;
         internal ArticulatedRearEngine(ReciprocatingSteamEngineDefinition definition) : base(definition)
         {
             // Native repair normally observes this one-frame health increase in
@@ -344,10 +365,19 @@ namespace RearrangedS282
                 waterInCylindersDamageMeter = 0f;
             }
         }
-        public override void Tick(float delta) { if (Active) base.Tick(delta); }
+        public override void Tick(float delta)
+        {
+            if (!Active) return;
+            if (TenderMode) { torqueOut.Value = TenderTorque; exhaustFlowReadOut.Value = TenderExhaust; }
+            base.Tick(delta);
+            if (!TenderMode) return;
+            TenderTorque = torqueOut.Value; TenderExhaust = exhaustFlowReadOut.Value;
+            torqueOut.Value = 0f; exhaustFlowReadOut.Value = 0f;
+        }
         internal void Disable()
         {
             Active = false;
+            TenderTorque = TenderExhaust = 0f;
             torqueOut.Value = 0f;
             torqueVelocity = 0f;
             intakeFlowReadOut.Value = intakeFlowNormalizedReadOut.Value = 0f;

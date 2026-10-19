@@ -86,7 +86,7 @@ namespace RearrangedS282
                         if (id == (int)WheelArrangementType.s2662) ApplyMalletGeometry();
                         else if (id == (int)WheelArrangementType.s22222) ApplyTriplexGeometry(true);
                         else if (id == (int)WheelArrangementType.s02220) ApplyTriplexGeometry(false);
-                        else if (IsBigMallet(id)) ApplyBigMalletGeometry((WheelArrangementType)id);
+                        else if (IsBigMallet(id) || id == (int)WheelArrangementType.s28882) ApplyBigMalletGeometry((WheelArrangementType)id);
                         else ApplyArticulatedGeometry(id);
                     }
                     else
@@ -110,7 +110,7 @@ namespace RearrangedS282
                         .Concat(BigMalletExtraAxles())
                         .Where(t => t != null && t.gameObject.activeInHierarchy).Select(t => t.GetComponent<PoweredWheel>()).ToArray();
                     int total = loco.Bogies.Sum(b => b.Axles.Length);
-                    var wheels = WheelArrangement.WheelArrangementNames[id].Split(' ')[0].Split('-').Select(int.Parse).ToArray();
+                    var wheels = WheelArrangement.LocomotiveWheels(id);
                     int expectedPowered = WheelArrangement.IsArticulatedId(id) ? wheels.Skip(1).Take(wheels.Length - 2).Sum() / 2 : wheels[1] / 2;
                     if (powered.Length != expectedPowered || total != wheels.Sum() / 2)
                         throw new InvalidOperationException("Active physical axles do not match the selected arrangement.");
@@ -189,6 +189,8 @@ namespace RearrangedS282
 
         private void OnDestroy()
         {
+            // The tender engine lives on another car: give the tender its bogies back.
+            DetachTenderEngine();
             ArticulatedEffects.Deinit(loco);
             DisposeArticulatedGeometry();
             DisposePacificHudsonValveGear();

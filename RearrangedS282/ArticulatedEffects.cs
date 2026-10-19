@@ -261,7 +261,8 @@ namespace RearrangedS282
                 get
                 {
                     var list = new List<Secondary> { new Secondary { Engine = Simulation.RearEngine, Root = Rear, Index = 1, Name = "rear" } };
-                    if (Simulation.IsMiddleActive && Middle != null)
+                    // The Erie tender engine's effects belong on the tender (not bound yet).
+                    if (Simulation.IsMiddleActive && Middle != null && !Simulation.IsTenderEngine)
                         list.Add(new Secondary { Engine = Simulation.MiddleEngine, Root = Middle, Index = 2, Name = "middle" });
                     return list;
                 }
