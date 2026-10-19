@@ -1,3 +1,12 @@
+## Note: 1.9.2 Nexus release lives on branch release-1.9.2 (Claude), 19 Oct 2026
+
+Built from v1.9.1 in worktree B:\GitHub repo\rearranged-s282-b99-1.9.2. The
+high-speed 2-8-x variants left the default spawn pool (once-only migration via
+spawnPoolRevision), and Package.Nexus.ps1 plus release-copy/1.9.2 docs were added.
+Released as GitHub pre-release v1.9.2; Nexus ZIP at Desktop\Derail Valley Mods\
+RearrangedS282-B99-1.9.2-Nexus. NOT yet merged into b99-port: 1.10.x still has the
+old spawn defaults. Merge release-1.9.2 before the next 1.10 release.
+
 ## 1.10.0 Erie triplex 2-8-8-8-2, tender engine stage 1 (Claude), RELEASED pre-release v1.10.0 (tag bb6b06c), INSTALLED, 19 Oct 2026
 
 Installed from the released ZIP (51317DF4...EDA8; DLL 5946EEEC...9B70 == build, Info.json 1.10.0).
