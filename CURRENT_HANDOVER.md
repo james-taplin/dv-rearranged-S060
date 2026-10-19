@@ -1,4 +1,7 @@
-## 1.10.0 Erie triplex 2-8-8-8-2, tender engine stage 1 (Claude), RELEASED pre-release v1.10.0 (tag bb6b06c), NOT installed, 19 Oct 2026
+## 1.10.0 Erie triplex 2-8-8-8-2, tender engine stage 1 (Claude), RELEASED pre-release v1.10.0 (tag bb6b06c), INSTALLED, 19 Oct 2026
+
+Installed from the released ZIP (51317DF4...EDA8; DLL 5946EEEC...9B70 == build, Info.json 1.10.0).
+1.9.1 backup: build/runtime-trial-1.10.0/installed-backup-20261019-220538. Settings kept.
 
 James asked for the faithful option: the tender engine drawn on the tender car,
 with its pull applied to the tender's bogies and its grip taken from the
