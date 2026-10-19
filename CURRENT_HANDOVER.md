@@ -1,4 +1,4 @@
-## 1.8.1 triplex bigger drivers, 4-14-4 spacing (Claude), RELEASED pre-release, NOT installed, 19 Oct 2026
+## 1.8.1 triplex bigger drivers, 4-14-4 spacing (Claude), RELEASED pre-release v1.8.1 (tag f31e01f), NOT installed, 19 Oct 2026
 
 James asked for:
 - Triplex: bigger drivers (about the size of his yellow circles, ~1.3 m), by
