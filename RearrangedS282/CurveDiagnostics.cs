@@ -17,7 +17,11 @@ namespace RearrangedS282
         // Provisional, adjustable modelling assumptions. Logged with every capture.
         internal const float FlangewayM = .010f, SideplayM = .003f, LeadDriverExtraM = .022f;
         internal const int LongGroupDrivers = 5;
-        internal const float ScrubFriction = .25f, SaturationAngleRad = .005f, FlangeTermFraction = .10f, FlangeSaturationM = .005f;
+        // Scrub: only the along-track part of sliding friction resists motion,
+        // about mu * W * (angle of attack + half-gauge * curvature) per axle.
+        // Angles under the deadband are track-sampling noise (0.05 deg seen on
+        // ~2.5 km radius in 1.7.2).
+        internal const float ScrubFriction = .25f, AngleDeadbandDeg = .1f, HalfGaugeM = .7175f, FlangeTermFraction = .10f, FlangeSaturationM = .005f;
         internal const float SwingLimitDeg = 6f, CurveHalfSpanM = 3f;
         private const int SearchPoints = 60, SwingSteps = 25;
 
@@ -26,10 +30,12 @@ namespace RearrangedS282
             ["assumptions"] = new JObject {
                 ["flangewayM"] = FlangewayM, ["sideplayM"] = SideplayM, ["leadDriverExtraM"] = LeadDriverExtraM,
                 ["leadDriverExtraAppliesFromDrivers"] = LongGroupDrivers, ["scrubFriction"] = ScrubFriction,
-                ["saturationAngleRad"] = SaturationAngleRad, ["flangeTermFraction"] = FlangeTermFraction,
+                ["angleDeadbandDeg"] = AngleDeadbandDeg, ["halfGaugeM"] = HalfGaugeM,
+                ["rocklReference"] = "Rockl curve resistance for the whole car: 650/(R-55) N/kN (R>=300 m), 500/(R-30) N/kN below", ["flangeTermFraction"] = FlangeTermFraction,
                 ["flangeSaturationM"] = FlangeSaturationM, ["swingLimitDeg"] = SwingLimitDeg, ["curveHalfSpanM"] = CurveHalfSpanM,
                 ["flangedSource"] = "visual driver mesh (modelling assumption, not native physics)",
-                ["weightSource"] = "native equal weight per physical axle"
+                ["weightSource"] = "native equal weight per physical axle",
+                ["drivers"] = "LOD0 driver meshes only (LOD1 copies excluded since 1.7.4)"
             }
         };
 
@@ -69,6 +75,11 @@ namespace RearrangedS282
                     ["wheelslip"] = car.SimController?.wheelslipController != null ? new JValue(car.SimController.wheelslipController.IsWheelslipping) : JValue.CreateNull()
                 };
                 float weight = car.massController != null ? car.massController.WeightPerAxle : float.NaN;
+                float meanCurvature = bogies.Average(b => Mathf.Abs(SampledCurvature(b, up)));
+                result["reference"] = new JObject {
+                    ["radiusM"] = meanCurvature > 1e-6f ? F(1f / meanCurvature) : JValue.CreateNull(),
+                    ["rocklN"] = car.massController != null ? F(RocklN(meanCurvature, car.massController.TotalMass * -Physics.gravity.y)) : JValue.CreateNull()
+                };
                 var groups = new JArray();
                 if (rearranger != null)
                     foreach (var group in rearranger.DescribeDriverGroups()) groups.Add(Group(car, bogies, up, group, weight));
@@ -87,23 +98,23 @@ namespace RearrangedS282
             if (axles.Length == 0) { row["note"] = "no measurable drivers"; return row; }
             var free = axles.Select((a, i) => FlangewayM + SideplayM + (i == 0 && axles.Length >= LongGroupDrivers ? LeadDriverExtraM : 0f)).ToArray();
             row["axles"] = new JArray(axles.Select((a, i) => new JObject { ["bodyZ"] = F(a.body.z), ["flanged"] = a.flanged, ["lateralFreeM"] = F(free[i]) }));
-            row["rigid"] = Fit(car, bogies, up, group, axles, free, 0f, weight);
+            var centre = group.Body.TransformPoint(new Vector3(0f, 0f, axles.Average(a => a.body.z)));
+            var nearest = bogies.OrderBy(b => (b.transform.position - centre).sqrMagnitude).First();
+            float curvature = SampledCurvature(nearest, up);
+            row["rigid"] = Fit(car, bogies, up, group, axles, free, 0f, weight, curvature);
             if (group.Pivot.HasValue)
             {
                 JObject best = null; float bestScore = float.PositiveInfinity;
                 for (int k = 0; k < SwingSteps; k++)
                 {
                     float yaw = -SwingLimitDeg + 2f * SwingLimitDeg * k / (SwingSteps - 1);
-                    var fit = Fit(car, bogies, up, group, axles, free, yaw, weight);
+                    var fit = Fit(car, bogies, up, group, axles, free, yaw, weight, curvature);
                     float score = fit.Value<float?>("sumSquaredOffsetM2") ?? float.PositiveInfinity;
                     if (score < bestScore) { bestScore = score; best = fit; best["yawDeg"] = F(yaw); }
                 }
                 row["pivotFit"] = best;
             }
             // Effective-wheelbase alternative: curvature at the group centre only.
-            var centre = group.Body.TransformPoint(new Vector3(0f, 0f, axles.Average(a => a.body.z)));
-            var nearest = bogies.OrderBy(b => (b.transform.position - centre).sqrMagnitude).First();
-            float curvature = SampledCurvature(nearest, up);
             var flangedZ = axles.Where(a => a.flanged).Select(a => a.body.z).ToArray();
             float span = flangedZ.Length >= 2 ? flangedZ.Max() - flangedZ.Min() : 0f;
             float mid = axles.Average(a => a.body.z);
@@ -118,7 +129,7 @@ namespace RearrangedS282
         // Driver centres held rigidly in the group frame (optionally yawed about the
         // pivot), projected onto the sampled track. Proposed values are NOT applied.
         private static JObject Fit(TrainCar car, Bogie[] bogies, Vector3 up, WheelRearranger.DriverGroup group,
-            (Vector3 body, bool flanged)[] axles, float[] free, float yawDeg, float weight)
+            (Vector3 body, bool flanged)[] axles, float[] free, float yawDeg, float weight, float curvature)
         {
             var rows = new JArray(); float sumSq = 0f, resistance = 0f, flangeTerm = 0f, maxResidual = 0f, maxAngle = 0f; int measured = 0;
             var rotation = Quaternion.AngleAxis(yawDeg, Vector3.up);
@@ -133,7 +144,7 @@ namespace RearrangedS282
                 float angle = Vector3.Angle(Flat(axis, up), Flat(tangent, up)); angle = Mathf.Min(angle, 180f - angle);
                 float residual = axles[i].flanged ? Mathf.Max(0f, Mathf.Abs(lateral) - free[i]) : 0f;
                 sumSq += lateral * lateral; maxResidual = Mathf.Max(maxResidual, residual); maxAngle = Mathf.Max(maxAngle, angle);
-                resistance += weight * ScrubFriction * Mathf.Min(1f, angle * Mathf.Deg2Rad / SaturationAngleRad);
+                resistance += weight * ScrubFriction * (Mathf.Max(0f, angle - AngleDeadbandDeg) * Mathf.Deg2Rad + HalfGaugeM * Mathf.Abs(curvature));
                 flangeTerm += weight * FlangeTermFraction * Mathf.Min(1f, residual / FlangeSaturationM);
                 rows.Add(new JObject { ["lateralOffsetM"] = F(lateral), ["angleOfAttackDeg"] = F(angle), ["flangeResidualM"] = F(residual) });
             }
@@ -142,6 +153,15 @@ namespace RearrangedS282
                 ["maxFlangeResidualM"] = F(maxResidual), ["maxAngleOfAttackDeg"] = F(maxAngle),
                 ["proposedScrubN"] = F(resistance), ["proposedFlangeN"] = F(flangeTerm)
             };
+        }
+
+        // Empirical whole-car curve resistance (Rockl), for calibrating the scrub term.
+        internal static float RocklN(float curvaturePerM, float weightN)
+        {
+            if (!(curvaturePerM > 1e-6f)) return 0f;
+            float radius = 1f / curvaturePerM;
+            float perKn = radius >= 300f ? 650f / (radius - 55f) : radius > 30f ? 500f / (radius - 30f) : float.NaN;
+            return perKn * weightN / 1000f;
         }
 
         // Nearest point on the native centre-line of either bogie's current track.

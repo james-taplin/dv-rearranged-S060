@@ -339,7 +339,7 @@ namespace RearrangedS282
                 Name = name, Body = body, EngineRoot = engineRoot,
                 Pivot = pin != null ? body.InverseTransformPoint(pin.position) : (Vector3?)null,
                 Wheels = drive == null ? Array.Empty<(Transform, bool)>() : drive.GetComponentsInChildren<Transform>(false)
-                    .Where(t => t.name.StartsWith("s282_wheels_driving_", StringComparison.Ordinal) && t.gameObject.activeInHierarchy)
+                    .Where(t => t.name.StartsWith("s282_wheels_driving_", StringComparison.Ordinal) && !t.name.Contains("LOD") && t.gameObject.activeInHierarchy)
                     .Select(t => (t, t.GetComponent<MeshFilter>()?.sharedMesh == flangedDriver)).ToArray()
             };
             switch (currentWA)

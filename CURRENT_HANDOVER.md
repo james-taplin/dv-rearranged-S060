@@ -1,3 +1,32 @@
+## 1.7.4 curve diagnostics fixes (Claude), RELEASED pre-release v1.7.4, 19 Oct 2026
+
+Diagnostics only; driving is unchanged from 1.7.3. James asked for this as the gate before Stage 2.
+- Duplicate drivers: DescribeDriverGroups now skips names containing "LOD".
+  The 1.7.2 4-14-4 capture listed 11 drivers for 7. The extra four were
+  `..._LOD1` siblings, with a mesh other than the flanged one. That cause is
+  inferred from the names and Articulated.cs:194, not verified in game.
+- Scrub model: the old formula saturated at mu * W per axle once the angle
+  reached 0.005 rad. That gave about 16 kN at about 2.5 km radius, and would
+  give over 100 kN on tight curves.
+  - New per-axle term: mu * W * (max(0, angle - 0.1 deg) in rad + 0.7175 * |curvature|),
+    which is the along-track part of the sliding friction.
+  - Hand estimates (UNVERIFIED): 4-14-4 at R=150 m gives about 2 kN; straight
+    track gives about 50 N.
+- New "reference" block per sample: mean bogie radius and the Rockl whole-car
+  curve resistance (650/(R-55) N/kN for R >= 300 m, 500/(R-30) N/kN below),
+  for calibrating against. At 150 m that is about 4.5 kN for 111 t.
+- Session assumptions now log angleDeadbandDeg, halfGaugeM, rocklReference
+  and the drivers source.
+- Calibration capture still needed. Use the same track and speed for each run:
+  straight, broad, tight and S-curve, on the 4-14-4 or 2-12-2, the 2-8-2, the
+  2-6-6-2 and the triplex.
+- James's clip of bogie knocking: I couldn't identify the cyan overlay. The
+  motion looks like the native bogie (track-placed) against the body
+  (on joints). Not changed.
+- Validation: integration 136, additional 1,891, catalogue 1,366, articulated
+  simulation and power diagnostics passed. ZIP SHA256
+  59bc28ce11d8ccdb9f8766fc1c3f369d4c00273a5bdd0c5bd2b01cfbc77356e4, DLL DB903797...87C93.
+
 ## 1.7.3 driver-weight cap (Claude), RELEASED pre-release v1.7.3 (tag 6d43064), INSTALLED, 19 Oct 2026
 
 Installed from the released ZIP (DLL 0B742F4B...F275E4 == release, Info.json 1.7.3).
