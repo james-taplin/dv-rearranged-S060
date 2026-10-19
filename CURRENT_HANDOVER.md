@@ -1,5 +1,11 @@
 ## 1.7.1 triplex rework (Claude), NOT installed, 19 Oct 2026
 
+RELEASED as GitHub PRE-release v1.7.1 (tag on e4e9c3a):
+https://github.com/james-taplin/dv-rearranged-S282/releases/tag/v1.7.1
+ZIP SHA256 610549780e9e69d90a8516b73761e64acea083ed6830ec8d596bcc97fb353dd4,
+DLL 4595C66ADA6445EBAA9D9F701C8A28B1378751B1B543B213EFC9F70A364EB354.
+Install from this exact ZIP (not a rebuild) so installed == released.
+
 James saw the 1.6.1 triplex in game (0.53 scale: tiny wheels, very long rods)
 and chose "2-2-2-2-0, short rods". ID 38 renamed s22220 "2-2-2-2-0 Articulated
 Triplex" (toggle spawn22220; NumOfNondriven 2). Engines now reuse the 2-4-4-2
