@@ -29,7 +29,7 @@ Reuses the existing two-engine simulation graph. No change to any S282's saved s
   2-6-6-2 calibration can follow James's driving feedback.
 - **Random spawns:** off by default, like the other articulated choices.
 
-## Phase 2: 2-2-2-2-2 triplex (ID 38)
+## Phase 2: 2-2-2-2-2 triplex (ID 38; reworked as 2-2-2-2-0 in 1.7.1)
 
 Needs a third native steam engine. This changes the simulation graph of every S282
 at spawn: a dormant "middle" engine is added next to the dormant rear engine.

@@ -328,11 +328,19 @@ namespace RearrangedS282
     {
         internal Animator Source, Target;
         private AnimatorControllerParameter[] parameters;
+        private RuntimeAnimatorController sourceController, targetController;
 
         private void Update()
         {
             if (Source == null || Target == null || !Target.isActiveAndEnabled) return;
-            if (parameters == null) parameters = Source.parameters;
+            // Copy only parameters both controllers declare (the duplex Franklin
+            // clip has none of the native ones); refresh when either changes.
+            if (parameters == null || sourceController != Source.runtimeAnimatorController || targetController != Target.runtimeAnimatorController)
+            {
+                sourceController = Source.runtimeAnimatorController; targetController = Target.runtimeAnimatorController;
+                var targetHashes = new HashSet<int>(Target.parameters.Select(x => x.nameHash));
+                parameters = Source.parameters.Where(x => targetHashes.Contains(x.nameHash)).ToArray();
+            }
             foreach (var parameter in parameters)
                 switch (parameter.type)
                 {

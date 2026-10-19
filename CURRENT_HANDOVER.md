@@ -1,3 +1,21 @@
+## 1.7.1 triplex rework (Claude), NOT installed, 19 Oct 2026
+
+James saw the 1.6.1 triplex in game (0.53 scale: tiny wheels, very long rods)
+and chose "2-2-2-2-0, short rods". ID 38 renamed s22220 "2-2-2-2-0 Articulated
+Triplex" (toggle spawn22220; NumOfNondriven 2). Engines now reuse the 2-4-4-2
+Franklin engine (EnsureArticulatedAssets first; frontFranklin on the front drive,
+cloned franklin_type_b(Clone) on middle/rear clones, FranklinBAnimCtrl, duplex
+short main rod, two-axle rod hidden) showing only driver 2. LMS cylinders/lifting
+supports hidden; static parts per engine = duplex guides (0.065, articulated
+guide meshes), caliper 2, spring 2. MeasureTriplex uses the Franklin cylinder
+front (FranklinCylinderFront, ~10.64 drive z) to driver 2, rear limit = rear edge
+of the 12-coupled trailing wheel, no trailing truck; expected scale ~0.70.
+Front AnimatorPortReaders paused like the 2-4-4-2. MalletAnimatorMirror now
+copies only parameters both controllers declare. Atlantic-size (2.07 m) drivers
+were explained as impossible for three engines in the S282 frame.
+Validation: all suites pass (catalogue 1,366, integration 136). No game run.
+1.7.0 (4-14-4) was NOT installed: the game was still running.
+
 ## 1.7.0 4-14-4 built (Claude), NOT installed, 19 Oct 2026
 
 RELEASED as GitHub PRE-release v1.7.0 (tag on e5b976b):

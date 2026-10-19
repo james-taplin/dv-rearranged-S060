@@ -1,3 +1,14 @@
+Rearranged S282 B99 - 1.7.1 trial
+
+NEW IN 1.7.1: triplex reworked as 2-2-2-2-0 (radio ID 38, renamed)
+Each of the three engines is now a single-driver version of the 2-4-4-2's
+engine: Franklin poppet valve gear with its own cylinder and the duplex's
+shortened main rod, driving the second-driver position. That makes each engine
+much shorter, and with the trailing truck removed the drivers grow from about
+0.75 m to about 1.0 m (exact layout logged as "Articulated S282 2-2-2-2-0: ...").
+A triplex saved in 1.6.x/1.7.0 loads as the 2-2-2-2-0. Its random-spawn toggle
+was renamed, so re-enable it if you had it on.
+
 Rearranged S282 B99 - 1.7.0 4-14-4 trial
 
 NEW IN 1.7.0: 4-14-4 (radio ID 39)
