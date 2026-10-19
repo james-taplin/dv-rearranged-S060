@@ -1,3 +1,53 @@
+## 1.8.1 triplex bigger drivers, 4-14-4 spacing (Claude), RELEASED pre-release, NOT installed, 19 Oct 2026
+
+James asked for:
+- Triplex: bigger drivers (about the size of his yellow circles, ~1.3 m), by
+  shortening the pistons and guides, moving the engines forward and moving the
+  trailing truck back.
+- 4-14-4: trailing truck back, drivers back and cylinders fixed. He chose
+  "cylinders stay, stretch rods" over moving the cylinders as well.
+
+New: RearrangedS282/DriveRetarget.cs
+- Draws the drive's renderers through proxy children (the original
+  MeshFilter.sharedMesh is set to null, and LODGroups are pointed at the proxies)
+  so the native and Franklin clips keep animating untouched.
+  - Shift role: the cylinder side, drawn Shift further along drive z.
+  - Stretch role: rods. The far-end vertices beyond half the pin length are moved
+    by Shift; if the mesh isn't readable, an AssetStudio export in assets/ is used
+    instead; if neither exists, the proxy scales z. Each LateUpdate re-aims the
+    rod from its pivot at native far pin + Shift.
+- Roles:
+  - Native Walschaerts (resources.assets dump):
+    - Shift: push_rod (crosshead), push_rod_to_cutoff_base (union link),
+      cutoff_rod_hinge, push_rod_to_cutoff_rod (combination lever),
+      cylinder_rod (valve spindle)
+    - Stretch: push_rod_to_connect (main rod), cutoff_to_cylinder_rod (radius rod)
+  - Franklin (bundle dump):
+    - Shift: cylinder/*, driveshaft_m_mount/*, driveshaft_m/u_joint_f/*, crosshead
+    - Stretch: main rod, driveshaft_m/default
+- 4-14-4:
+  - drive is 0.25 m further back (DriveOffset); calipers, springs and lifting
+    arm supports use DriveMap
+  - cylinders, cocks, guides, colliders and jets keep Map
+  - Bind(drive, +0.25/s)
+  - leading truck uses the unshifted driver 1
+  - trailing truck at rear-bogie local -3.7 (2-10-4/4-10-4 position, was -3.1)
+  - expected gaps: front +0.25 m, rear +0.35 m (UNVERIFIED in game)
+- Triplex:
+  - TriplexShortenNative 0.45 (crank-boss clearance limit, hand estimate), front
+    cylinders +0.25 m, own trailing limit -3.7
+  - expected scale about 0.835, drivers about 1.19 m (was 0.99)
+  - guides, colliders and outlet maps use Cylinders(e); Bind(drive, -0.45) on
+    all six drives
+- Unbound in Suspend4144Geometry and SuspendTriplexGeometry (before the
+  articulated LOD restore).
+- NOT seen in game. Risks: rod pin alignment, crosshead against the crank
+  boss, front cylinders against the pilot, LOD proxies, and the radius rod if
+  it falls back to scaling.
+- Validation: integration 136, additional 1,891, catalogue 1,366, geometry
+  3,947, effects 9,014, simulation, power diagnostics and curve drag 150 all
+  passed. ZIP SHA256 c859cefa6a5b5630891bd97548b58741b80d110e9623b6c378d52cfdebf24482.
+
 ## 1.8.0 curving Stage 2: curve drag + squeal (Claude), RELEASED pre-release v1.8.0 (tag cffd00c), NOT installed, 19 Oct 2026
 
 James approved Stage 2 (drag), then squeal, with derail risk after the flange

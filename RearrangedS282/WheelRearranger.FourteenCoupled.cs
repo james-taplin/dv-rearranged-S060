@@ -19,6 +19,12 @@ namespace RearrangedS282
     internal partial class WheelRearranger
     {
         private const float FourteenTruckSpacing = 1.1f, FourteenLeadingGap = .05f;
+        // Drivers (and everything that turns with them) sit this far behind the
+        // cylinders' native-scaled position; the crosshead side stays with the
+        // cylinders and the main and radius rods are lengthened (DriveRetarget).
+        // The trailing truck goes back to the 2-10-4/4-10-4 rear-axle position.
+        private const float FourteenDriverShift = .25f;
+        private static readonly Vector3 FourteenTrailingLimit = new Vector3(0f, .36f, -3.7f);
         private static readonly string[] FourteenParticleHolders = { "LocoS282A_Particles/CylCockSteam",
             "LocoS282A_Particles/CylCockWaterDrip", "LocoS282A_Particles/CylinderCrack" };
 
@@ -28,9 +34,10 @@ namespace RearrangedS282
 
         private sealed class FourteenLayout
         {
-            internal float Scale, Offset, Radius, Pitch, Lead1, Lead2, Trail1, Trail2;
+            internal float Scale, Offset, DriveOffset, Radius, Pitch, Lead1, Lead2, Trail1, Trail2;
             internal readonly float[] DriverZ = new float[7], Drivers = new float[7];
-            internal Matrix4x4 Map => EngineMap(Offset, Scale);
+            internal Matrix4x4 Map => EngineMap(Offset, Scale);            // cylinder side
+            internal Matrix4x4 DriveMap => EngineMap(DriveOffset, Scale);  // drivers and their brakes/springs
         }
 
         // Largest scale at which seven drivers (native spacing, extended one pitch)
@@ -52,11 +59,15 @@ namespace RearrangedS282
             if (!(s > .4f && s < 1f)) throw new InvalidOperationException("4-14-4 drivers do not fit the S282 frame (scale " + s + ").");
             layout.Scale = s; layout.Radius = s * radius;
             layout.Offset = cylinderFront * (1f - s);
-            for (int i = 0; i < 7; i++) layout.Drivers[i] = layout.Offset + s * layout.DriverZ[i];
-            layout.Lead2 = layout.Drivers[0] + layout.Radius + MalletTrailingRadius + FourteenLeadingGap;
+            layout.DriveOffset = layout.Offset - FourteenDriverShift;
+            // Leading truck where it was before the drivers moved back.
+            layout.Lead2 = layout.Offset + s * layout.DriverZ[0] + layout.Radius + MalletTrailingRadius + FourteenLeadingGap;
             layout.Lead1 = layout.Lead2 + FourteenTruckSpacing;
-            layout.Trail1 = layout.Drivers[6] - layout.Radius - MalletTrailingRadius - MalletEngineGap;
-            layout.Trail2 = layout.Trail1 - FourteenTruckSpacing;
+            for (int i = 0; i < 7; i++) layout.Drivers[i] = layout.DriveOffset + s * layout.DriverZ[i];
+            layout.Trail2 = body.InverseTransformPoint(rearBogie.TransformPoint(FourteenTrailingLimit)).z;
+            layout.Trail1 = layout.Trail2 + FourteenTruckSpacing;
+            if (layout.Trail1 > layout.Drivers[6] - layout.Radius - MalletTrailingRadius - MalletEngineGap)
+                throw new InvalidOperationException("4-14-4 trailing truck overlaps the last driver.");
             return layout;
         }
 
@@ -75,7 +86,7 @@ namespace RearrangedS282
             MoveTruckAxle(rearBogie, thirdRearAxle, layout.Trail2);
             setWheelRadius(.712f * s);
 
-            driveL.localPosition = driveR.localPosition = new Vector3(0f, 0f, layout.Offset);
+            driveL.localPosition = driveR.localPosition = new Vector3(0f, 0f, layout.DriveOffset);
             driveL.localScale = new Vector3(-1f, s, s); driveR.localScale = new Vector3(1f, s, s);
             foreach (var wheel in new[] { fifthLeftDriveWheel, fifthRightDriveWheel, sixthLeftDriveWheel, sixthRightDriveWheel,
                 seventhLeftDriveWheel, seventhRightDriveWheel }) wheel.gameObject.SetActive(true);
@@ -115,10 +126,11 @@ namespace RearrangedS282
             }
             foreach (var caliper in calipersL.Concat(calipersR)) caliper.gameObject.SetActive(true);
 
-            var staticParts = new[] { lfCylinder, rfCylinder, cylinderCocks, lfCrossheadBracket, rfCrossheadBracket,
-                lLiftingArmSupport, rLiftingArmSupport }.Concat(calipersL).Concat(calipersR)
+            foreach (var part in new[] { lfCylinder, rfCylinder, cylinderCocks, lfCrossheadBracket, rfCrossheadBracket })
+                MapMalletPart(part, layout.Map);
+            var driverParts = new[] { lLiftingArmSupport, rLiftingArmSupport }.Concat(calipersL).Concat(calipersR)
                 .Concat(new[] { "l", "r" }.SelectMany(side => Enumerable.Range(1, 4).Select(i => RequireArticulatedPart(splitLoco, "s282a_suspension_" + side + "_" + i))));
-            foreach (var part in staticParts) MapMalletPart(part, layout.Map);
+            foreach (var part in driverParts) MapMalletPart(part, layout.DriveMap);
             foreach (var collider in MalletColliders.Select(path => transform.Find(path)).Where(t => t != null)) MapMalletPart(collider, layout.Map);
             // Particle holders follow the cylinders without stretching their emitters.
             foreach (var holder in FourteenParticleHolders.Select(path => transform.Find(path)).Where(t => t != null))
@@ -140,6 +152,9 @@ namespace RearrangedS282
                 sparksR[i].position = transform.TransformPoint(new Vector3(.75f, 0f, point.z));
                 sparksL[i].gameObject.SetActive(true); sparksR[i].gameObject.SetActive(true);
             }
+            // Crosshead side back to the cylinders; main and radius rods lengthened.
+            foreach (var drive in new[] { driveL, driveR })
+                DriveRetarget.Bind(drive, FourteenDriverShift / s, DriveRetarget.NativeWalschaertsRole, transform);
             Main.Logger.Log($"4-14-4: scale {s:0.000}, {2f * layout.Radius:0.00} m drivers {layout.Drivers[0]:0.00}..{layout.Drivers[6]:0.00}, " +
                 $"leading {layout.Lead1:0.00}/{layout.Lead2:0.00}, trailing {layout.Trail1:0.00}/{layout.Trail2:0.00} (body z).");
         }
@@ -231,6 +246,7 @@ namespace RearrangedS282
         // know these lazily created objects.
         private void Suspend4144Geometry()
         {
+            DriveRetarget.Unbind(driveL); DriveRetarget.Unbind(driveR);
             foreach (var asset in fourteenAssets) if (asset != null) asset.gameObject.SetActive(false);
         }
     }

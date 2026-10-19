@@ -21,10 +21,18 @@ namespace RearrangedS282
     {
         // Front cylinders may sit over the leading truck, as on the stock S282.
         private const float TriplexEngineGap = .08f, TriplexMiddleSwing = .4f;
+        // Bigger drivers: each engine's cylinder side (Franklin block, crosshead,
+        // guide) is drawn this much closer to its driver (native metres; limited by
+        // the crosshead clearing the crank boss at back dead centre), with the main
+        // rod and middle shaft shortened (DriveRetarget). The front cylinders reach
+        // further over the leading truck.
+        private const float TriplexShortenNative = .45f, TriplexFrontExtra = .25f;
         private const string FranklinDriveState = "LocoS282A_AnimationDriveGear";
         // ShowTwoTrailingWheelsFor12Coupled's trailing axle: the rearmost proven
         // position. The triplex's trailing axle sits there, behind its last driver.
         private static readonly Vector3 TriplexTrailingLimit = new Vector3(0f, .36f, -3.1f);
+        // The triplex's own trailing axle: the 2-10-4/4-10-4 rear-axle position.
+        private static readonly Vector3 TriplexOwnTrailingLimit = new Vector3(0f, .36f, -3.7f);
 
         private Transform articulatedMiddleFrame, articulatedMiddleRoot, triplexMiddlePin, triplexAimRest;
         private PositionConstraint triplexMiddlePosition;
@@ -37,9 +45,12 @@ namespace RearrangedS282
         {
             internal float Scale, Radius, FrontPinZ, MiddlePinZ, TrailingZ;
             internal readonly float[] Offsets = new float[3], CylinderFronts = new float[3], Drivers = new float[3];
+            // Driver side (drives, brakes, springs).
             internal Matrix4x4 Front => EngineMap(Offsets[0], Scale);
             internal Matrix4x4 Middle => EngineMap(Offsets[1], Scale);
             internal Matrix4x4 Rear => EngineMap(Offsets[2], Scale);
+            // Cylinder side (guides, cylinder colliders, cylinder outlets).
+            internal Matrix4x4 Cylinders(int engine) => EngineMap(Offsets[engine] - Scale * TriplexShortenNative, Scale);
         }
 
         // Largest uniform scale at which three engines, the gaps between them and
@@ -50,9 +61,9 @@ namespace RearrangedS282
             var body = MalletBody;
             float cylinderFront = FranklinCylinderFront();
             float driver = secondLeftDriveWheel.localPosition.z, radius = secondLeftDriveWheel.localPosition.y;
-            float engineLength = cylinderFront - driver;
-            float trailingLimit = body.InverseTransformPoint(rearBogie.TransformPoint(TriplexTrailingLimit)).z;
-            float front = cylinderFront;
+            float engineLength = cylinderFront - driver - TriplexShortenNative;
+            float trailingLimit = body.InverseTransformPoint(rearBogie.TransformPoint(TriplexOwnTrailingLimit)).z;
+            float front = cylinderFront + TriplexFrontExtra;
             float s = (front - trailingLimit - 2f * TriplexEngineGap - MalletTrailingRadius - MalletEngineGap) / (3f * engineLength + 3f * radius);
             if (!(s > .3f && s < 1f)) throw new InvalidOperationException("Triplex S282 engines do not fit the frame (scale " + s + ").");
             var layout = new TriplexLayout { Scale = s, Radius = s * radius };
@@ -60,8 +71,8 @@ namespace RearrangedS282
             for (int e = 0; e < 3; e++)
             {
                 layout.CylinderFronts[e] = cylinder;
-                layout.Offsets[e] = cylinder - s * cylinderFront;
-                layout.Drivers[e] = layout.Offsets[e] + s * driver;
+                layout.Drivers[e] = cylinder - s * engineLength;
+                layout.Offsets[e] = layout.Drivers[e] - s * driver;
                 cylinder = layout.Drivers[e] - layout.Radius - TriplexEngineGap;
             }
             layout.FrontPinZ = (layout.Drivers[0] + layout.CylinderFronts[1]) * .5f;
@@ -127,9 +138,9 @@ namespace RearrangedS282
             PrepareTriplexGuide(lfCrossheadBracket, articulatedGuideL); PrepareTriplexGuide(rfCrossheadBracket, articulatedGuideR);
 
             var frontStatic = TriplexStaticParts();
-            foreach (var part in frontStatic) MapMalletPart(part, triplex.Front);
+            foreach (var part in frontStatic) MapMalletPart(part, IsTriplexGuide(part) ? triplex.Cylinders(0) : triplex.Front);
             var colliders = MalletColliders.Select(path => transform.Find(path)).Where(t => t != null).ToArray();
-            foreach (var collider in colliders) MapMalletPart(collider, triplex.Front);
+            foreach (var collider in colliders) MapMalletPart(collider, triplex.Cylinders(0));
 
             foreach (var asset in triplexAssets) if (asset != null) asset.gameObject.SetActive(true);
             foreach (var (drive, offset, mirrored) in new[] { (triplexMiddleL, 1, true), (triplexMiddleR, 1, false),
@@ -139,7 +150,8 @@ namespace RearrangedS282
                 drive.localScale = new Vector3(mirrored ? -1f : 1f, s, s);
                 drive.gameObject.SetActive(true);
             }
-            scaledEngineMaps = new[] { triplex.Front, triplex.Rear, triplex.Middle };
+            // Cylinder outlets (cocks, drips) follow the cylinders.
+            scaledEngineMaps = new[] { triplex.Cylinders(0), triplex.Cylinders(2), triplex.Cylinders(1) };
             BindFranklinTriplexAnimation(phase);
             BindEngineBrakeHeat(new[] { triplexMiddleL, triplexMiddleR, triplexRearL, triplexRearR }, 2);
 
@@ -158,6 +170,8 @@ namespace RearrangedS282
             // The front engine's hinge rides on the middle engine.
             MoveArticulatedPart(articulatedPin, articulatedMiddleRoot);
             BindArticulatedLods();
+            // Cylinder side drawn closer to each driver; main rod and middle shaft shortened.
+            foreach (var drive in TriplexDrives()) DriveRetarget.Bind(drive, -TriplexShortenNative, DriveRetarget.FranklinRole, transform);
             Main.Logger.Log($"Articulated S282 2-2-2-2-2: scale {s:0.000}, {2f * triplex.Radius:0.00} m drivers at " +
                 $"{triplex.Drivers[0]:0.00}/{triplex.Drivers[1]:0.00}/{triplex.Drivers[2]:0.00}, pins {triplex.FrontPinZ:0.00}/{triplex.MiddlePinZ:0.00}, " +
                 $"trailing axle {triplex.TrailingZ:0.00} (body z).");
@@ -165,6 +179,10 @@ namespace RearrangedS282
 
         // LMS static pieces belonging to one single-driver engine: the duplex
         // crosshead guides and the second driver's brake and spring.
+        private Transform[] TriplexDrives() => new[] { driveL, driveR, triplexMiddleL, triplexMiddleR, triplexRearL, triplexRearR };
+
+        private bool IsTriplexGuide(Transform part) => part == lfCrossheadBracket || part == rfCrossheadBracket;
+
         private Transform[] TriplexStaticParts() => new[] { lfCrossheadBracket, rfCrossheadBracket,
             leftSecondBrakeCaliper, rightSecondBrakeCaliper,
             RequireArticulatedPart(splitLoco, "s282a_suspension_l_2"), RequireArticulatedPart(splitLoco, "s282a_suspension_r_2") };
@@ -228,7 +246,9 @@ namespace RearrangedS282
                 triplexRearR = CloneEngineDrive(driveR, rfAnimator, "[Rearranged triplex rear drivetrain R]", articulatedRearRoot, d => ConfigureSingleDriverDrive(d, true));
                 created.Add(triplexRearR);
                 foreach (var source in TriplexStaticParts())
-                    foreach (var (label, root, map) in new[] { ("middle", articulatedMiddleRoot, triplex.Middle), ("rear", articulatedRearRoot, triplex.Rear) })
+                    foreach (var (label, root, map) in new[] {
+                        ("middle", articulatedMiddleRoot, IsTriplexGuide(source) ? triplex.Cylinders(1) : triplex.Middle),
+                        ("rear", articulatedRearRoot, IsTriplexGuide(source) ? triplex.Cylinders(2) : triplex.Rear) })
                     {
                         var clone = Object.Instantiate(source.gameObject, source.parent).transform;
                         created.Add(clone);
@@ -339,6 +359,7 @@ namespace RearrangedS282
 
         private void SuspendTriplexGeometry()
         {
+            foreach (var drive in TriplexDrives()) DriveRetarget.Unbind(drive);
             if (triplexMiddlePosition != null) triplexMiddlePosition.constraintActive = false;
             if (triplexMiddleAim != null) triplexMiddleAim.constraintActive = false;
             foreach (var asset in triplexAssets) if (asset != null) asset.gameObject.SetActive(false);
