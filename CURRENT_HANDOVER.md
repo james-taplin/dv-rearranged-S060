@@ -1,4 +1,4 @@
-## 1.7.3 driver-weight cap (Claude), built, NOT installed, 19 Oct 2026
+## 1.7.3 driver-weight cap (Claude), RELEASED pre-release v1.7.3 (tag 6d43064), NOT installed, 19 Oct 2026
 
 James approved option A with these targets after the 1.7.2 runs.
 - 1.7.2 results: the structural test passed all 40 layouts
