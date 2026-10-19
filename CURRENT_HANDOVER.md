@@ -1,4 +1,8 @@
-## 1.5.1 articulated LOD fix + render report built (Claude), NOT installed, 19 Oct 2026
+## 1.5.1 articulated LOD fix + render report built (Claude), INSTALLED 19 Oct 2026
+
+Installed on James's go-ahead; install rebuild of the same clean source gave DLL
+C74CE6E714E322F3726D5ECE3DC1B76DC8D2909C643B95C816AB8BC0B1066A43 (125 integration
+checks rerun on it, pass). 1.5.0 backup: build/runtime-trial-1.5.1/installed-backup-20261019-110514.
 
 James's 1.5.0 run: Mallet renders and works well. 2-4-4-2/4-4-4-4 show a large
 black structure jutting out behind the cab, and the 4-4-4-4 front cylinders are
