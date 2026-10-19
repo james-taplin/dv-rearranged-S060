@@ -43,6 +43,8 @@ namespace RearrangedS282
 				ArticulatedEffects.Register(stage2Harmony);
 				DeltaTrailingTruckCompatibility.Register(stage2Harmony);
 				ConventionalSpawn.RegisterPatches(stage2Harmony);
+				PowerDiagnostics.CurveSampler = CurveDiagnostics.Sample;
+				PowerDiagnostics.CurveSessionInfo = CurveDiagnostics.SessionInfo;
 				modEntry.OnUpdate = (entry, delta) => PowerDiagnostics.Update();
 				Application.quitting += () => PowerDiagnostics.Stop("game exiting");
 				// Live geometry and save owners cannot safely outlive their Harmony hooks.
@@ -89,7 +91,7 @@ namespace RearrangedS282
 #endif
 				};
 #if B99_ALL_STANDARD
-				Logger.Log("B99 expanded trial: 40 choices including the 4-14-4, articulated 2-6-6-2 Mallet and 2-2-2-2-0 triplex, polished Pacific/Hudson Walschaerts, 2-6-0/2-4-0, giant-driver 2-2-2 clearance prototype and the retained original catalogue.");
+				Logger.Log("B99 expanded trial: 40 choices including the 4-14-4, articulated 2-6-6-2 Mallet and 2-2-2-2-2 triplex, polished Pacific/Hudson Walschaerts, 2-6-0/2-4-0, giant-driver 2-2-2 clearance prototype and the retained original catalogue.");
 #else
 				Logger.Log("B99 stage 2: stock / 2-8-4 runtime trial. Persistence and other arrangements disabled.");
 #endif

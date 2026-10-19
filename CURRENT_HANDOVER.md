@@ -1,3 +1,32 @@
+## 1.7.2 fixes + curve diagnostics Stage 1 (Claude), NOT installed, 19 Oct 2026
+
+James's 1.7.1 run: triplex had no visible cylinders, he wanted trailing trucks
+back and bigger wheels; 4-14-4 cylinder-cock jets far forward. Also approved
+curve-dynamics Stage 1 (diagnostics only). Feasibility report (read-only, local
+only): evidence/curve-dynamics-feasibility-20261019/FEASIBILITY.md.
+- Player.log render reports: Franklin cylinder enabled=False lodGroups=0 after
+  the Mallet had been used (fine before). BindArticulatedLods now: native coarse
+  = LOD1+ renderers not drawn as detail by ANY group and not under generated
+  roots (GeneratedPresentationRoots); recorded once; restored in reverse. Franklin
+  renderers (front pairs, rear Franklin/branches/reverse, triplex clone copies)
+  are force-enabled when shown (EnableGeneratedRenderers).
+- Triplex back to s22222 "2-2-2-2-2" with trailing axle at the 12-coupled
+  position (1.7.1 log: scale .755 with no truck; expected ~.70 now).
+- Jets: PacificHudsonAffine.EmitterCentreLocal (mean of leaf descendants).
+  4-14-4 holders, Pacific/Hudson position-only holders and articulated
+  ParticleBinding leaves now move so the emitter centre maps, not the origin
+  (CylCockSteam/WaterDrip origins are at the car origin; LMS MoveCylinders).
+  Pacific fixture holders are childless, so it does not exercise this path.
+- CurveDiagnostics.cs (Stage 1): PowerDiagnostics.CurveSampler/CurveSessionInfo
+  hooks (null in the PowerDiagnostics fixture). Per sample: bogie track/span/
+  yaw/sampled curvature, inter-bogie curvature, native stress/slowBuildUp/
+  derailBuildUp/threshold/rolling N/wheelslip, groups from
+  WheelRearranger.DescribeDriverGroups (visible left drivers; flanged = mesh):
+  rigid fit, pivot fit (+-6 deg, 25 steps), effective-wheelbase estimate,
+  proposed (unapplied) scrub/flange N. No offline fixture for the geometry
+  (native Bogie/PointSet); validate with a capture.
+Validation: all suites pass (integration 136, catalogue 1,366). No game run.
+
 ## 1.7.1 triplex rework (Claude), INSTALLED 19 Oct 2026
 
 Installed from the released ZIP itself (no rebuild): installed DLL equals the

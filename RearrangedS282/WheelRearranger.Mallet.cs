@@ -304,12 +304,64 @@ namespace RearrangedS282
         }
 
         // Cylinder-cock, drip and crack outlets follow the scaled engines.
-        internal bool TryMapArticulatedOutlet(Vector3 nativeWorld, int engine, out Vector3 engineLocal)
+        internal bool TryMapArticulatedOutlet(Vector3 nativeWorld, int engine, out Vector3 engineLocal) =>
+            TryMapArticulatedOutlet(nativeWorld, nativeWorld, engine, out engineLocal);
+
+        // Moves an outlet so that its emitter centre (not necessarily its origin)
+        // lands on the engine-mapped position. Origin and centre in world space.
+        internal bool TryMapArticulatedOutlet(Vector3 nativeOrigin, Vector3 nativeCentre, int engine, out Vector3 engineLocal)
         {
             engineLocal = default;
             if (scaledEngineMaps == null || engine < 0 || engine >= scaledEngineMaps.Length || articulatedFrontFrame == null) return false;
-            engineLocal = scaledEngineMaps[engine].MultiplyPoint3x4(MalletBody.InverseTransformPoint(nativeWorld));
+            var origin = MalletBody.InverseTransformPoint(nativeOrigin);
+            var centre = MalletBody.InverseTransformPoint(nativeCentre);
+            engineLocal = origin + scaledEngineMaps[engine].MultiplyPoint3x4(centre) - centre;
             return true;
+        }
+
+        // Curve diagnostics: each rigid driver group as currently displayed. Wheels
+        // are the visible left drivers (physical axles are not reliably placed for
+        // legacy layouts). Flanged is the authored mesh choice, a modelling input.
+        internal sealed class DriverGroup
+        {
+            internal string Name;
+            internal Transform Body, EngineRoot;
+            internal Vector3? Pivot;
+            internal (Transform wheel, bool flanged)[] Wheels;
+        }
+
+        internal IEnumerable<DriverGroup> DescribeDriverGroups()
+        {
+            if (driveL == null || articulatedFrontFrame == null) yield break;
+            var body = MalletBody;
+            DriverGroup Make(string name, Transform drive, Transform engineRoot, Transform pin) => new DriverGroup
+            {
+                Name = name, Body = body, EngineRoot = engineRoot,
+                Pivot = pin != null ? body.InverseTransformPoint(pin.position) : (Vector3?)null,
+                Wheels = drive == null ? Array.Empty<(Transform, bool)>() : drive.GetComponentsInChildren<Transform>(false)
+                    .Where(t => t.name.StartsWith("s282_wheels_driving_", StringComparison.Ordinal) && t.gameObject.activeInHierarchy)
+                    .Select(t => (t, t.GetComponent<MeshFilter>()?.sharedMesh == flangedDriver)).ToArray()
+            };
+            switch (currentWA)
+            {
+                case WheelArrangementType.s2442:
+                case WheelArrangementType.s4444:
+                    yield return Make("front engine", driveL, articulatedFrontRoot, articulatedPin);
+                    yield return Make("rear engine", articulatedRearL, articulatedRearRoot, null);
+                    break;
+                case WheelArrangementType.s2662:
+                    yield return Make("front engine", driveL, articulatedFrontRoot, articulatedPin);
+                    yield return Make("rear engine", malletRearL, articulatedRearRoot, null);
+                    break;
+                case WheelArrangementType.s22222:
+                    yield return Make("front engine", driveL, articulatedFrontRoot, articulatedPin);
+                    yield return Make("middle engine", triplexMiddleL, articulatedMiddleRoot, triplexMiddlePin);
+                    yield return Make("rear engine", triplexRearL, articulatedRearRoot, null);
+                    break;
+                default:
+                    yield return Make("rigid", driveL, body, null);
+                    break;
+            }
         }
 
         private void SuspendMalletGeometry()

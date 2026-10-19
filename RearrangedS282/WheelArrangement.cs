@@ -47,7 +47,7 @@ namespace RearrangedS282
 		s240 = 35,
 		s222 = 36,
 		s2662 = 37,
-		s22220 = 38,
+		s22222 = 38,
 		s4144 = 39,
 		/*s2680,
 		s4664*/
@@ -62,7 +62,7 @@ namespace RearrangedS282
 		public static bool IsConventionalId(int id) => IsStandardId(id) ||
 			(id >= (int)WheelArrangementType.s260 && id <= (int)WheelArrangementType.s222) || id == (int)WheelArrangementType.s4144;
 		public static bool IsArticulatedId(int id) => id == (int)WheelArrangementType.s2442 || id == (int)WheelArrangementType.s4444 ||
-			id == (int)WheelArrangementType.s2662 || id == (int)WheelArrangementType.s22220;
+			id == (int)WheelArrangementType.s2662 || id == (int)WheelArrangementType.s22222;
 		public static bool IsSupportedId(int id) => IsConventionalId(id) || IsArticulatedId(id) || id == (int)WheelArrangementType.s404;
 		public const int SupportedCount = 40;
 
@@ -138,7 +138,7 @@ namespace RearrangedS282
 			"2-4-0",
 			"2-2-2 Giant-driver clearance prototype",
 			"2-6-6-2 Articulated Mallet",
-			"2-2-2-2-0 Articulated Triplex",
+			"2-2-2-2-2 Articulated Triplex",
 			"4-14-4",
 			/*"2-6-8-0",
 			"4-6-6-4 Challenger"*/
@@ -184,7 +184,7 @@ namespace RearrangedS282
 			2,//"2-4-0",
 			4,//"2-2-2 Giant-driver clearance prototype",
 			4,//"2-6-6-2 Articulated Mallet",
-			2,//"2-2-2-2-0 Articulated Triplex",
+			4,//"2-2-2-2-2 Articulated Triplex",
 			8,//"4-14-4",
 		};
 	}

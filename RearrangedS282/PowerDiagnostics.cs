@@ -34,6 +34,9 @@ namespace RearrangedS282
         internal static string Status { get; private set; } = "Power diagnostics are stopped.";
         internal static string LastPath { get; private set; }
         internal static string Latest { get; private set; }
+        // Optional extra per-sample block (curve diagnostics) and its session notes.
+        internal static Func<TrainCar, JToken> CurveSampler;
+        internal static Func<JObject> CurveSessionInfo;
 
         private sealed class Target
         {
@@ -59,7 +62,7 @@ namespace RearrangedS282
                 var mods = new JArray();
                 foreach (var mod in UnityModManager.modEntries)
                     if (mod.Active) mods.Add(new JObject { ["id"] = mod.Info.Id, ["version"] = mod.Info.Version });
-                Write(new JObject {
+                var session = new JObject {
                     ["record"] = "session", ["schema"] = 2, ["startedUtc"] = DateTime.UtcNow.ToString("O"),
                     ["modVersion"] = typeof(Main).Assembly.GetName().Version.ToString(), ["sampleHzPerCar"] = 10,
                     ["maximumRows"] = MaximumRows, ["maximumSeconds"] = MaximumSeconds, ["maximumBytes"] = MaximumBytes, ["mods"] = mods,
@@ -70,7 +73,9 @@ namespace RearrangedS282
                     ["targetMeaning"] = "slipTargetRpm is reconstructed from sampled slip state; ECS may have updated slip since the feeder tick",
                     ["units"] = "signed km/h, RPM, metres, newtons, Nm, kg/s, kg; all pressures bar absolute; controls/slip normalized",
                     ["missingValues"] = "null means unavailable/non-finite, never an assumed zero"
-                });
+                };
+                if (CurveSessionInfo != null) session["curve"] = CurveSessionInfo();
+                Write(session);
                 writer.Flush();
                 Status = "Recording S282 power diagnostics. Close the mod manager and drive; stop capture when finished.";
                 Main.Logger.Log("Power diagnostics started: " + LastPath);
@@ -140,7 +145,7 @@ namespace RearrangedS282
                 else if (slip != null && slip.wheelslip > 0f) slipTarget = Mathf.Lerp(roadRpm, slip.OrientedMaxWheelslipRpm, slip.wheelslip);
                 var rearranger = car.GetComponent<WheelRearranger>();
                 int arrangement = rearranger != null ? (int)rearranger.currentWA : (int)WheelArrangementType.s282;
-                Write(new JObject {
+                var sample = new JObject {
                     ["record"] = "sample", ["elapsedSeconds"] = F(now - started), ["frame"] = Time.frameCount,
                     ["simUpdateFailed"] = simulationException != null, ["simUpdateFault"] = Fault(simulationException),
                     ["gameTime"] = F(Time.time), ["frameDelta"] = F(Time.deltaTime), ["simTimeMultiplier"] = F(sim.simTimeMultiplier),
@@ -169,7 +174,9 @@ namespace RearrangedS282
                     })),
                     ["cylinderCocks"] = F(engine.cylinderCockControl.Value), ["derailed"] = car.derailed,
                     ["trackSlopeApprox"] = F(car.transform.forward.y)
-                });
+                };
+                if (CurveSampler != null) sample["curve"] = CurveSampler(car);
+                Write(sample);
                 rows++;
                 Latest = car.ID + ": road " + (speed * 3.6f).ToString("F1") + " km/h; wheel " + feeder.wheelRpm.ToString("F0") +
                     "; crank " + engine.crankRpm.Value.ToString("F0") + " RPM; slip " + (slip != null ? slip.wheelslip.ToString("F2") : "n/a");

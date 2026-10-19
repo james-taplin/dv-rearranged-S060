@@ -31,7 +31,7 @@ namespace RearrangedS282
         private PoweredWheelRotationViaAnimation.AnimatorStartTimeOffsetPair[] articulatedOriginalAnimators;
         private Mesh articulatedSideRod, articulatedGuideL, articulatedGuideR;
         private Transform rearGuideL, rearGuideR;
-        private Transform[] frontFranklin, frontFranklin4444, rearBranches, rearBranches4444, rearReverse, rearReverse4444;
+        private Transform[] frontFranklin, frontFranklin4444, rearFranklin, rearBranches, rearBranches4444, rearReverse, rearReverse4444;
         private bool articulatedAssetsReady;
         private Action restoreArticulatedBrakeRenderers;
 
@@ -92,7 +92,7 @@ namespace RearrangedS282
                 var material = firstRightDriveWheel.GetComponent<MeshRenderer>().sharedMaterial;
                 frontFranklin = AddPair(AssetBundleLoader.FranklinBValveGear, driveL, driveR, material);
                 frontFranklin4444 = AddPair(AssetBundleLoader.FranklinBValveGear4444, driveL, driveR, material);
-                AddPair(AssetBundleLoader.FranklinBValveGear, articulatedRearL, articulatedRearR, material);
+                rearFranklin = AddPair(AssetBundleLoader.FranklinBValveGear, articulatedRearL, articulatedRearR, material);
                 rearBranches = AddPair(AssetBundleLoader.BranchPipe, articulatedRearL, articulatedRearR, material);
                 rearBranches4444 = AddPair(AssetBundleLoader.BranchPipe4444, articulatedRearL, articulatedRearR, material);
                 rearReverse = AddPair(AssetBundleLoader.FranklinBReverseGear, articulatedRearL, articulatedRearR, material);
@@ -285,6 +285,9 @@ namespace RearrangedS282
             rearGuideL.localPosition = rearGuideR.localPosition = SplitBodyOffsetInRearRoot() + new Vector3(0, 0, -4.58f);
             rearGuideL.localScale = rearGuideR.localScale = new Vector3(-1, 1, 1);
             SetPairActive(frontFranklin, !fourLeading); SetPairActive(frontFranklin4444, fourLeading);
+            foreach (var pair in new[] {fourLeading ? frontFranklin4444 : frontFranklin, fourLeading ? rearBranches4444 : rearBranches,
+                fourLeading ? rearReverse4444 : rearReverse}) foreach (var part in pair) EnableGeneratedRenderers(part);
+            foreach (var part in rearFranklin) EnableGeneratedRenderers(part);
             SetPairActive(rearBranches, !fourLeading); SetPairActive(rearBranches4444, fourLeading);
             SetPairActive(rearReverse, !fourLeading); SetPairActive(rearReverse4444, fourLeading);
             // All other rear components were explicitly authored as active.
@@ -543,27 +546,53 @@ namespace RearrangedS282
             foreach(var g in groups) foreach(var r in g.lods.SelectMany(l=>l.renderers)) if(r!=null && !owner.ContainsKey(r)) owner[r]=g.group;
             var bodyGroup=body.GetComponent<LODGroup>() ?? groups.Select(g=>g.group).FirstOrDefault();
             // Native coarse proxies stay coarse: promoting them would draw them
-            // on top of the detailed parts they stand in for.
-            var coarse=new HashSet<Renderer>(groups.SelectMany(g=>g.lods.Skip(1).SelectMany(l=>l.renderers)).Where(r=>r!=null));
+            // on top of the detailed parts they stand in for. Our own generated
+            // parts are never coarse, whatever LOD list a clone copied them into.
+            var generated=GeneratedPresentationRoots();
+            bool IsGenerated(Renderer r){for(var t=r.transform;t!=null;t=t.parent) if(generated.Contains(t)) return true; return false;}
+            var coarse=new HashSet<Renderer>(groups.SelectMany(g=>g.lods.Skip(1).SelectMany(l=>l.renderers)).Where(r=>r!=null && !IsGenerated(r)));
             coarse.ExceptWith(groups.SelectMany(g=>g.lods[0].renderers).Where(r=>r!=null));
             var extras=articulatedFrontRoot.GetComponentsInChildren<Renderer>(true).Concat(articulatedRearRoot.GetComponentsInChildren<Renderer>(true))
                 .Concat(articulatedMiddleRoot!=null ? articulatedMiddleRoot.GetComponentsInChildren<Renderer>(true) : Array.Empty<Renderer>())
                 .Where(r=>r!=null && !(r is ParticleSystemRenderer) && r.gameObject.activeInHierarchy && r.enabled && !coarse.Contains(r)).Distinct().ToArray();
             foreach(var r in extras)
                 if(!owner.ContainsKey(r)) owner[r]=r.GetComponentsInParent<LODGroup>(true).FirstOrDefault(g=>groups.Any(x=>x.group==g)) ?? bodyGroup;
-            foreach (var (group, lods) in groups)
+            // Two passes: every group's detail first, so a renderer drawn as detail
+            // anywhere is never hidden as another group's coarse proxy.
+            var details=groups.Select(g=>g.lods[0].renderers.Where(r=>r!=null && owner[r]==g.group)
+                .Concat(extras.Where(r=>owner[r]==g.group)).Distinct().ToArray()).ToArray();
+            var shown=new HashSet<Renderer>(details.SelectMany(d=>d));
+            var hidden=new HashSet<Renderer>();
+            for (int i=0;i<groups.Length;i++)
             {
+                var (group, lods)=groups[i];
                 articulatedLods.Add(new ArticulatedLodState {group=group, lods=lods});
-                var detail=lods[0].renderers.Where(r=>r!=null && owner[r]==group)
-                    .Concat(extras.Where(r=>owner[r]==group)).Distinct().ToArray();
-                foreach(var renderer in lods.Skip(1).SelectMany(l=>l.renderers).Where(r=>r!=null && !detail.Contains(r)).Distinct())
-                { articulatedCoarseRenderers.Add(new RendererState {renderer=renderer, enabled=renderer.enabled}); renderer.enabled=false; }
+                foreach(var renderer in lods.Skip(1).SelectMany(l=>l.renderers).Where(r=>r!=null && coarse.Contains(r) && !shown.Contains(r)))
+                    if(hidden.Add(renderer)) { articulatedCoarseRenderers.Add(new RendererState {renderer=renderer, enabled=renderer.enabled}); renderer.enabled=false; }
                 // As in L74, retain the detailed, correctly articulated engine
                 // through the native far-cull threshold instead of rigid proxies.
-                group.SetLODs(new[] {new LOD(lods[lods.Length-1].screenRelativeTransitionHeight, detail)});
+                group.SetLODs(new[] {new LOD(lods[lods.Length-1].screenRelativeTransitionHeight, details[i])});
                 group.RecalculateBounds();
             }
             LogArticulatedRenderReport();
+        }
+
+        // Everything Rearranged instantiated for articulated, Mallet, triplex and
+        // 4-14-4 presentation, including whole cloned drivetrains.
+        private HashSet<Transform> GeneratedPresentationRoots()
+        {
+            var roots=new HashSet<Transform>(articulatedAssets.Concat(malletAssets).Concat(triplexAssets).Concat(fourteenAssets).Where(t=>t!=null));
+            foreach(var t in new[] {articulatedRearL,articulatedRearR,malletRearL,malletRearR,triplexMiddleL,triplexMiddleR,triplexRearL,triplexRearR})
+                if(t!=null) roots.Add(t);
+            return roots;
+        }
+
+        // Re-enables every renderer of a generated part being shown, healing any
+        // state left by an older or interrupted LOD binding.
+        private static void EnableGeneratedRenderers(Transform part)
+        {
+            if(part==null) return;
+            foreach(var renderer in part.GetComponentsInChildren<MeshRenderer>(true)) renderer.enabled=true;
         }
 
         // Test-build diagnostic: name every visible part reaching behind the cab
@@ -629,7 +658,8 @@ namespace RearrangedS282
             articulatedReaders.Clear();
             foreach (var entry in articulatedLods) if(entry.group!=null) {entry.group.SetLODs(entry.lods); entry.group.RecalculateBounds();}
             articulatedLods.Clear();
-            foreach (var entry in articulatedCoarseRenderers) if(entry.renderer!=null) entry.renderer.enabled=entry.enabled;
+            for (int i=articulatedCoarseRenderers.Count-1;i>=0;i--)
+                if(articulatedCoarseRenderers[i].renderer!=null) articulatedCoarseRenderers[i].renderer.enabled=articulatedCoarseRenderers[i].enabled;
             articulatedCoarseRenderers.Clear();
             foreach (var entry in articulatedPoweredAnchors)
             {

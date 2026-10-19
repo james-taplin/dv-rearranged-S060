@@ -122,7 +122,10 @@ namespace RearrangedS282
             foreach (var collider in MalletColliders.Select(path => transform.Find(path)).Where(t => t != null)) MapMalletPart(collider, layout.Map);
             // Particle holders follow the cylinders without stretching their emitters.
             foreach (var holder in FourteenParticleHolders.Select(path => transform.Find(path)).Where(t => t != null))
-                holder.position = body.TransformPoint(layout.Map.MultiplyPoint3x4(body.InverseTransformPoint(holder.position)));
+            {
+                var centre = holder.TransformPoint(PacificHudsonAffine.EmitterCentreLocal(holder));
+                holder.position += body.TransformPoint(layout.Map.MultiplyPoint3x4(body.InverseTransformPoint(centre))) - centre;
+            }
 
             Bind4144BrakeHeatAndSparks();
             driveAxle5.gameObject.SetActive(true); driveAxle6.gameObject.SetActive(true); driveAxle7.gameObject.SetActive(true);

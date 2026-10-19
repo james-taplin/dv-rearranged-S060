@@ -123,6 +123,7 @@ namespace RearrangedS282
             private readonly Matrix4x4 frameInNativeDrive;
             private readonly Vector3 nativeScale;
             private readonly Quaternion nativeRotation;
+            private readonly Vector3 emitterCentre;
             private readonly string path;
             private readonly bool positionOnly;
             private bool shearLogged;
@@ -132,6 +133,7 @@ namespace RearrangedS282
                 frameInNativeDrive = nativeDrive.worldToLocalMatrix * part.localToWorldMatrix;
                 nativeScale = part.localScale;
                 nativeRotation = part.localRotation;
+                emitterCentre = positionOnly ? PacificHudsonAffine.EmitterCentreLocal(part) : Vector3.zero;
             }
             internal void Apply(Transform drive)
             {
@@ -151,7 +153,9 @@ namespace RearrangedS282
                     shearLogged = true;
                     Main.Logger.Log("Pacific/Hudson: " + path + " cannot be stretched without shear; moved only.");
                 }
-                part.localPosition = local.MultiplyPoint3x4(Vector3.zero);
+                // Move so the emitter centre lands on its mapped position, keeping
+                // the holder's native orientation and size.
+                part.localPosition = local.MultiplyPoint3x4(emitterCentre) - Matrix4x4.TRS(Vector3.zero, nativeRotation, nativeScale).MultiplyPoint3x4(emitterCentre);
                 part.localRotation = nativeRotation; part.localScale = nativeScale;
             }
         }
@@ -200,6 +204,25 @@ namespace RearrangedS282
     // offline fixture; they do not sample time or alter simulation/animation.
     internal static class PacificHudsonAffine
     {
+        // Cylinder outlet holders (CylCockSteam, CylCockWaterDrip) sit at the car
+        // origin with their emitters as children at the cylinders. Mapping the
+        // holder's origin moves the jets by the whole engine offset; map the
+        // emitters' centre instead. Holder-local; zero when it has no children.
+        internal static Vector3 EmitterCentreLocal(Transform holder)
+        {
+            // Average of the leaf descendants, so intermediate containers at the
+            // holder origin do not hide the emitters below them.
+            var sum = Vector3.zero; int count = 0;
+            void Visit(Transform t)
+            {
+                bool leaf = true;
+                foreach (Transform child in t) { leaf = false; Visit(child); }
+                if (leaf && t != holder) { sum += holder.worldToLocalMatrix.MultiplyPoint3x4(t.localToWorldMatrix.MultiplyPoint3x4(Vector3.zero)); count++; }
+            }
+            Visit(holder);
+            return count == 0 ? Vector3.zero : sum / count;
+        }
+
         internal static void Decompose(Matrix4x4 frame, Vector3 nativeScale,
             out Vector3 position, out Quaternion rotation, out Vector3 scale)
         {

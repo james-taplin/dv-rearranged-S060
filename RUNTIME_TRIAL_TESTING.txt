@@ -1,4 +1,27 @@
-Rearranged S282 B99 - 1.7.1 trial
+Rearranged S282 B99 - 1.7.2 trial
+
+NEW IN 1.7.2
+- Triplex is a 2-2-2-2-2 again (trailing truck back). Drivers about 1.0 m: three
+  engines of Franklin cylinder (about 2.3 m) plus guide and short main rod do not
+  leave room for larger wheels. Layout logged as "Articulated S282 2-2-2-2-2: ...".
+- Missing Franklin cylinders fixed (triplex, and the duplexes after using the
+  Mallet): the LOD binding could leave them disabled. Coarse LOD stand-ins are now
+  hidden only if no group draws them, recorded once, restored in reverse, and
+  Rearranged's own parts are never treated as coarse.
+- Cylinder-cock steam/drip jets: holders were moved by their origin (at the car
+  origin), putting jets metres away on the 4-14-4 and Pacific/Hudson and the
+  drips/crack on the Mallet/triplex. They now move by their emitters' centre.
+- Curve diagnostics (Stage 1, measurement only, NOTHING applied): power
+  diagnostics samples now include a "curve" block (track curvature by two
+  methods, each driver group's per-axle offset/angle against the track, rigid
+  and pivot-fit, native stress/resistance, and proposed-but-unapplied values).
+
+TO CAPTURE CURVE DATA
+Ctrl+F10 > RearrangedS282 > START POWER DIAGNOSTICS, drive the same route with
+different arrangements (straight, broad curve, tight curve, S-curve, points;
+both directions; stop/restart on a curve), then STOP AND SAVE.
+
+Rearranged S282 B99 - 1.7.1 trial (previous)
 
 NEW IN 1.7.1: triplex reworked as 2-2-2-2-0 (radio ID 38, renamed)
 Each of the three engines is now a single-driver version of the 2-4-4-2's

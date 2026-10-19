@@ -9,21 +9,21 @@ using Object = UnityEngine.Object;
 
 namespace RearrangedS282
 {
-    // 2-2-2-2-0 triplex: three single-driver engines. Each is a uniformly scaled
+    // 2-2-2-2-2 triplex: three single-driver engines. Each is a uniformly scaled
     // copy of the 2-4-4-2's engine (Franklin poppet gear, its cylinder carried by
     // the drivetrain, and the duplex short main rod driving the second-driver
     // position) showing only that driver, which keeps the engines short. The
     // front engine swings on the existing pin/aim constraints, its hinge carried
     // by the middle engine; the middle engine pivots ahead of the rear cylinders
     // and turns a fraction of the front bogie's angle (visual only); the rear
-    // engine is boiler-fixed. No trailing truck.
+    // engine is boiler-fixed. One-axle trailing truck at the 12-coupled position.
     internal partial class WheelRearranger
     {
         // Front cylinders may sit over the leading truck, as on the stock S282.
         private const float TriplexEngineGap = .08f, TriplexMiddleSwing = .4f;
         private const string FranklinDriveState = "LocoS282A_AnimationDriveGear";
         // ShowTwoTrailingWheelsFor12Coupled's trailing axle: the rearmost proven
-        // position. The triplex's last driver stays within that wheel's rear edge.
+        // position. The triplex's trailing axle sits there, behind its last driver.
         private static readonly Vector3 TriplexTrailingLimit = new Vector3(0f, .36f, -3.1f);
 
         private Transform articulatedMiddleFrame, articulatedMiddleRoot, triplexMiddlePin, triplexAimRest;
@@ -35,25 +35,25 @@ namespace RearrangedS282
 
         private sealed class TriplexLayout
         {
-            internal float Scale, Radius, FrontPinZ, MiddlePinZ;
+            internal float Scale, Radius, FrontPinZ, MiddlePinZ, TrailingZ;
             internal readonly float[] Offsets = new float[3], CylinderFronts = new float[3], Drivers = new float[3];
             internal Matrix4x4 Front => EngineMap(Offsets[0], Scale);
             internal Matrix4x4 Middle => EngineMap(Offsets[1], Scale);
             internal Matrix4x4 Rear => EngineMap(Offsets[2], Scale);
         }
 
-        // Largest uniform scale at which three engines and the gaps between them
-        // fit between the native Franklin cylinder front and the rear edge of the
-        // 12-coupled trailing wheel. Everything in the body frame.
+        // Largest uniform scale at which three engines, the gaps between them and
+        // the trailing wheel fit between the native Franklin cylinder front and the
+        // 12-coupled trailing-axle position. Everything in the body frame.
         private TriplexLayout MeasureTriplex()
         {
             var body = MalletBody;
             float cylinderFront = FranklinCylinderFront();
             float driver = secondLeftDriveWheel.localPosition.z, radius = secondLeftDriveWheel.localPosition.y;
             float engineLength = cylinderFront - driver;
-            float rearLimit = body.InverseTransformPoint(rearBogie.TransformPoint(TriplexTrailingLimit)).z - MalletTrailingRadius;
+            float trailingLimit = body.InverseTransformPoint(rearBogie.TransformPoint(TriplexTrailingLimit)).z;
             float front = cylinderFront;
-            float s = (front - rearLimit - 2f * TriplexEngineGap) / (3f * engineLength + 3f * radius);
+            float s = (front - trailingLimit - 2f * TriplexEngineGap - MalletTrailingRadius - MalletEngineGap) / (3f * engineLength + 3f * radius);
             if (!(s > .3f && s < 1f)) throw new InvalidOperationException("Triplex S282 engines do not fit the frame (scale " + s + ").");
             var layout = new TriplexLayout { Scale = s, Radius = s * radius };
             float cylinder = front;
@@ -66,6 +66,7 @@ namespace RearrangedS282
             }
             layout.FrontPinZ = (layout.Drivers[0] + layout.CylinderFronts[1]) * .5f;
             layout.MiddlePinZ = (layout.Drivers[1] + layout.CylinderFronts[2]) * .5f;
+            layout.TrailingZ = layout.Drivers[2] - layout.Radius - MalletTrailingRadius - MalletEngineGap;
             return layout;
         }
 
@@ -99,11 +100,17 @@ namespace RearrangedS282
             float phase = lfAnimator.GetCurrentAnimatorStateInfo(0).normalizedTime % 1f;
             ResetBody(); ResetToFourCoupled(); HideLeadingWheels(); HideTrailingWheels();
             ShowTwoLeadingWheels();
+            ShowTwoTrailingWheelsFor12Coupled();
+            float trailingLocal = rearBogie.InverseTransformPoint(MalletBody.TransformPoint(new Vector3(0f, 0f, triplex.TrailingZ))).z;
+            float trailingShift = trailingLocal - secondRearAxle.localPosition.z;
+            secondRearAxle.localPosition += Vector3.forward * trailingShift;
+            secondRearAxleSupport.localPosition += Vector3.forward * trailingShift;
             setWheelRadius(.712f * s);
 
             driveL.localPosition = driveR.localPosition = new Vector3(0f, 0f, triplex.Offsets[0]);
             driveL.localScale = new Vector3(-1f, s, s); driveR.localScale = new Vector3(1f, s, s);
             SetPairActive(frontFranklin, true); SetPairActive(frontFranklin4444, false);
+            foreach (var part in frontFranklin) EnableGeneratedRenderers(part);
             ConfigureSingleDriverDrive(driveL, false); ConfigureSingleDriverDrive(driveR, false);
             lfAnimator.runtimeAnimatorController = rfAnimator.runtimeAnimatorController = AssetBundleLoader.FranklinBAnimCtrl;
             leftReachRod.gameObject.SetActive(false); rightReachRod.gameObject.SetActive(false);
@@ -151,8 +158,9 @@ namespace RearrangedS282
             // The front engine's hinge rides on the middle engine.
             MoveArticulatedPart(articulatedPin, articulatedMiddleRoot);
             BindArticulatedLods();
-            Main.Logger.Log($"Articulated S282 2-2-2-2-0: scale {s:0.000}, {2f * triplex.Radius:0.00} m drivers at " +
-                $"{triplex.Drivers[0]:0.00}/{triplex.Drivers[1]:0.00}/{triplex.Drivers[2]:0.00}, pins {triplex.FrontPinZ:0.00}/{triplex.MiddlePinZ:0.00} (body z).");
+            Main.Logger.Log($"Articulated S282 2-2-2-2-2: scale {s:0.000}, {2f * triplex.Radius:0.00} m drivers at " +
+                $"{triplex.Drivers[0]:0.00}/{triplex.Drivers[1]:0.00}/{triplex.Drivers[2]:0.00}, pins {triplex.FrontPinZ:0.00}/{triplex.MiddlePinZ:0.00}, " +
+                $"trailing axle {triplex.TrailingZ:0.00} (body z).");
         }
 
         // LMS static pieces belonging to one single-driver engine: the duplex
@@ -267,7 +275,7 @@ namespace RearrangedS282
             if (shoes != null) foreach (Transform shoe in shoes) shoe.gameObject.SetActive(shoe.name == "s282a_brake_shoe_2");
             foreach (Transform child in drive)
             {
-                if (child.name == "franklin_type_b(Clone)") child.gameObject.SetActive(true);
+                if (child.name == "franklin_type_b(Clone)") { child.gameObject.SetActive(true); EnableGeneratedRenderers(child); }
                 else if (child.name == "franklin_type_b_4444(Clone)") child.gameObject.SetActive(false);
             }
             if (clone)

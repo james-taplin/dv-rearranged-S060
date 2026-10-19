@@ -268,11 +268,16 @@ namespace RearrangedS282
             }
             // Front outlet in front-engine coordinates, from its native world position.
             internal Vector3 FrontOutletLocal(Vector3 nativeWorld, Vector3 reparentedLocal) =>
-                Car.GetComponent<WheelRearranger>().TryMapArticulatedOutlet(nativeWorld, 0, out var mapped)
+                FrontOutletLocal(nativeWorld, reparentedLocal, nativeWorld);
+            internal Vector3 FrontOutletLocal(Vector3 nativeWorld, Vector3 reparentedLocal, Vector3 nativeCentre) =>
+                Car.GetComponent<WheelRearranger>().TryMapArticulatedOutlet(nativeWorld, nativeCentre, 0, out var mapped)
                     ? mapped : reparentedLocal + FrontOutletOffset;
             // Extra-engine outlet in that engine's coordinates, from its authored car-local position.
             internal Vector3 SecondaryOutletLocal(Vector3 carLocal, Secondary secondary) =>
-                Car.GetComponent<WheelRearranger>().TryMapArticulatedOutlet(Car.transform.TransformPoint(carLocal), secondary.Index, out var mapped)
+                SecondaryOutletLocal(carLocal, secondary, carLocal);
+            internal Vector3 SecondaryOutletLocal(Vector3 carLocal, Secondary secondary, Vector3 centreCarLocal) =>
+                Car.GetComponent<WheelRearranger>().TryMapArticulatedOutlet(Car.transform.TransformPoint(carLocal),
+                    Car.transform.TransformPoint(centreCarLocal), secondary.Index, out var mapped)
                     ? mapped : carLocal + Vector3.back * EngineSeparation;
             private ParticleBinding particles;
             private float nextSearch;
@@ -443,17 +448,19 @@ namespace RearrangedS282
                 if (leaf == null || primaryLeaves.Any(p => p.Leaf == leaf.transform)) return;
                 primaryLeaves.Add(new Pose(leaf.transform));
                 Vector3 world = leaf.transform.position;
+                Vector3 centre = leaf.transform.TransformPoint(PacificHudsonAffine.EmitterCentreLocal(leaf.transform));
                 leaf.transform.SetParent(owner.Front, true);
-                leaf.transform.localPosition = owner.FrontOutletLocal(world, leaf.transform.localPosition);
+                leaf.transform.localPosition = owner.FrontOutletLocal(world, leaf.transform.localPosition, centre);
             }
 
             private void MoveCopy(GameObject leaf, Secondary secondary)
             {
                 if (leaf == null) return;
                 Vector3 position = owner.Car.transform.InverseTransformPoint(leaf.transform.position);
+                Vector3 centre = owner.Car.transform.InverseTransformPoint(leaf.transform.TransformPoint(PacificHudsonAffine.EmitterCentreLocal(leaf.transform)));
                 Quaternion rotation = leaf.transform.rotation;
                 leaf.transform.SetParent(secondary.Root, false);
-                leaf.transform.localPosition = owner.SecondaryOutletLocal(position, secondary);
+                leaf.transform.localPosition = owner.SecondaryOutletLocal(position, secondary, centre);
                 leaf.transform.rotation = rotation;
                 if (leaf.GetComponent<ArticulatedEffectMarker>() == null) leaf.AddComponent<ArticulatedEffectMarker>();
                 if (!copies.Contains(leaf)) copies.Add(leaf);
