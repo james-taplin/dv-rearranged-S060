@@ -1,4 +1,7 @@
-## 1.7.4 curve diagnostics fixes (Claude), RELEASED pre-release v1.7.4, 19 Oct 2026
+## 1.7.4 curve diagnostics fixes (Claude), RELEASED pre-release v1.7.4 (tag 6c3eaa2), INSTALLED, 19 Oct 2026
+
+Installed from the released ZIP (DLL DB903797...87C93 == release, Info.json 1.7.4).
+1.7.3 backup: build/runtime-trial-1.7.4/installed-backup-20261019-175717. Settings kept.
 
 Diagnostics only; driving is unchanged from 1.7.3. James asked for this as the gate before Stage 2.
 - Duplicate drivers: DescribeDriverGroups now skips names containing "LOD".
