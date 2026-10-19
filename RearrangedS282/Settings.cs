@@ -55,6 +55,10 @@ namespace RearrangedS282
 		[Draw("Show x-10-x valve gear:", Height = HEIGHT)] public bool show10CoupledValveGear = true;
 		[Draw("Show x-12-x valve gear:", Height = HEIGHT)] public bool show12CoupledValveGear = true;
 
+		[Header("Curving (wheelbase): long rigid driver groups drag and squeal more on tight curves")]
+		[Draw("Extra curve drag for long rigid wheelbases:", Height = HEIGHT)] public bool curveDrag = true;
+		[Draw("Extra flange squeal for long rigid wheelbases:", Height = HEIGHT)] public bool curveSqueal = true;
+
 		[Header("Experimental 2-2-2: non-colliding clearance prototype")]
 		[Header("Reapply the arrangement after changing its driver diameter")]
 		[Draw("2-2-2 driver diameter (metres):", DrawType.Slider, Min = 2.1, Max = 3.6, Precision = 2)]

@@ -84,6 +84,7 @@ namespace RearrangedS282
                 if (rearranger != null)
                     foreach (var group in rearranger.DescribeDriverGroups()) groups.Add(Group(car, bogies, up, group, weight));
                 result["groups"] = groups;
+                if (rearranger != null) result["drag"] = rearranger.CurveDragReport();
                 return result;
             }
             catch (Exception ex) { return new JObject { ["error"] = ex.GetType().Name + ": " + ex.Message }; }
@@ -193,7 +194,7 @@ namespace RearrangedS282
         }
 
         // Signed curvature from the track's own forward vectors either side of the bogie.
-        private static float SampledCurvature(Bogie bogie, Vector3 up)
+        internal static float SampledCurvature(Bogie bogie, Vector3 up)
         {
             var points = bogie.traveller.pointSet.points;
             int i = bogie.traveller.curPoint.index, a = i, b = i;

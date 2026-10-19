@@ -1,3 +1,47 @@
+## 1.8.0 curving Stage 2: curve drag + squeal (Claude), RELEASED pre-release, NOT installed, 19 Oct 2026
+
+James approved Stage 2 (drag), then squeal, with derail risk after the flange
+term and the triplex measurement are fixed. Next: "fix some of the arrangements".
+- 1.7.4 capture (power-20261019-182301-729.jsonl, capture limit hit at 789 s
+  with 4 locos) covered the 2-2-2, 2-6-6-2, 4-14-4 and triplex down to about
+  35 m radius. The stock 2-8-2s did not move. 2-2-2 full-regulator start:
+  slipped in 13 of 14 samples, so the 1.7.3 cap is working.
+- The diagnostics' sampled fit is noisy, and the triplex was wrong: single-axle
+  pivot fits gave 4.8 deg on straight track, the middle driver sat about 2 cm
+  off the centre line, and the rear engine was unmeasured. Stage 2 therefore
+  uses an analytic steady-curve model instead (RearrangedS282/CurveDragModel.cs):
+  - each group self-aligns (least squares) with its own drivers
+  - scrub = W*mu*(angle-0.1deg)
+  - flange: only with 3 or more flanged drivers in a group, fitted to the flanged
+    axles, with the excess over play ramped over 20 mm at 0.05 W per flanged axle
+  - single-axle groups and the 2-2-2 give zero
+  - extra = max(0, model - stock 2-8-2 model)
+  - the half-gauge slip term was dropped, because it scaled with driver weight
+    rather than wheelbase and cancels across layouts
+- Hand-checked numbers (Validate.CurveDrag.ps1, 150 checks):
+  - 4-14-4: +1.7 kN at 100 m, +3.7 kN at 80 m, +9.5 kN at 50 m. Rockl for the
+    whole car at those radii is 7.8 / 10.9 / 27 kN.
+  - Mallet, 2-4-4-2, triplex and stock: 0.
+- Runtime (WheelRearranger.Curving.cs FixedUpdate):
+  - groups come from DescribeDriverGroups, which is no longer gated on the
+    articulated frames (conventional layouts use the car frame)
+  - curvature is the mean |sampled| over the bogies, every 0.1 s, smoothed over 0.3 s
+  - force is split over the bogies, opposes velocity, ramps to 0 below
+    0.1 m/s, and is skipped while wheelslipping, kinematic or asleep
+  - squeal: a CarRollingAudioModule.UpdateModule postfix sets
+    max(native slowBuildUpStress, ours) on every bogie layer
+  - level = extra/weight*12, gated by speed between 0.5 and 2 m/s
+  - settings curveDrag and curveSqueal both default to true
+  - log line "Curve drag <layout>: ... R100 x kN, R50 y kN"
+  - diagnostics "drag" block
+- NOT tested in game. Unverified:
+  - the force sign
+  - per-layout flanged counts for the legacy 10- and 12-coupled layouts
+  - whether the squeal level is audible
+- Validation: integration 136, additional 1,891, catalogue 1,366, articulated
+  simulation, power diagnostics and curve drag 150 all passed.
+  ZIP SHA256 06950a6874eb4c7487abc4ba0b46d68c64738fe9ac63c4034d1c1e389461c341, DLL 58A79C3A...05729.
+
 ## 1.7.4 curve diagnostics fixes (Claude), RELEASED pre-release v1.7.4 (tag 6c3eaa2), INSTALLED, 19 Oct 2026
 
 Installed from the released ZIP (DLL DB903797...87C93 == release, Info.json 1.7.4).

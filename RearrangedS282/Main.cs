@@ -43,6 +43,7 @@ namespace RearrangedS282
 				ArticulatedEffects.Register(stage2Harmony);
 				DeltaTrailingTruckCompatibility.Register(stage2Harmony);
 				ConventionalSpawn.RegisterPatches(stage2Harmony);
+				stage2Harmony.CreateClassProcessor(typeof(WheelRearranger.CurveSquealPatch)).Patch();
 				PowerDiagnostics.CurveSampler = CurveDiagnostics.Sample;
 				PowerDiagnostics.CurveSessionInfo = CurveDiagnostics.SessionInfo;
 				modEntry.OnUpdate = (entry, delta) => PowerDiagnostics.Update();
@@ -53,7 +54,7 @@ namespace RearrangedS282
 				stage2Harmony.CreateClassProcessor(typeof(CommsRadio_Awake_Patch)).Patch();
 				modEntry.OnGUI = entry => {
 #if B99_ALL_STANDARD
-					GUILayout.Label("40 ARRANGEMENTS — 4-14-4 TEST BUILD\n" +
+					GUILayout.Label("40 ARRANGEMENTS — CURVE DRAG TEST BUILD\n" +
 						"Use Wheel Rearranger on the comms radio. Stop and close the regulator first.\n" +
 						"Selections are saved with each locomotive. Loaded arrangements wait until switching is safe.\n" +
 						"First conversion may take a few seconds to prepare rods.");

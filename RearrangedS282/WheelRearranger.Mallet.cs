@@ -332,8 +332,9 @@ namespace RearrangedS282
 
         internal IEnumerable<DriverGroup> DescribeDriverGroups()
         {
-            if (driveL == null || articulatedFrontFrame == null) yield break;
-            var body = MalletBody;
+            if (driveL == null) yield break;
+            // Conventional layouts never build the articulated frames; measure them in the car frame.
+            var body = articulatedFrontFrame != null ? MalletBody : transform;
             DriverGroup Make(string name, Transform drive, Transform engineRoot, Transform pin) => new DriverGroup
             {
                 Name = name, Body = body, EngineRoot = engineRoot,
@@ -357,6 +358,9 @@ namespace RearrangedS282
                     yield return Make("front engine", driveL, articulatedFrontRoot, articulatedPin);
                     yield return Make("middle engine", triplexMiddleL, articulatedMiddleRoot, triplexMiddlePin);
                     yield return Make("rear engine", triplexRearL, articulatedRearRoot, null);
+                    break;
+                case WheelArrangementType.s222:
+                    // One giant renderer-only driver: a single self-steering axle, no group.
                     break;
                 default:
                     yield return Make("rigid", driveL, body, null);
