@@ -1,4 +1,8 @@
-## 1.6.1 duplex rear guide fix (Claude), NOT installed, 19 Oct 2026
+## 1.6.1 duplex rear guide fix (Claude), INSTALLED 19 Oct 2026
+
+Installed on James's go-ahead; install rebuild of the same clean source gave DLL
+4D787B79806A99FC1B306E4936EEFCC8CC7BFFC2058023DCBFD063B24B7F1D76 (integration
+checks rerun on it). 1.5.1 backup: build/runtime-trial-1.6.1/installed-backup-20261019-114824.
 
 James's 1.5.1 run: 0 LODGroup warnings and both duplexes show front cylinders,
 so the LOD fix is confirmed in game. Black structure behind the cab remained.
