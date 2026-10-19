@@ -508,14 +508,27 @@ namespace RearrangedS282
         {
             var body=transform.Find("LocoS282A_Body");
             if (body == null) return;
-            foreach (var group in body.GetComponentsInChildren<LODGroup>(true))
+            var groups=body.GetComponentsInChildren<LODGroup>(true).Select(g=>(group:g, lods:g.GetLODs())).Where(g=>g.lods.Length!=0).ToArray();
+            // A renderer must belong to exactly one LODGroup (Unity rejects and
+            // unpredictably culls duplicates). Keep native membership; otherwise
+            // use the nearest enclosing group (each drivetrain and rear clone has
+            // its own), falling back to the body group.
+            var owner=new Dictionary<Renderer,LODGroup>();
+            foreach(var g in groups) foreach(var r in g.lods.SelectMany(l=>l.renderers)) if(r!=null && !owner.ContainsKey(r)) owner[r]=g.group;
+            var bodyGroup=body.GetComponent<LODGroup>() ?? groups.Select(g=>g.group).FirstOrDefault();
+            // Native coarse proxies stay coarse: promoting them would draw them
+            // on top of the detailed parts they stand in for.
+            var coarse=new HashSet<Renderer>(groups.SelectMany(g=>g.lods.Skip(1).SelectMany(l=>l.renderers)).Where(r=>r!=null));
+            coarse.ExceptWith(groups.SelectMany(g=>g.lods[0].renderers).Where(r=>r!=null));
+            var extras=articulatedFrontRoot.GetComponentsInChildren<Renderer>(true).Concat(articulatedRearRoot.GetComponentsInChildren<Renderer>(true))
+                .Where(r=>r!=null && !(r is ParticleSystemRenderer) && r.gameObject.activeInHierarchy && r.enabled && !coarse.Contains(r)).Distinct().ToArray();
+            foreach(var r in extras)
+                if(!owner.ContainsKey(r)) owner[r]=r.GetComponentsInParent<LODGroup>(true).FirstOrDefault(g=>groups.Any(x=>x.group==g)) ?? bodyGroup;
+            foreach (var (group, lods) in groups)
             {
-                var lods=group.GetLODs(); if(lods.Length==0) continue;
                 articulatedLods.Add(new ArticulatedLodState {group=group, lods=lods});
-                var detail=lods[0].renderers.Where(r=>r!=null).Concat(
-                    articulatedFrontRoot.GetComponentsInChildren<Renderer>(true)).Concat(
-                    articulatedRearRoot.GetComponentsInChildren<Renderer>(true))
-                    .Where(r=>r!=null && !(r is ParticleSystemRenderer) && r.gameObject.activeInHierarchy && r.enabled).Distinct().ToArray();
+                var detail=lods[0].renderers.Where(r=>r!=null && owner[r]==group)
+                    .Concat(extras.Where(r=>owner[r]==group)).Distinct().ToArray();
                 foreach(var renderer in lods.Skip(1).SelectMany(l=>l.renderers).Where(r=>r!=null && !detail.Contains(r)).Distinct())
                 { articulatedCoarseRenderers.Add(new RendererState {renderer=renderer, enabled=renderer.enabled}); renderer.enabled=false; }
                 // As in L74, retain the detailed, correctly articulated engine
@@ -523,6 +536,46 @@ namespace RearrangedS282
                 group.SetLODs(new[] {new LOD(lods[lods.Length-1].screenRelativeTransitionHeight, detail)});
                 group.RecalculateBounds();
             }
+            LogArticulatedRenderReport();
+        }
+
+        // Test-build diagnostic: name every visible part reaching behind the cab
+        // (the native firebox subframe's rear end), and the front engine's
+        // cylinders, so in-game reports can be traced to an object.
+        private void LogArticulatedRenderReport()
+        {
+            try
+            {
+                var body=articulatedFrontFrame.parent;
+                float BodyZ(Bounds b, bool min)
+                {
+                    float best=min?float.PositiveInfinity:float.NegativeInfinity;
+                    for(int i=0;i<8;i++)
+                    {
+                        var corner=new Vector3((i&1)==0?b.min.x:b.max.x,(i&2)==0?b.min.y:b.max.y,(i&4)==0?b.min.z:b.max.z);
+                        float z=body.InverseTransformPoint(corner).z; best=min?Mathf.Min(best,z):Mathf.Max(best,z);
+                    }
+                    return best;
+                }
+                string Path(Transform t){var names=new List<string>();for(;t!=null&&t!=transform;t=t.parent)names.Add(t.name);names.Reverse();return string.Join("/",names);}
+                var subframe=splitLoco.Find("s282a_subframe_left")?.GetComponent<Renderer>();
+                float cabRear=subframe!=null?BodyZ(subframe.bounds,true):0f;
+                var lines=new List<string>();
+                foreach(var r in GetComponentsInChildren<Renderer>(true))
+                {
+                    if(r is ParticleSystemRenderer || !r.enabled || !r.gameObject.activeInHierarchy) continue;
+                    float min=BodyZ(r.bounds,true);
+                    if(min<cabRear-.5f && lines.Count<40)
+                        lines.Add($"  behind cab {min:0.00}..{BodyZ(r.bounds,false):0.00}: {Path(r.transform)} [{r.GetComponent<MeshFilter>()?.sharedMesh?.name}]");
+                }
+                foreach(var pair in new[] {frontFranklin, frontFranklin4444})
+                    if(pair!=null) foreach(var part in pair)
+                        if(part!=null && part.gameObject.activeInHierarchy)
+                            foreach(var r in part.GetComponentsInChildren<Renderer>(true).Where(r=>r.transform.parent!=null && r.transform.parent.name=="cylinder"))
+                                lines.Add($"  front cylinder {Path(r.transform)} active={r.gameObject.activeInHierarchy} enabled={r.enabled} z={BodyZ(r.bounds,true):0.00}..{BodyZ(r.bounds,false):0.00} lodGroups={GetComponentsInChildren<LODGroup>(true).Count(g=>g.GetLODs().Any(l=>l.renderers.Contains(r)))}");
+                Main.Logger.Log($"Articulated render report (cab rear {cabRear:0.00} body z):\n"+string.Join("\n",lines));
+            }
+            catch(Exception ex){Main.Logger.Log("Articulated render report failed: "+ex.Message);}
         }
 
         private void SuspendArticulatedGeometry()

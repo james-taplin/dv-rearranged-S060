@@ -1,3 +1,22 @@
+## 1.5.1 articulated LOD fix + render report built (Claude), NOT installed, 19 Oct 2026
+
+James's 1.5.0 run: Mallet renders and works well. 2-4-4-2/4-4-4-4 show a large
+black structure jutting out behind the cab, and the 4-4-4-4 front cylinders are
+missing (his 2-4-4-2 screenshot still shows a front block). Player.log after every
+articulated switch: ~555x "Renderer ... registered with more than one LODGroup"
+pairs. Old BindArticulatedLods put EVERY front/rear-root renderer into EVERY
+LODGroup under the body, including each drivetrain's own group and the (inactive)
+rear drivetrain clones' groups, and also promoted active native LOD1 proxies to
+detail. Fixed: one owner per renderer (native membership, else nearest enclosing
+group, else body group); native coarse proxies excluded. Bundle check (UnityPy on
+assets/s282_drivetrain): franklin_type_b and _4444 both contain an active
+"cylinder" at drive (1.09,.71,9.49); _4444 root at z .35. So the asset is fine;
+duplicate LOD culling is the leading (unconfirmed) cause. Jutting structure NOT
+identified: not in franklin/branch/reverse prefabs (all drive-frame z 4.9..9.8,
+y > 1.4). New LogArticulatedRenderReport logs every visible renderer reaching
+>0.5 m behind the subframe's rear end, plus front Franklin cylinder state.
+Offline suites pass (none exercise LOD binding). DLL CA2823AA...87808D0.
+
 ## 1.5.0 2-6-6-2 Mallet built (Claude), INSTALLED 19 October 2026
 
 Installed on James's go-ahead (game closed). Install rebuild recompiled the same
