@@ -1,4 +1,7 @@
-## 1.9.1 0-8-8-0 Angus + 2-6-8-0 Gt. Northern (Claude), RELEASED pre-release, NOT installed, 19 Oct 2026
+## 1.9.1 0-8-8-0 Angus + 2-6-8-0 Gt. Northern (Claude), RELEASED pre-release v1.9.1 (tag ecc6f39), INSTALLED, 19 Oct 2026
+
+Installed from the released ZIP (518EE44E...41F6; DLL A8955B6F...C724A == build, Info.json 1.9.1).
+1.9.0 backup: build/runtime-trial-1.9.1/installed-backup-20261019-214054. Settings kept.
 
 James asked for both to go into 1.9.0, then a release and reinstall. Released
 as 1.9.1 instead, to keep the 1.9.0 release (memory: keep every version's release).
