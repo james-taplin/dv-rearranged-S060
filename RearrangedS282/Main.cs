@@ -51,7 +51,7 @@ namespace RearrangedS282
 				stage2Harmony.CreateClassProcessor(typeof(CommsRadio_Awake_Patch)).Patch();
 				modEntry.OnGUI = entry => {
 #if B99_ALL_STANDARD
-					GUILayout.Label("39 ARRANGEMENTS — 2-2-2-2-2 TRIPLEX TEST BUILD\n" +
+					GUILayout.Label("40 ARRANGEMENTS — 4-14-4 TEST BUILD\n" +
 						"Use Wheel Rearranger on the comms radio. Stop and close the regulator first.\n" +
 						"Selections are saved with each locomotive. Loaded arrangements wait until switching is safe.\n" +
 						"First conversion may take a few seconds to prepare rods.");
@@ -89,7 +89,7 @@ namespace RearrangedS282
 #endif
 				};
 #if B99_ALL_STANDARD
-				Logger.Log("B99 expanded trial: 39 choices including the articulated 2-6-6-2 Mallet and 2-2-2-2-2 triplex, polished Pacific/Hudson Walschaerts, 2-6-0/2-4-0, giant-driver 2-2-2 clearance prototype and the retained original catalogue.");
+				Logger.Log("B99 expanded trial: 40 choices including the 4-14-4, articulated 2-6-6-2 Mallet and 2-2-2-2-2 triplex, polished Pacific/Hudson Walschaerts, 2-6-0/2-4-0, giant-driver 2-2-2 clearance prototype and the retained original catalogue.");
 #else
 				Logger.Log("B99 stage 2: stock / 2-8-4 runtime trial. Persistence and other arrangements disabled.");
 #endif

@@ -82,6 +82,7 @@ path, not the articulated one.
    out ~0.53 (not the 0.6-0.7 estimated): native engines are 5.48 m from
    cylinder front to main driver. Middle engine swings 40% of the front angle.
 3. Phase 3: 4-14-4, after the triplex is tested.
+   Status 19 Oct: built and offline-validated as 1.7.0 (scale ~0.68).
 
 ## Not in scope
 

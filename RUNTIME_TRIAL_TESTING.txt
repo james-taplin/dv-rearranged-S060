@@ -1,3 +1,23 @@
+Rearranged S282 B99 - 1.7.0 4-14-4 trial
+
+NEW IN 1.7.0: 4-14-4 (radio ID 39)
+One rigid engine with seven coupled drivers (the Soviet AA20-1 layout), four
+leading and four trailing wheels: 11 axles, 7 powered. The native drivetrain and
+its cylinders are scaled together (about 0.68, roughly 0.97 m drivers) so the
+whole wheelbase fits the S282 frame; the exact layout is logged as "4-14-4: ...".
+Coupling rods: the stock rod for drivers 1-4 and the 12-coupled extension moved
+back one driver for drivers 4-7. The real engine's poor curving is not modelled.
+Random spawning for it defaults off.
+
+PRIORITY TESTS FOR 1.7.0
+1. Select 4-14-4 on a stationary S282: seven drivers per side, rods joining all
+   seven, main rod on driver 3, valve gear moving.
+2. Four leading and four trailing wheels, none hidden inside the cab or pilot.
+3. Full regulator: slip, sparks on all seven axles, brake shoes glowing.
+4. Switch back to stock and to the 4-12-2: the seventh driver, rod and brake
+   are gone. Save/reload with the 4-14-4 selected.
+5. Structural test now covers 40 layouts.
+
 Rearranged S282 B99 - 1.6.1 Triplex trial
 
 NEW IN 1.6.1: duplex rear crosshead guides fixed

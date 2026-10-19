@@ -77,6 +77,7 @@ namespace RearrangedS282
                     articulatedSimulation?.Restore();
                     SuspendArticulatedGeometry();
                     SuspendAdditionalGeometry();
+            Suspend4144Geometry();
                     preparedGeometry.Restore();
                     currentWA = WheelArrangementType.s282;
                     if (WheelArrangement.IsArticulatedId(id))
@@ -88,19 +89,23 @@ namespace RearrangedS282
                     }
                     else
                     {
-                        ApplyLegacyGeometry(id);
-                        if ((id == (int)WheelArrangementType.s462 || id == (int)WheelArrangementType.s464) &&
-                            Main.settings.polishedPacificHudsonValveGear)
-                            ApplyPacificHudsonValveGear();
-                        AlignAdditionalPoweredAxles(id);
+                        if (id == (int)WheelArrangementType.s4144) Apply4144Geometry();
+                        else
+                        {
+                            ApplyLegacyGeometry(id);
+                            if ((id == (int)WheelArrangementType.s462 || id == (int)WheelArrangementType.s464) &&
+                                Main.settings.polishedPacificHudsonValveGear)
+                                ApplyPacificHudsonValveGear();
+                            AlignAdditionalPoweredAxles(id);
+                        }
                     }
                     foreach (var bogie in loco.Bogies)
                         bogie.axles = Enumerable.Range(0, bogie.transform.Find("bogie_car").childCount)
                             .Select(i => bogie.transform.Find("bogie_car").GetChild(i))
                             .Where(t => t.name.StartsWith("[axle]", StringComparison.Ordinal) && t.gameObject.activeInHierarchy)
                             .Select(t => new Bogie.AxleInfo(t)).ToArray();
-                    var powered = new[] { driveAxle1, driveAxle2, driveAxle3, driveAxle4, driveAxle5, driveAxle6 }
-                        .Where(t => t.gameObject.activeInHierarchy).Select(t => t.GetComponent<PoweredWheel>()).ToArray();
+                    var powered = new[] { driveAxle1, driveAxle2, driveAxle3, driveAxle4, driveAxle5, driveAxle6, driveAxle7 }
+                        .Where(t => t != null && t.gameObject.activeInHierarchy).Select(t => t.GetComponent<PoweredWheel>()).ToArray();
                     int total = loco.Bogies.Sum(b => b.Axles.Length);
                     var wheels = WheelArrangement.WheelArrangementNames[id].Split(' ')[0].Split('-').Select(int.Parse).ToArray();
                     int expectedPowered = WheelArrangement.IsArticulatedId(id) ? wheels.Skip(1).Take(wheels.Length - 2).Sum() / 2 : wheels[1] / 2;
@@ -143,6 +148,7 @@ namespace RearrangedS282
             articulatedSimulation?.Restore();
             SuspendArticulatedGeometry();
             SuspendAdditionalGeometry();
+            Suspend4144Geometry();
             stockGeometry.Restore();
             // Restore original parent ownership before deactivating generated frames.
             foreach (var t in generatedRoots) if (t != null) t.gameObject.SetActive(false);

@@ -1,3 +1,20 @@
+## 1.7.0 4-14-4 built (Claude), NOT installed, 19 Oct 2026
+
+New ID 39 = s4144 "4-14-4", CONVENTIONAL (IsConventionalId includes 39; random
+default off). WheelRearranger.FourteenCoupled.cs: Measure4144 scales the native
+drive + LMS cylinder assembly (MapMalletPart, front cylinder face kept) so seven
+drivers (native z plus z7 = z6 - pitch) fit ahead of a two-axle trailing truck
+ending at the 12-coupled trailing position; leading axles placed just ahead of
+driver 1. Expected scale ~0.68. Seventh driver wheels/axle ("[axle] drive 4" in
+rear bogie)/rod (12-coupled six rod copied one pitch back)/caliper/shoe/sparks
+are created lazily (Ensure4144Assets) and hidden by Suspend4144Geometry, called
+in TrySwitchConventional and RestoreConventionalStock before GeometryState
+restore (not inside Additional.cs: its fixture compiles that file alone).
+Spark/brake-heat arrays re-added per apply (prepared restore resets them).
+All 7 physical axles aligned to the visible right wheels. Particle holders
+position-mapped only. Powered list now includes driveAxle7.
+Validation: catalogue 1,366, integration 136, all suites pass. No game run.
+
 ## 1.6.1 duplex rear guide fix (Claude), INSTALLED 19 Oct 2026
 
 RELEASED on James's request as GitHub PRE-release v1.6.1 on the fork:
