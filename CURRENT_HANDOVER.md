@@ -1,3 +1,19 @@
+## 1.6.1 duplex rear guide fix (Claude), NOT installed, 19 Oct 2026
+
+James's 1.5.1 run: 0 LODGroup warnings and both duplexes show front cylinders,
+so the LOD fix is confirmed in game. Black structure behind the cab remained.
+Render report only flagged rear spring clones because LMS meshes keep the whole
+body vertex buffer (renderer bounds span the loco); report now measures drawn
+triangles of renderers under the articulated roots. Root cause found in code:
+ApplyArticulatedGeometry set rearGuideL/R.localPosition = (0,0,-4.58), an
+upstream value authored for clones parented to splitLoco (upstream line:
+lrCrossheadBracket = Instantiate(lfCrossheadBracket.gameObject, splitLoco)); the
+port's clones live under articulatedRearRoot, ~4.88 m offset. Now
+SplitBodyOffsetInRearRoot() + (0,0,-4.58). Rear brake clone height had the same
+mix-up (y=0 in the wrong frame). Includes all 1.6.0 triplex work.
+DLL ADC24E9F1074A6030EA3503A7642A5AC9493E17C2B859E2E80A053D82D1FAB90; suites pass
+(graph 40, catalogue 1,358, integration 130). Not verified in game.
+
 ## 1.6.0 2-2-2-2-2 triplex built (Claude), NOT installed, 19 Oct 2026
 
 Built while James tests 1.5.1 (installed); do not install over his test.

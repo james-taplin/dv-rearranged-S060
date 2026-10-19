@@ -1,3 +1,13 @@
+Rearranged S282 B99 - 1.6.1 Triplex trial
+
+NEW IN 1.6.1: duplex rear crosshead guides fixed
+The black structure sticking out behind the cab on the 2-4-4-2 and 4-4-4-4 was
+the rear engine's crosshead guides (bars and yoke), placed about 4.9 m too far
+back: a position authored in the split body's frame was applied in the rear
+engine's frame. They now sit between the rear cylinders and rear drivers. The
+rear brake clones' height had the same frame mix-up and is fixed too. The
+1.5.1 LOD fix is confirmed in game (front cylinders back on both duplexes).
+
 Rearranged S282 B99 - 1.6.0 Triplex trial
 
 NEW IN 1.6.0: 2-2-2-2-2 ARTICULATED TRIPLEX (radio ID 38)

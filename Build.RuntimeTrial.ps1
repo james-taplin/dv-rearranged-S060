@@ -1,5 +1,5 @@
 param(
-    [string]$Version = '1.5.0',
+    [string]$Version = '1.6.1',
     [string]$GamePath = 'B:\SteamLibrary\steamapps\common\Derail Valley',
     [string]$OutputDirectory,
     [string]$CandidateDirectory,

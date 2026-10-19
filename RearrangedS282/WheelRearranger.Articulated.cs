@@ -106,7 +106,8 @@ namespace RearrangedS282
                     leftSecondBrakeCaliper, rightSecondBrakeCaliper })
                 {
                     var brake = CloneRearPart(source, "[Rearranged rear brake] " + source.name);
-                    brake.localPosition = new Vector3(brake.localPosition.x, 0f, brake.localPosition.z);
+                    // Upstream zeroed the height in the split body's frame.
+                    brake.localPosition = new Vector3(brake.localPosition.x, SplitBodyOffsetInRearRoot().y, brake.localPosition.z);
                 }
                 foreach (string side in new[] { "l", "r" })
                     for (int i = 1; i <= 2; i++)
@@ -144,6 +145,9 @@ namespace RearrangedS282
             { behaviour.enabled = false; Object.Destroy(behaviour); }
             return clone;
         }
+
+        // The rear root never moves, so this is the split body origin at rest.
+        private Vector3 SplitBodyOffsetInRearRoot() => articulatedRearRoot.InverseTransformPoint(splitLoco.position);
 
         private Transform CloneRearPart(Transform source, string name)
         {
@@ -276,7 +280,9 @@ namespace RearrangedS282
             rfCrossheadBracket.GetComponent<MeshFilter>().sharedMesh = articulatedGuideR;
             lfCrossheadBracket.localPosition = rfCrossheadBracket.localPosition = new Vector3(0, 0, fourLeading ? -.92f : .065f);
             lfCrossheadBracket.localScale = rfCrossheadBracket.localScale = new Vector3(-1, 1, fourLeading ? 1.33f : 1f);
-            rearGuideL.localPosition = rearGuideR.localPosition = new Vector3(0, 0, -4.58f);
+            // Upstream authored -4.58 in the split body's frame; these clones live
+            // under the rear root, which is offset from it by the split body origin.
+            rearGuideL.localPosition = rearGuideR.localPosition = SplitBodyOffsetInRearRoot() + new Vector3(0, 0, -4.58f);
             rearGuideL.localScale = rearGuideR.localScale = new Vector3(-1, 1, 1);
             SetPairActive(frontFranklin, !fourLeading); SetPairActive(frontFranklin4444, fourLeading);
             SetPairActive(rearBranches, !fourLeading); SetPairActive(rearBranches4444, fourLeading);
@@ -579,15 +585,27 @@ namespace RearrangedS282
                     return best;
                 }
                 string Path(Transform t){var names=new List<string>();for(;t!=null&&t!=transform;t=t.parent)names.Add(t.name);names.Reverse();return string.Join("/",names);}
+                // LocoMeshSplitter pieces keep the whole body's vertex buffer, so
+                // renderer bounds span the whole loco. Measure drawn triangles.
+                (float min,float max) DrawnZ(Renderer r)
+                {
+                    var mesh=r.GetComponent<MeshFilter>()?.sharedMesh;
+                    if(mesh==null || !mesh.isReadable) return (BodyZ(r.bounds,true),BodyZ(r.bounds,false));
+                    var vertices=mesh.vertices; float lo=float.PositiveInfinity, hi=float.NegativeInfinity;
+                    foreach(int index in mesh.triangles)
+                    { float z=body.InverseTransformPoint(r.transform.TransformPoint(vertices[index])).z; lo=Mathf.Min(lo,z); hi=Mathf.Max(hi,z); }
+                    return lo<=hi ? (lo,hi) : (0f,0f);
+                }
                 var subframe=splitLoco.Find("s282a_subframe_left")?.GetComponent<Renderer>();
-                float cabRear=subframe!=null?BodyZ(subframe.bounds,true):0f;
+                float cabRear=subframe!=null?DrawnZ(subframe).min:0f;
                 var lines=new List<string>();
-                foreach(var r in GetComponentsInChildren<Renderer>(true))
+                var roots=new[] {articulatedFrontRoot,articulatedMiddleRoot,articulatedRearRoot}.Where(t=>t!=null);
+                foreach(var r in roots.SelectMany(t=>t.GetComponentsInChildren<Renderer>(true)).Distinct())
                 {
                     if(r is ParticleSystemRenderer || !r.enabled || !r.gameObject.activeInHierarchy) continue;
-                    float min=BodyZ(r.bounds,true);
+                    var (min,max)=DrawnZ(r);
                     if(min<cabRear-.5f && lines.Count<40)
-                        lines.Add($"  behind cab {min:0.00}..{BodyZ(r.bounds,false):0.00}: {Path(r.transform)} [{r.GetComponent<MeshFilter>()?.sharedMesh?.name}]");
+                        lines.Add($"  behind cab {min:0.00}..{max:0.00}: {Path(r.transform)} [{r.GetComponent<MeshFilter>()?.sharedMesh?.name}]");
                 }
                 foreach(var pair in new[] {frontFranklin, frontFranklin4444})
                     if(pair!=null) foreach(var part in pair)
