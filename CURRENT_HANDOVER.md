@@ -1,5 +1,10 @@
 ## 1.7.0 4-14-4 built (Claude), NOT installed, 19 Oct 2026
 
+RELEASED as GitHub PRE-release v1.7.0 (tag on e5b976b):
+https://github.com/james-taplin/dv-rearranged-S282/releases/tag/v1.7.0
+ZIP SHA256 9b0639d086f3a44af5a6993ab8853796bfa197615c3a0de6124f1de6bace979f,
+DLL 1D49A40919F31862947800F584DE7AE70EE27002CAA869D0B50E6C17791B22BC. Not installed.
+
 New ID 39 = s4144 "4-14-4", CONVENTIONAL (IsConventionalId includes 39; random
 default off). WheelRearranger.FourteenCoupled.cs: Measure4144 scales the native
 drive + LMS cylinder assembly (MapMalletPart, front cylinder face kept) so seven
