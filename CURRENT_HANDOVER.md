@@ -1,3 +1,41 @@
+## 1.7.3 driver-weight cap (Claude), built, NOT installed, 19 Oct 2026
+
+James approved option A with these targets after the 1.7.2 runs.
+- 1.7.2 results: the structural test passed all 40 layouts
+  (Mods/RearrangedS282/stage2-runtime-checks.json, version 1.7.2.0, subject
+  L-050). Power capture power-20261019-163827-276.jsonl has only the 4-14-4
+  (216 s, low regulator, no full-regulator start). Player.log has no
+  RearrangedS282 errors; its exceptions come from GlobalShopController.OnDestroy
+  and DoubleTrack OnSaveGUI at quit.
+- Curve diagnostics findings (diagnostics only, UNFIXED):
+  - The 4-14-4 rigid group lists 11 driver entries for 7 drivers. The first
+    four z positions appear twice, flanged in one copy and blind in the other.
+    Likely cause: LOD1 meshes also match "s282_wheels_driving_" (unverified).
+  - proposedScrubN is about 15.9 kN at about 2,500 m radius, from an angle of
+    attack of only 0.05 deg against SaturationAngleRad .005 (CurveDiagnostics.cs:20,136).
+  - Stage 2 needs a deadband or a curvature-scaled term before any force is
+    applied.
+- Cause of the grip: DV gives each axle TotalMass / NumberOfAxles
+  (TrainMassController.cs:32). Mass stays at 111 t, so short layouts carried
+  28-37 t per driven axle. The 2-4-0 and 2-6-0 had a starting pull / grip ratio
+  of about 1.03.
+- Change: ConventionalPhysics.MaxDrivenAxleLoadKg caps the load per coupled
+  group at 18 t (single), 19 t (four-coupled) and 20 t (six-coupled); larger
+  groups are uncapped. DriverWeightFraction = min(equal share, cap / CarMass).
+  Articulated layouts are capped per engine. The cap only ever lowers the
+  fraction. WheelRearranger.Conventional.cs feeds it to the existing
+  FrictionForDriverWeight; mass is unchanged.
+  - Results: 2-2-2 18 t, 2-4-0 / 4-4-0 / 4-4-2 38 t, 2-6-0 / 4-6-0 60 t,
+    triplex 54 t; everything else unchanged.
+  - New log line "Driver weight: X t on N driven axles (equal share Y t of 111 t)".
+- Validation: integration 136 (1.7.3 DLL), additional 1,891, catalogue
+  1,366, articulated simulation and power diagnostics passed. The new cap
+  cases are in Validate.Stage2.ps1, but that script needs pwsh 7, which is
+  not installed. They were run instead in a net8 harness (scratchpad
+  capcheck), and all 16 cases plus the rejects passed.
+- ZIP SHA256 3fe6302d35d40157f3ae418618792c005064c308afb3a5f80f97dc2727fd0cf4,
+  DLL 0B742F4B...F275E4.
+
 ## 1.7.2 fixes + curve diagnostics Stage 1 (Claude), INSTALLED 19 Oct 2026
 
 Installed from the released ZIP (DLL 1A18CC94...6D352 == release). 1.7.1 backup:

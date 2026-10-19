@@ -28,6 +28,20 @@ $berkshire = [RearrangedS282.ConventionalPhysics]::FrictionForDriverWeight(.25,4
 Near $stock .25 'Stock equal-load assumption retains native friction'
 Near $berkshire .25 'Berkshire equal-load assumption retains native friction'
 Near (($berkshire*4/7)/($stock*4/6)) (6/7) 'Berkshire native adhesive allocation is six-sevenths of stock at unchanged mass'
+$capCases = @(
+    @{ n='2-2-2'; g=@(1); t=3; kg=18000 }, @{ n='2-4-0'; g=@(2); t=3; kg=38000 }, @{ n='4-4-0'; g=@(2); t=4; kg=38000 },
+    @{ n='4-4-2'; g=@(2); t=5; kg=38000 }, @{ n='4-4-4'; g=@(2); t=6; kg=37000 }, @{ n='2-6-0'; g=@(3); t=4; kg=60000 },
+    @{ n='4-6-0'; g=@(3); t=5; kg=60000 }, @{ n='4-6-2'; g=@(3); t=6; kg=55500 }, @{ n='2-8-2'; g=@(4); t=6; kg=74000 },
+    @{ n='0-10-0'; g=@(5); t=5; kg=111000 }, @{ n='2-2-2-2-2'; g=@(1,1,1); t=5; kg=54000 }, @{ n='2-4-4-2'; g=@(2,2); t=6; kg=74000 },
+    @{ n='4-4-4-4'; g=@(2,2); t=8; kg=55500 }, @{ n='2-6-6-2'; g=@(3,3); t=8; kg=83250 }, @{ n='4-0-4'; g=@(0); t=4; kg=0 })
+foreach ($c in $capCases) {
+    $f = [RearrangedS282.ConventionalPhysics]::DriverWeightFraction([int[]]$c.g, $c.t, 111000)
+    Near ($f*111000) $c.kg "$($c.n): capped driver weight $($c.kg) kg"
+    $equal = ($c.g | Measure-Object -Sum).Sum / $c.t
+    Check ($f -le $equal + 1e-6) "$($c.n): cap never raises driver weight"
+}
+Reject { [RearrangedS282.ConventionalPhysics]::DriverWeightFraction([int[]]@(2),1,111000) } 'Cap rejects more powered than total axles'
+Reject { [RearrangedS282.ConventionalPhysics]::DriverWeightFraction([int[]]@(2),4,0) } 'Cap rejects zero mass'
 foreach ($radius in @(0,-1,[float]::NaN,[float]::PositiveInfinity)) {
     Reject { [RearrangedS282.ConventionalPhysics]::RpmPerMetrePerSecond($radius) } "Invalid radius $radius rejected"
 }

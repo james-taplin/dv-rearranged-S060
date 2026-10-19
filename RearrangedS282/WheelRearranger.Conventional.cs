@@ -111,8 +111,14 @@ namespace RearrangedS282
                     int expectedPowered = WheelArrangement.IsArticulatedId(id) ? wheels.Skip(1).Take(wheels.Length - 2).Sum() / 2 : wheels[1] / 2;
                     if (powered.Length != expectedPowered || total != wheels.Sum() / 2)
                         throw new InvalidOperationException("Active physical axles do not match the selected arrangement.");
-                    // Same explicit equal-load approximation as the stage 2 trial.
-                    stage2Physics.Apply(sim.drivingForce.wheelRadius, powered, total, (float)powered.Length / total);
+                    // Equal axle loads, with driven-axle loads capped for small coupled groups.
+                    var groups = WheelArrangement.IsArticulatedId(id)
+                        ? wheels.Skip(1).Take(wheels.Length - 2).Select(w => w / 2).ToArray() : new[] { wheels[1] / 2 };
+                    float mass = loco.massController.CarMass;
+                    float fraction = ConventionalPhysics.DriverWeightFraction(groups, total, mass);
+                    stage2Physics.Apply(sim.drivingForce.wheelRadius, powered, total, fraction);
+                    Main.Logger.Log($"Driver weight: {fraction * mass / 1000f:F1} t on {powered.Length} driven axles " +
+                        $"(equal share {(float)powered.Length / total * mass / 1000f:F1} t of {mass / 1000f:F0} t).");
                     currentWA = (WheelArrangementType)id;
                     if (WheelArrangement.IsArticulatedId(id)) articulatedSimulation.Apply(id);
                     RefreshConventionalRollingAudio();
