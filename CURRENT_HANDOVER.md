@@ -1,4 +1,7 @@
-## 1.7.2 fixes + curve diagnostics Stage 1 (Claude), NOT installed, 19 Oct 2026
+## 1.7.2 fixes + curve diagnostics Stage 1 (Claude), INSTALLED 19 Oct 2026
+
+Installed from the released ZIP (DLL 1A18CC94...6D352 == release). 1.7.1 backup:
+build/runtime-trial-1.7.2/installed-backup-20261019-151609. Settings kept.
 
 RELEASED as GitHub PRE-release v1.7.2 (tag on 54b8690), ZIP SHA256
 02f33c477d4d5a71ee6c7007d933a39d48cd18fb894afc43ed3dbc832be96550. Install from that ZIP.
