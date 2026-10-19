@@ -42,7 +42,8 @@ namespace RearrangedS282
         internal SimulationFlow Flow { get; private set; }
         internal float RearCapacityFraction { get; private set; }
 
-        internal static bool IsDuplexId(int id) => id == 31 || id == 32;
+        // Matches WheelArrangement.IsArticulatedId; kept literal so the graph probe compiles alone.
+        internal static bool IsDuplexId(int id) => id == 31 || id == 32 || id == 37;
 
         internal static void Register(Harmony harmony)
         {
@@ -229,7 +230,7 @@ namespace RearrangedS282
 
         internal void Apply(int id)
         {
-            if (!IsDuplexId(id)) throw new ArgumentOutOfRangeException(nameof(id), "Only arrangements 31 and 32 use the articulated engine graph.");
+            if (!IsDuplexId(id)) throw new ArgumentOutOfRangeException(nameof(id), "Only articulated arrangements use the articulated engine graph.");
             Require(Flow != null && MainEngine != null && rear != null && failure == null,
                 "The articulated S282 native simulation is not initialized.");
             if (rear.Active) return;

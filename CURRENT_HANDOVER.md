@@ -1,3 +1,43 @@
+## 1.5.0 2-6-6-2 Mallet built (Claude), NOT installed, 19 October 2026
+
+James's 1.4.5 structural run: 37/37 pass, no Pacific/Hudson "moved only" log line,
+so the 1.4.4 shear came from a particle holder (now position-only). Everything
+rendered right. Open: 2-2-2 did not slip at full regulator/cutoff. By native
+WheelslipControllerSystem/AdhesionControllerSystem it compares force per powered
+axle with mu*weightPerAxle; 2.8 m halves force but 1 of 3 axles doubles weight per
+driver vs stock 4 of 6, so threshold ~= stock. No power capture of that drive yet.
+Real singles carried 15-20 t on the driver; offered a lighter 2-2-2 driver load.
+
+New ID 37 = s2662 "2-6-6-2 Articulated Mallet" (plan: NEW_LAYOUTS_PLAN.md, Phase 1).
+WheelRearranger.Mallet.cs:
+- Each engine = native drivetrain + LMS static cylinder assembly (cylinders,
+  cocks, guides, lifting supports, calipers 1-3, springs 1-3, cylinder collider
+  shells) under ONE body-frame map: Y/Z scale 0.75 about rail-level origin, then a
+  Z offset. Front offset keeps the native cylinder front face; rear cylinders sit
+  0.1 m behind the front last driver. All measured at runtime (MeasureMallet).
+- Drivers 1-3 per engine; d1 moved to equal pitch so the existing three-axle rods
+  (6-coupled d2-d4 pieces) are shifted forward one pitch. Main rod = native d3.
+- Rear engine: lazily cloned drivetrain (behaviours stripped) + static clones under
+  articulatedRearRoot, tracked in malletAssets (separate from articulatedAssets).
+  MalletAnimatorMirror copies the front animator's parameters (cutoff/reverser).
+- Physical axles: driveAxle1/2/6 front bogie, 3/4/5 rear; leading = native, one
+  small trailing axle placed behind rear d3. 8 axles, 6 powered.
+- Pin = midway between front d3 and rear cylinder front; same constraints.
+- ArticulatedEffects outlets go through WheelRearranger.TryMapArticulatedOutlet;
+  legacy 2-4-4-2/4-4-4-4 offsets unchanged when the Mallet is not active.
+- ArticulatedSimulation.IsDuplexId now 31/32/37 (literal: graph probe compiles alone).
+Unverified in game: rod shift direction, rear valve gear following cutoff, rear
+crosshead/guide alignment, trailing wheel clearance to cab, effects positions.
+
+Validation: native build 0/0. RandomLifecycle PORTED from Windows PowerShell
+Add-Type (needed PS7 $PSHOME\ref paths; failed here even on HEAD) to a dotnet
+project; 1,350 checks incl. ID 37. ArticulatedIntegration updated: 125 checks.
+ArticulatedSimulation 40+31, ArticulatedEffects 9,014, geometry 3,947,
+Pacific/Hudson 29,973, Additional 1,891, RestoredFeatures 286, RollingAudio 198,
+PowerDiagnostics 81, Delta 129 all PASS. Validate.FrontCouplingMounts.ps1 still
+uses Add-Type and cannot compile the catalogue under Windows PowerShell 5.1
+(fails on HEAD too); not run. Build.RuntimeTrial default version 1.5.0.
+
 ## 1.4.5 candidate built (Claude), NOT installed, 19 October 2026
 
 Claude took over from Codex. James approved both fixes, build only, no install.

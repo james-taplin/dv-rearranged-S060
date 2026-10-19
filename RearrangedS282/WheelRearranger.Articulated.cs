@@ -371,7 +371,17 @@ namespace RearrangedS282
             Vector3 supportLocal = parent.InverseTransformPoint(support.position);
             Vector3 lastFront = parent.InverseTransformPoint(secondLeftDriveWheel.position);
             Vector3 firstRear = parent.InverseTransformPoint(RequireArticulatedPart(articulatedRearL, "s282_wheels_driving_1").position);
-            Vector3 pin = new Vector3(supportLocal.x, supportLocal.y, (lastFront.z + firstRear.z) * .5f);
+            ConfigureNativeArticulation(id, (lastFront.z + firstRear.z) * .5f);
+        }
+
+        // pinZ is in the drivetrain parent's coordinates, i.e. the body frame.
+        private void ConfigureNativeArticulation(int id, float pinZ)
+        {
+            var support = transform.Find("Axle_F");
+            if (support == null) throw new InvalidOperationException("Native front articulation support was not found.");
+            var parent = articulatedFrontFrame.parent;
+            Vector3 supportLocal = parent.InverseTransformPoint(support.position);
+            Vector3 pin = new Vector3(supportLocal.x, supportLocal.y, pinZ);
             BindSplitArticulatedFrame(id, parent.TransformPoint(pin));
             articulatedPin.localPosition = pin;
             articulatedFrontFrame.localPosition = pin;
@@ -538,6 +548,7 @@ namespace RearrangedS282
             for(int i=articulatedMoved.Count-1;i>=0;i--) articulatedMoved[i].Restore();
             articulatedMoved.Clear();
             foreach (var asset in articulatedAssets) if(asset!=null) asset.gameObject.SetActive(false);
+            SuspendMalletGeometry();
             if(articulatedRearL!=null) articulatedRearL.gameObject.SetActive(false);
             if(articulatedRearR!=null) articulatedRearR.gameObject.SetActive(false);
             if(articulatedFrontFrame!=null) {articulatedFrontFrame.gameObject.SetActive(false); articulatedFrontFrame.localPosition=Vector3.zero; articulatedFrontFrame.localRotation=Quaternion.identity;}

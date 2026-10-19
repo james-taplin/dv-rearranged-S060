@@ -1,4 +1,11 @@
-Rearranged S282 B99 - 1.4.4 expanded trial
+Rearranged S282 B99 - 1.5.0 Mallet trial
+
+1.5.0 adds the articulated 2-6-6-2 Mallet (ID 37) on the same native pin/aim
+articulation and rear steam engine as the 2-4-4-2. Offline: catalogue/save policy
+1,350 checks, compiled integration 125 checks, simulation/effects/geometry
+fixtures pass. No in-game acceptance yet.
+
+PREVIOUS: Rearranged S282 B99 - 1.4.4 expanded trial
 
 This trial adds Pacific/Hudson Walschaerts alignment, 2-6-0 Mogul, 2-4-0 and a
 renderer-only giant-driver 2-2-2 clearance prototype. The prototype defaults to

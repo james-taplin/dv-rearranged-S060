@@ -46,22 +46,23 @@ namespace RearrangedS282
 		s260 = 34,
 		s240 = 35,
 		s222 = 36,
-		/*s2662,
-		s2680,
+		s2662 = 37,
+		/*s2680,
 		s4664*/
 	}
 
 	public static class WheelArrangement
 	{
 		// Legacy numeric IDs and name-table positions are save compatibility data.
-		// IDs 31/32 identify articulated conversions; ID 33 is the unpowered novelty.
+		// IDs 31/32/37 identify articulated conversions; ID 33 is the unpowered novelty.
 		// New conventional IDs are appended; never insert into the legacy range.
 		public static bool IsStandardId(int id) => id >= 0 && id <= (int)WheelArrangementType.s4122;
 		public static bool IsConventionalId(int id) => IsStandardId(id) ||
 			(id >= (int)WheelArrangementType.s260 && id <= (int)WheelArrangementType.s222);
-		public static bool IsArticulatedId(int id) => id == (int)WheelArrangementType.s2442 || id == (int)WheelArrangementType.s4444;
+		public static bool IsArticulatedId(int id) => id == (int)WheelArrangementType.s2442 || id == (int)WheelArrangementType.s4444 ||
+			id == (int)WheelArrangementType.s2662;
 		public static bool IsSupportedId(int id) => IsConventionalId(id) || IsArticulatedId(id) || id == (int)WheelArrangementType.s404;
-		public const int SupportedCount = 37;
+		public const int SupportedCount = 38;
 
 		public static int NormalizeSavedId(int id) => IsStandardId(id) ? id : (int)WheelArrangementType.s282;
 
@@ -134,8 +135,8 @@ namespace RearrangedS282
 			"2-6-0 Mogul",
 			"2-4-0",
 			"2-2-2 Giant-driver clearance prototype",
-			/*"2-6-6-2",
-			"2-6-8-0",
+			"2-6-6-2 Articulated Mallet",
+			/*"2-6-8-0",
 			"4-6-6-4 Challenger"*/
 		};
 
@@ -178,6 +179,7 @@ namespace RearrangedS282
 			2,//"2-6-0 Mogul",
 			2,//"2-4-0",
 			4,//"2-2-2 Giant-driver clearance prototype",
+			4,//"2-6-6-2 Articulated Mallet",
 		};
 	}
 }

@@ -1,5 +1,5 @@
 param(
-    [string]$Version = '1.4.4',
+    [string]$Version = '1.5.0',
     [string]$GamePath = 'B:\SteamLibrary\steamapps\common\Derail Valley',
     [string]$OutputDirectory,
     [string]$CandidateDirectory,
@@ -42,7 +42,7 @@ $receipt = [ordered]@{
     dllSHA256=(Get-FileHash -LiteralPath (Join-Path $mod 'RearrangedS282.dll')).Hash
     zipSHA256=(Get-FileHash -LiteralPath $zip).Hash; package=$mod; zip=$zip
     bundleSHA256=$bundleHash
-    features=@('37 choices: 33 conventional, 2 articulated, unpowered 4-0-4 and experimental giant-driver 2-2-2','Pacific/Hudson Walschaerts geometry alignment with native animation','New 2-6-0 Mogul and 2-4-0','Adjustable 2.1-3.6m tread-diameter collider-free 2-2-2 clearance visuals','Native explosion materials for added and inactive running gear','Native DV pin/aim constraints and bogies','Two native steam engines with boiler/torque/exhaust accounting','Per-engine diagnostics including failed native updates','Native rolling-audio axle-cache refresh','Optional random spawns and saved arrangements','LateUpdate rod synchronization','Delta trailing truck compatibility')
+    features=@('38 choices: 33 conventional, 3 articulated (incl. 2-6-6-2 Mallet), unpowered 4-0-4 and experimental giant-driver 2-2-2','Pacific/Hudson Walschaerts geometry alignment with native animation','New 2-6-0 Mogul and 2-4-0','Adjustable 2.1-3.6m tread-diameter collider-free 2-2-2 clearance visuals','Native explosion materials for added and inactive running gear','Native DV pin/aim constraints and bogies','Two native steam engines with boiler/torque/exhaust accounting','Per-engine diagnostics including failed native updates','Native rolling-audio axle-cache refresh','Optional random spawns and saved arrangements','LateUpdate rod synchronization','Delta trailing truck compatibility')
     sourceHashes=@(Get-ChildItem (Join-Path $root 'RearrangedS282') -Recurse -File -Filter '*.cs' | Where-Object FullName -NotMatch '\\(bin|obj)\\' | Get-FileHash | Select-Object Path,Hash)
 }
 if ($Install) {

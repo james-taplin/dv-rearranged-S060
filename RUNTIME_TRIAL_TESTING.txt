@@ -1,4 +1,33 @@
-Rearranged S282 B99 - 1.4.4 expanded trial
+Rearranged S282 B99 - 1.5.0 Mallet trial
+
+NEW IN 1.5.0: 2-6-6-2 ARTICULATED MALLET (radio ID 37)
+Two three-axle engines on about 1.07 m drivers. Each engine is a 0.75-scale copy
+of the native S282 drivetrain AND its cylinders, guides, valve-gear supports,
+springs and brake calipers, so piston, crosshead and rods line up. The front
+engine swings on the same native pin/aim constraints as the 2-4-4-2; the rear
+engine and its cylinders are fixed to the boiler. Six powered axles, one leading
+and one small trailing axle. The rear engine uses the existing articulated rear
+steam engine (same capacity as the 2-4-4-2). Random spawning defaults off.
+Also fixed since 1.4.4: articulated frame split (1.4.5) and Pacific/Hudson
+particle outlets (1.4.5).
+
+PRIORITY TESTS FOR 1.5.0
+1. Stationary stock S282, regulator closed: select 2-6-6-2. Check the Player.log
+   line "Articulated S282 2-6-6-2: ..." for the measured layout.
+2. Look along both sides: all six drivers present, coupling rods joining drivers
+   1-3 on each engine, main rods on driver 3, valve gear moving with cutoff on
+   BOTH engines (rear engine follows the front's reverser).
+3. Rear cylinders sit between the two engines. Trailing wheel present behind the
+   rear engine (it may sit close to the cab rear).
+4. Drive through curves and reverse curves: front engine swings, rear stays put.
+   Note any clipping of front wheels/cylinders into the rear cylinders.
+5. Full regulator start: wheelslip, sparks on all six axles, both engines' chuff
+   and cylinder cocks (cocks/drips should appear at each engine's cylinders).
+6. Switch back to stock 2-8-2, then 2-4-4-2, then 2-6-6-2 again: nothing left
+   behind from the other layout. Save/reload with the 2-6-6-2 selected.
+7. Run the structural test: it now covers 38 layouts.
+
+PREVIOUS: 1.4.4 expanded trial
 
 NEW IN 1.4.4
 Polished Walschaerts on 4-6-2 and 4-6-4 defaults on through its own new setting.

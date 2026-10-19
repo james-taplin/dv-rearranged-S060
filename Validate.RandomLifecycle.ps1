@@ -41,20 +41,23 @@ namespace RearrangedS282 {
    var oldNames="s440,s442,s444,s460,s462,s464,s080,s082,s084,s280,s282,s284,s280Big,s282Big,s284Big,s480,s482,s484,s0100,s0102,s0104,s2100,s2102,s2104,s4100,s4102,s4104,s0120,s2120,s2122,s4122,s2442,s4444,s404".Split(',');
    for(int id=0;id<oldNames.Length;id++)Check((int)Enum.Parse(typeof(WheelArrangementType),oldNames[id])==id,"Legacy save ID moved: "+oldNames[id]);
    Check((int)WheelArrangementType.s260==34 && (int)WheelArrangementType.s240==35 && (int)WheelArrangementType.s222==36,"New conventional IDs must append at34/35/36");
-   Check(WheelArrangement.SupportedCount==37 && WheelArrangement.WheelArrangementNames.Length==37 && WheelArrangement.NumOfNondrivenWheels.Length==37,"Catalogue metadata must contain all37 IDs");
+   Check((int)WheelArrangementType.s2662==37,"2-6-6-2 Mallet must append at37");
+   Check(WheelArrangement.SupportedCount==38 && WheelArrangement.WheelArrangementNames.Length==38 && WheelArrangement.NumOfNondrivenWheels.Length==38,"Catalogue metadata must contain all38 IDs");
+   Check(WheelArrangement.WheelArrangementNames[37]=="2-6-6-2 Articulated Mallet" && WheelArrangement.NumOfNondrivenWheels[37]==4,"Mallet name must keep a parseable Whyte prefix and4 non-driven wheels");
    Check(WheelArrangement.WheelArrangementNames[34]=="2-6-0 Mogul" && WheelArrangement.WheelArrangementNames[35]=="2-4-0" && WheelArrangement.WheelArrangementNames[36]=="2-2-2 Giant-driver clearance prototype","New names must retain parseable Whyte prefixes");
    Check(WheelArrangement.NumOfNondrivenWheels[34]==2 && WheelArrangement.NumOfNondrivenWheels[35]==2 && WheelArrangement.NumOfNondrivenWheels[36]==4,"New non-driven wheel counts are2/2/4");
-   for(int id=0;id<37;id++)Check(WheelArrangement.IsStandardId(id)==(id<=30),"Historical IsStandardId semantics changed");
-   Check(WheelArrangement.IsConventionalId(34) && WheelArrangement.IsConventionalId(35) && WheelArrangement.IsConventionalId(36) && !WheelArrangement.IsConventionalId(31) && !WheelArrangement.IsConventionalId(32) && !WheelArrangement.IsConventionalId(33),"New conventional helper must keep articulated/novelty classification separate");
+   for(int id=0;id<38;id++)Check(WheelArrangement.IsStandardId(id)==(id<=30),"Historical IsStandardId semantics changed");
+   Check(WheelArrangement.IsConventionalId(34) && WheelArrangement.IsConventionalId(35) && WheelArrangement.IsConventionalId(36) && !WheelArrangement.IsConventionalId(31) && !WheelArrangement.IsConventionalId(32) && !WheelArrangement.IsConventionalId(33) && !WheelArrangement.IsConventionalId(37),"New conventional helper must keep articulated/novelty classification separate");
+   Check(WheelArrangement.IsArticulatedId(31) && WheelArrangement.IsArticulatedId(32) && WheelArrangement.IsArticulatedId(37) && !WheelArrangement.IsArticulatedId(36),"Mallet must be classified articulated");
    var fields=typeof(Settings).GetFields().Where(f=>f.FieldType==typeof(bool) && f.Name.StartsWith("spawn") && f.Name!="spawnRandomWA").ToArray();
-   Check(fields.Length==37,"Every supported arrangement needs one pool toggle");
-   Check(!settings.spawn2442 && !settings.spawn4444 && !settings.spawn404,"Articulated and novelty random choices must be opt-in");
+   Check(fields.Length==38,"Every supported arrangement needs one pool toggle");
+   Check(!settings.spawn2442 && !settings.spawn4444 && !settings.spawn2662 && !settings.spawn404,"Articulated and novelty random choices must be opt-in");
    for(int id=0;id<WheelArrangement.SupportedCount;id++){
     Check(WheelArrangement.IsRuntimeId(id),"Radio catalogue excludes supported arrangement");
     int next=WheelArrangement.NextRuntimeId(id,1);
     Check(WheelArrangement.NextRuntimeId(next,-1)==id,"Radio forward/reverse traversal lost an ID");
    }
-   Check(WheelArrangement.IsRuntimeId(36) && !WheelArrangement.IsRuntimeId(37),"New ID36 selectable; unknown ID37 rejected");
+   Check(WheelArrangement.IsRuntimeId(37) && !WheelArrangement.IsRuntimeId(38),"New ID37 selectable; unknown ID38 rejected");
    foreach(var field in fields){
     foreach(var other in fields)other.SetValue(settings,false);
     field.SetValue(settings,true);settings.OnChange();
@@ -85,7 +88,7 @@ namespace RearrangedS282 {
     Check(roundtrip.LoadPayload(value) && roundtrip.PendingId==id,"Supported save ID rejected: "+id);
     roundtrip.RecordApplied(id);Check(JToken.DeepEquals(value,roundtrip.SavePayload()),"Saved ID did not round-trip: "+id);
    }
-   foreach(var invalid in new JToken[]{new JObject{["version"]=2,["arrangement"]=30,["future"]=true},new JObject{["version"]=1,["arrangement"]=37},new JObject{["version"]=1,["arrangement"]=-1},new JObject{["version"]=1,["arrangement"]="30"},JToken.Parse("[1,2,3]"),JToken.Parse("{\"version\":1,\"arrangement\":9999999999999999999999999999999}")}){
+   foreach(var invalid in new JToken[]{new JObject{["version"]=2,["arrangement"]=30,["future"]=true},new JObject{["version"]=1,["arrangement"]=38},new JObject{["version"]=1,["arrangement"]=-1},new JObject{["version"]=1,["arrangement"]="30"},JToken.Parse("[1,2,3]"),JToken.Parse("{\"version\":1,\"arrangement\":9999999999999999999999999999999}")}){
     var value=new ConventionalArrangementState();value.BeginIdentity("invalid");
     Check(!value.LoadPayload(invalid) && value.PendingId==null,"Invalid/future metadata was applied");value.SelectInitial(settings,random);
     Check(JToken.DeepEquals(invalid,value.SavePayload()),"Unknown metadata must survive unchanged");
@@ -96,6 +99,7 @@ namespace RearrangedS282 {
    Check(sampled.Contains(34) && sampled.Contains(35) && !sampled.Contains(36),"Default random selection must include both new normal choices and exclude experimental2-2-2");
    return checks;
   }
+  public static int Main(){ System.Console.WriteLine(Run()); return 0; }
  }
 }
 '@
@@ -105,14 +109,19 @@ $files = @($harnessPath,
     (Join-Path $PSScriptRoot 'RearrangedS282\Settings.cs'),
     (Join-Path $PSScriptRoot 'RearrangedS282\WheelArrangement.cs'),
     (Join-Path $PSScriptRoot 'RearrangedS282\ConventionalArrangementState.cs'))
-$references = @([Newtonsoft.Json.Linq.JObject].Assembly.Location,
-    [System.Linq.Enumerable].Assembly.Location,
-    [System.ComponentModel.DescriptionAttribute].Assembly.Location,
-    (Join-Path $PSHOME 'ref\System.Collections.dll'),
-    (Join-Path $PSHOME 'ref\System.Xml.ReaderWriter.dll'),
-    (Join-Path $PSHOME 'ref\System.Xml.XmlSerializer.dll'))
-Add-Type -Path $files -CompilerOptions @('/define:B99_ALL_STANDARD','/nowarn:1701') -ReferencedAssemblies $references
-$count = [RearrangedS282.RandomLifecycleHarness]::Run()
+$managed = 'B:\SteamLibrary\steamapps\common\Derail Valley\DerailValley_Data\Managed'
+$project = @"
+<Project Sdk="Microsoft.NET.Sdk">
+ <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><EnableDefaultCompileItems>false</EnableDefaultCompileItems><DefineConstants>B99_ALL_STANDARD</DefineConstants><NoWarn>1701;CS8632</NoWarn><NuGetAudit>false</NuGetAudit><StartupObject>RearrangedS282.RandomLifecycleHarness</StartupObject></PropertyGroup>
+ <ItemGroup>$(($files | ForEach-Object { "<Compile Include=`"$_`"/>" }) -join '')</ItemGroup>
+ <ItemGroup><Reference Include="Newtonsoft.Json"><HintPath>$managed\Newtonsoft.Json.dll</HintPath></Reference></ItemGroup>
+</Project>
+"@
+$projectPath = Join-Path $output 'RandomLifecycle.Validation.csproj'
+Set-Content -LiteralPath $projectPath -Value $project -Encoding utf8
+$result = & 'C:/Program Files/dotnet/dotnet.exe' run --project $projectPath --configuration Release
+if ($LASTEXITCODE -ne 0) { $result; throw 'Random/catalogue/save-policy validation failed.' }
+$count = [int]($result | Select-Object -Last 1)
 $report = [ordered]@{ passed=$count;failed=0;source='Actual Settings, catalogue and ConventionalArrangementState';limitations='Offline pool/identity/save policy with managed attribute stubs; Unity spawn, safe deferral and native save hooks require in-game validation.' }
 $report | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $output 'validation.json') -Encoding utf8
 $report | ConvertTo-Json

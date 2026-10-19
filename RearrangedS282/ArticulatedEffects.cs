@@ -201,8 +201,9 @@ namespace RearrangedS282
                 {
                     if (audio == null) continue;
                     primaryLeaves.Add(new Pose(audio.transform));
+                    Vector3 world = audio.transform.position;
                     audio.transform.SetParent(owner.Front, true);
-                    audio.transform.localPosition += owner.FrontOutletOffset;
+                    audio.transform.localPosition = owner.FrontOutletLocal(world, audio.transform.localPosition);
                 }
                 foreach (var audio in Reader.cylCockAudio)
                 {
@@ -211,7 +212,7 @@ namespace RearrangedS282
                     // authored car-local outlet coordinates in the live car.
                     Vector3 carPosition = template.transform.root.InverseTransformPoint(template.cylCockAudio[Array.IndexOf(Reader.cylCockAudio, audio)].transform.position);
                     audio.transform.SetParent(owner.Rear, false);
-                    audio.transform.localPosition = carPosition + Vector3.back * EngineSeparation;
+                    audio.transform.localPosition = owner.RearOutletLocal(carPosition);
                     audio.gameObject.AddComponent<ArticulatedEffectMarker>(); secondaryLeaves.Add(audio.gameObject);
                 }
                 Controller.entries = Controller.entries.Append(Reader).ToArray();
@@ -237,6 +238,14 @@ namespace RearrangedS282
             internal Transform Rear => Car.GetComponent<WheelRearranger>().ArticulatedRearRoot;
             internal Vector3 FrontOutletOffset => Car.GetComponent<WheelRearranger>().currentWA == WheelArrangementType.s4444
                 ? Vector3.forward * .35f : Vector3.zero;
+            // Front outlet in front-engine coordinates, from its native world position.
+            internal Vector3 FrontOutletLocal(Vector3 nativeWorld, Vector3 reparentedLocal) =>
+                Car.GetComponent<WheelRearranger>().TryMapArticulatedOutlet(nativeWorld, false, out var mapped)
+                    ? mapped : reparentedLocal + FrontOutletOffset;
+            // Rear outlet in rear-engine coordinates, from its authored car-local position.
+            internal Vector3 RearOutletLocal(Vector3 carLocal) =>
+                Car.GetComponent<WheelRearranger>().TryMapArticulatedOutlet(Car.transform.TransformPoint(carLocal), true, out var mapped)
+                    ? mapped : carLocal + Vector3.back * EngineSeparation;
             private ParticleBinding particles;
             private float nextSearch;
             private bool warned;
@@ -395,8 +404,10 @@ namespace RearrangedS282
             private void MovePrimary(GameObject leaf)
             {
                 if (leaf == null || primaryLeaves.Any(p => p.Leaf == leaf.transform)) return;
-                primaryLeaves.Add(new Pose(leaf.transform)); leaf.transform.SetParent(owner.Front, true);
-                leaf.transform.localPosition += owner.FrontOutletOffset;
+                primaryLeaves.Add(new Pose(leaf.transform));
+                Vector3 world = leaf.transform.position;
+                leaf.transform.SetParent(owner.Front, true);
+                leaf.transform.localPosition = owner.FrontOutletLocal(world, leaf.transform.localPosition);
             }
 
             private void MoveCopy(GameObject leaf)
@@ -405,7 +416,7 @@ namespace RearrangedS282
                 Vector3 position = owner.Car.transform.InverseTransformPoint(leaf.transform.position);
                 Quaternion rotation = leaf.transform.rotation;
                 leaf.transform.SetParent(owner.Rear, false);
-                leaf.transform.localPosition = position + Vector3.back * EngineSeparation;
+                leaf.transform.localPosition = owner.RearOutletLocal(position);
                 leaf.transform.rotation = rotation;
                 if (leaf.GetComponent<ArticulatedEffectMarker>() == null) leaf.AddComponent<ArticulatedEffectMarker>();
                 if (!copies.Contains(leaf)) copies.Add(leaf);
