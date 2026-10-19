@@ -52,12 +52,33 @@ at spawn: a dormant "middle" engine is added next to the dormant rear engine.
 - **Effects and diagnostics:** chuffs, cylinder cocks, drips and crack outlets need a
   third owner in ArticulatedEffects. Diagnostics gain a third engine entry.
 
+## Phase 3: 4-14-4 (ID 39)
+
+Requested by James on 19 Oct 2026, to follow the triplex. A conventional rigid
+layout (the real one is the Soviet AA20-1), so it goes through the conventional
+path, not the articulated one.
+
+- **Seventh driver:** the mod currently has six driving axles (native 1-4 plus
+  generated 5/6). Add a seventh physical powered axle, its visible wheels, brake
+  caliper/shoe and spark anchors, following how 5/6 were added.
+- **Length:** 2 leading + 7 driving + 2 trailing = 11 axles in the S282 frame. Use
+  small drivers at about the 12-coupled scale (0.84) or slightly smaller, and the
+  rearmost practical trailing-truck position. Measure positions at runtime, as
+  the Mallet does, rather than hard-coding them.
+- **Rods:** a 7-axle coupling rod built from the existing 5/6-axle extension rod
+  pieces. Check the gap between the last two axles, which the 10/12-coupled rods
+  already needed a mesh fix for.
+- **Physics:** 11 axles, 7 powered, equal-load weight split as for the others.
+  The real engine's poor curving is not modelled; DV's two rigid bogies stay.
+- **Catalogue:** new random toggle, off by default; structural test grows to 40.
+
 ## Order of work
 
 1. Phase 1 code, offline validation, build 1.5.0, James tests in game.
    Status 19 Oct: built and offline-validated as 1.5.0, awaiting in-game test.
 2. Phase 2 graph change first (third engine dormant on all S282s), checked by
    save/reload of old saves, then the triplex geometry.
+3. Phase 3: 4-14-4, after the triplex is tested.
 
 ## Not in scope
 
