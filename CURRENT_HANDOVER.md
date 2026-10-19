@@ -40,6 +40,13 @@ INSTALLED 19 Oct 2026 on James's go-ahead (game closed). Installed DLL hash matc
 above; Info.json 1.4.5; Settings.xml kept. 1.4.4 backup (DLL F0729132...)
 at build/runtime-trial-1.4.5/installed-backup-20261019-082743. No game run yet.
 
+GIT: work committed as 7bb0fbf on branch b99-port and pushed to James's PUBLIC
+fork https://github.com/james-taplin/dv-rearranged-S282 (remote "james"; origin
+is still upstream pjschinske). Fork default branch is still upstream main.
+evidence/ is gitignored except the offline test fixtures and the two files the
+scripts read; logs, tester material and video stay local. Commit new work on
+b99-port and push to james. Do not push to origin.
+
 ## 1.4.4 runtime structural acceptance FAILED, 19 October 2026
 
 James ran the expanded structural trial. Installed/report version1.4.4 (assembly
