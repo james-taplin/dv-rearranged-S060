@@ -1,4 +1,7 @@
-## 1.9.0 0-2-2-2-0 triplex added (Claude), RELEASED pre-release v1.9.0 (tag 2692287), NOT installed, 19 Oct 2026
+## 1.9.0 0-2-2-2-0 triplex added (Claude), RELEASED pre-release v1.9.0 (tag 2692287), INSTALLED, 19 Oct 2026
+
+Installed from the released ZIP (9D6AA0EF...4BEF; DLL 5BAD585B...6F5A == build, Info.json 1.9.0).
+1.8.1 backup: build/runtime-trial-1.9.0/installed-backup-20261019-213413. Settings kept.
 
 James asked for a "less meme" triplex: 0-2-2-2-0, with the first cylinder
 further forward, the engines spaced further apart and bigger drivers. It is a
