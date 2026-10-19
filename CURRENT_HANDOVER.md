@@ -1,3 +1,22 @@
+## 1.9.2 Nexus release (Claude), branch release-1.9.2 from v1.9.1, 19 Oct 2026
+
+James asked for a Nexus-ready ZIP of the latest version before 1.10, plus a
+changelog and a feature list. Spawn pool decision (his): "conventional only,
+minus memes". All conventional layouts stay in the default random pool except
+the high-speed 2-8-0/2-8-2/2-8-4 (now off), the 2-2-2, 4-14-4 and 4-0-4; all
+articulated layouts stay opt-in. Built as 1.9.2 from the 1.9.1 code (his choice);
+no 1.10 tender-engine code.
+- Settings: spawn280Big/282Big/284Big now default false. spawnPoolRevision plus
+  MigrateSpawnPool() unticks those three once for older settings, and Main saves
+  the result. Later choices stand.
+- Main UI: "43 ARRANGEMENTS — B99 BETA".
+- Package.Nexus.ps1 repackages build\runtime-trial-1.9.2: test notes replaced
+  with release-copy\1.9.2 README/CHANGELOG/CREDITS; DisplayName "Rearranged
+  S282 - B99"; forward-slash ZIP entries. Output goes to release\1.9.2 and
+  Desktop\Derail Valley Mods\RearrangedS282-B99-1.9.2-Nexus; the
+  NEXUS_RELEASE_COPY.txt upload text is not in the ZIP. Nothing was uploaded to Nexus.
+- Tests: catalogue 1,391 (pool policy and migration), integration 142; the
+  other suites pass.
 ## 1.9.1 0-8-8-0 Angus + 2-6-8-0 Gt. Northern (Claude), RELEASED pre-release, NOT installed, 19 Oct 2026
 
 James asked for both to go into 1.9.0, then a release and reinstall. Released

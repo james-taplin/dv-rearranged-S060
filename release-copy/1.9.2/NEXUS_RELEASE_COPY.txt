@@ -1,0 +1,42 @@
+NEXUS FILE UPLOAD COPY - DO NOT INCLUDE THIS FILE IN THE MOD ZIP
+
+File name: Rearranged S282 B99 - 1.9.2 Beta
+Version field: 1.9.2
+Archive: RearrangedS282-B99-1.9.2.zip
+UMM display name: Rearranged S282 - B99
+Release author: JimTaplin
+
+SHORT FILE DESCRIPTION
+43 S282 wheel arrangements for B99: the original 31 plus the 2-6-0, 2-4-0, 4-14-4,
+articulated 2-4-4-2, 4-4-4-4, 2-6-6-2, 0-8-8-0, 2-6-8-0 and two triplexes, with
+swinging engines, layout-based grip and curve drag. Beta; Realistic Firing unsupported.
+
+DESCRIPTION
+This independent B99 fork keeps SatiricRug's original arrangement work and MIT
+notices. Requires Windows, Derail Valley B99, Unity Mod Manager 0.27.3 or later and
+Locomotive Mesh Splitter 1.1.9: https://www.nexusmods.com/derailvalley/mods/867
+
+Install through UMM with the game closed, replacing any older RearrangedS282 copy,
+and keep the included exporter and assets folders. Use Wheel Rearranger on the
+comms radio; stop and close the regulator before switching.
+
+Random spawning is off by default. When enabled, it uses the useful conventional
+layouts; the high-speed variants, 2-2-2, 4-14-4, 4-0-4 and all articulated layouts
+are opt-in.
+
+The in-game structural self-test passed for 40 arrangements. The 0-2-2-2-0,
+0-8-8-0 and 2-6-8-0, the bigger triplex drivers, 4-14-4 spacing, grip limits and
+curve drag have passed offline checks only so far; please use a test save first.
+
+CHANGELOG (Nexus changelog field, one line each)
+added the 2-6-0 Mogul, 2-4-0, 4-14-4 and an experimental giant-driver 2-2-2
+added the 2-6-6-2 Mallet, 0-8-8-0 "Angus" and 2-6-8-0 Great Northern
+added the 2-2-2-2-2 and 0-2-2-2-0 triplexes
+restored the 2-4-4-2 and 4-4-4-4 as articulated engines with swinging front engines
+restored the 4-0-4 novelty and burnt materials on added running gear
+articulated layouts run extra native steam engines with their own chuffs, cocks and wear
+grip now follows the layout instead of spreading the whole loco over every axle
+long rigid wheelbases now drag and squeal on tight curves (optional)
+polished the 4-6-2/4-6-4 valve gear and fixed cylinder-cock steam positions
+fixed the front coupling chain and hoses, brake release audio and rolling clicks
+random spawning now skips the high-speed variants and novelty/articulated layouts by default

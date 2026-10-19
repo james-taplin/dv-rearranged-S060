@@ -36,6 +36,7 @@ namespace RearrangedS282
 				var stage2Harmony = new Harmony(modEntry.Info.Id);
 #if B99_ALL_STANDARD
 				settings = Settings.Load<Settings>(modEntry);
+				if (settings.MigrateSpawnPool()) settings.Save(modEntry);
 				settings.OnChange();
 				modEntry.OnSaveGUI = OnSaveGUI;
 				stage2Harmony.CreateClassProcessor(typeof(PowerDiagnosticsTick)).Patch();
@@ -54,7 +55,7 @@ namespace RearrangedS282
 				stage2Harmony.CreateClassProcessor(typeof(CommsRadio_Awake_Patch)).Patch();
 				modEntry.OnGUI = entry => {
 #if B99_ALL_STANDARD
-					GUILayout.Label("43 ARRANGEMENTS — BIG MALLET TEST BUILD\n" +
+					GUILayout.Label("43 ARRANGEMENTS — B99 BETA\n" +
 						"Use Wheel Rearranger on the comms radio. Stop and close the regulator first.\n" +
 						"Selections are saved with each locomotive. Loaded arrangements wait until switching is safe.\n" +
 						"First conversion may take a few seconds to prepare rods.");
