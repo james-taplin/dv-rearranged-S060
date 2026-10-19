@@ -36,6 +36,7 @@ namespace RearrangedS282
 				var stage2Harmony = new Harmony(modEntry.Info.Id);
 #if B99_ALL_STANDARD
 				settings = Settings.Load<Settings>(modEntry);
+				if (settings.MigrateSpawnPool()) settings.Save(modEntry);
 				settings.OnChange();
 				modEntry.OnSaveGUI = OnSaveGUI;
 				stage2Harmony.CreateClassProcessor(typeof(PowerDiagnosticsTick)).Patch();

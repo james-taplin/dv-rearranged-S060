@@ -26,8 +26,12 @@ namespace RearrangedS282 {
    var random=new Random(23135);
    var settings=new Settings();settings.OnChange();
    Check(!settings.spawnRandomWA,"Random spawning must be opt-in");
-   Check(settings.RandomWAs.Count==33 && settings.RandomWAs.Distinct().Count()==33,"Default pool must contain all33 normal conventional choices exactly once");
-   Check(settings.RandomWAs.Select(a=>(int)a).OrderBy(a=>a).SequenceEqual(Enumerable.Range(0,31).Concat(new[]{34,35})),"Default pool must retain old31 and append Mogul/2-4-0");
+   var highSpeed=new[]{12,13,14};
+   Check(settings.RandomWAs.Count==30 && settings.RandomWAs.Distinct().Count()==30,"Default pool must contain the30 useful conventional choices exactly once");
+   Check(settings.RandomWAs.Select(a=>(int)a).OrderBy(a=>a).SequenceEqual(Enumerable.Range(0,31).Where(i=>!highSpeed.Contains(i)).Concat(new[]{34,35})),"Default pool: old31 minus the high-speed variants, plus Mogul/2-4-0");
+   var old=new Settings{spawnPoolRevision=0,spawn280Big=true,spawn282Big=true,spawn284Big=true,spawn440=false};
+   Check(old.MigrateSpawnPool() && !old.spawn280Big && !old.spawn282Big && !old.spawn284Big && !old.spawn440 && old.spawnPoolRevision==Settings.CurrentSpawnPoolRevision,"Older settings lose only the high-speed variants from the pool");
+   old.spawn282Big=true;Check(!old.MigrateSpawnPool() && old.spawn282Big,"A player's later choice survives the one-time migration");
    Check(settings.RandomWAs.All(a=>WheelArrangement.IsConventionalId((int)a)),"Pool includes unsupported ID");
    Check(!settings.spawn222 && !settings.RandomWAs.Contains(WheelArrangementType.s222),"Experimental 2-2-2 must remain opt-in");
    Check(settings.giant222DriverDiameterMetres==2.8f,"Experimental driver DIAMETER default must be2.8m");

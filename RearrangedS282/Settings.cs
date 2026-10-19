@@ -78,9 +78,9 @@ namespace RearrangedS282
 		[Draw("Randomly spawn 0-8-4:", Height = HEIGHT)] public bool spawn084 = true;
 		[Draw("Randomly spawn 2-8-0:", Height = HEIGHT)] public bool spawn280 = true;
 		[Draw("Randomly spawn 2-8-2:", Height = HEIGHT)] public bool spawn282 = true;
-		[Draw("Randomly spawn high-speed 2-8-0:", Height = HEIGHT)] public bool spawn280Big = true;
-		[Draw("Randomly spawn high-speed 2-8-2:", Height = HEIGHT)] public bool spawn282Big = true;
-		[Draw("Randomly spawn high-speed 2-8-4:", Height = HEIGHT)] public bool spawn284Big = true;
+		[Draw("Randomly spawn high-speed 2-8-0:", Height = HEIGHT)] public bool spawn280Big = false;
+		[Draw("Randomly spawn high-speed 2-8-2:", Height = HEIGHT)] public bool spawn282Big = false;
+		[Draw("Randomly spawn high-speed 2-8-4:", Height = HEIGHT)] public bool spawn284Big = false;
 		[Draw("Randomly spawn 2-8-4:", Height = HEIGHT)] public bool spawn284 = true;
 		[Draw("Randomly spawn 4-8-0:", Height = HEIGHT)] public bool spawn480 = true;
 		[Draw("Randomly spawn 4-8-2:", Height = HEIGHT)] public bool spawn482 = true;
@@ -119,6 +119,19 @@ namespace RearrangedS282
 		public override void Save(UnityModManager.ModEntry modEntry)
 		{
 			Save(this, modEntry);
+		}
+
+		// 1.9.2: the fictional high-speed variants left the default random pool.
+		// Applied once to settings saved by older versions; later choices stand.
+		public int spawnPoolRevision = 0;
+		internal const int CurrentSpawnPoolRevision = 1;
+
+		internal bool MigrateSpawnPool()
+		{
+			if (spawnPoolRevision >= CurrentSpawnPoolRevision) return false;
+			spawn280Big = spawn282Big = spawn284Big = false;
+			spawnPoolRevision = CurrentSpawnPoolRevision;
+			return true;
 		}
 
 		public void OnChange() {
