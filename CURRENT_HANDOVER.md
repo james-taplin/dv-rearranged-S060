@@ -1,3 +1,29 @@
+## 1.9.1 0-8-8-0 Angus + 2-6-8-0 Gt. Northern (Claude), RELEASED pre-release, NOT installed, 19 Oct 2026
+
+James asked for both to go into 1.9.0, then a release and reinstall. Released
+as 1.9.1 instead, to keep the 1.9.0 release (memory: keep every version's release).
+- New WheelRearranger.BigMallet.cs:
+  - 0-8-8-0 (ID 41) and 2-6-8-0 (ID 42) use the Mallet method: each engine is a
+    scaled native drivetrain plus its static cylinder assembly, and the rear
+    engine is a native four-axle clone (ConfigureEightCoupledDrive).
+  - 0-8-8-0: native four-axle front engine; cylinders +0.6 m; no trucks.
+  - 2-6-8-0: the 2-6-6-2's three-axle front (ConfigureMalletDrive and
+    PreShift) over its leading truck; no trailing truck.
+  - Last driver's rear edge = the 2-2-2-2-2's trailing wheel rear edge
+    (rear-bogie local -3.7 minus 0.355).
+  - Scale is solved per layout. Hand estimates (UNVERIFIED): 0-8-8-0 about
+    0.75 (1.06 m drivers), 2-6-8-0 about 0.79 (1.12 m).
+- Extra powered axles: "[axle] drive mallet front" (a clone of driveAxle2 in
+  the front bogie, 0-8-8-0 only) and "[axle] drive mallet rear" (driveAxle4
+  clone in the rear bogie). They are added to the powered list through
+  BigMalletExtraAxles and deactivated in SuspendBigMalletGeometry, which
+  SuspendMalletGeometry calls. No wheelslip sparks for those two axles.
+- The rear static clones are kept per layout and rebuilt if the scale changes.
+  GeneratedPresentationRoots includes them. IsDuplexId includes 41 and 42.
+  DescribeDriverGroups covers both. Settings spawn08880 / spawn2680 (off).
+- Tests: catalogue 1,389 (43 IDs), integration 142; the other suites pass.
+- ZIP SHA256 518ee44ead60d4d3cc7ed0c6078827e3ceb4bd5356c14f6b6e8713ddcc4d41f6, DLL A8955B6F...C724A.
+
 ## 1.9.0 0-2-2-2-0 triplex added (Claude), RELEASED pre-release v1.9.0 (tag 2692287), INSTALLED, 19 Oct 2026
 
 Installed from the released ZIP (9D6AA0EF...4BEF; DLL 5BAD585B...6F5A == build, Info.json 1.9.0).

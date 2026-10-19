@@ -48,7 +48,7 @@ namespace RearrangedS282
         internal float RearCapacityFraction { get; private set; }
 
         // Matches WheelArrangement.IsArticulatedId; kept literal so the graph probe compiles alone.
-        internal static bool IsDuplexId(int id) => id == 31 || id == 32 || id == 37 || IsTriplexId(id);
+        internal static bool IsDuplexId(int id) => id == 31 || id == 32 || id == 37 || id == 41 || id == 42 || IsTriplexId(id);
         internal const int TriplexId = 38, TrucklessTriplexId = 40;
         internal static bool IsTriplexId(int id) => id == TriplexId || id == TrucklessTriplexId;
 

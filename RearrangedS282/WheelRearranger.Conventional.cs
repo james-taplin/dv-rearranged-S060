@@ -86,6 +86,7 @@ namespace RearrangedS282
                         if (id == (int)WheelArrangementType.s2662) ApplyMalletGeometry();
                         else if (id == (int)WheelArrangementType.s22222) ApplyTriplexGeometry(true);
                         else if (id == (int)WheelArrangementType.s02220) ApplyTriplexGeometry(false);
+                        else if (IsBigMallet(id)) ApplyBigMalletGeometry((WheelArrangementType)id);
                         else ApplyArticulatedGeometry(id);
                     }
                     else
@@ -106,6 +107,7 @@ namespace RearrangedS282
                             .Where(t => t.name.StartsWith("[axle]", StringComparison.Ordinal) && t.gameObject.activeInHierarchy)
                             .Select(t => new Bogie.AxleInfo(t)).ToArray();
                     var powered = new[] { driveAxle1, driveAxle2, driveAxle3, driveAxle4, driveAxle5, driveAxle6, driveAxle7 }
+                        .Concat(BigMalletExtraAxles())
                         .Where(t => t != null && t.gameObject.activeInHierarchy).Select(t => t.GetComponent<PoweredWheel>()).ToArray();
                     int total = loco.Bogies.Sum(b => b.Axles.Length);
                     var wheels = WheelArrangement.WheelArrangementNames[id].Split(' ')[0].Split('-').Select(int.Parse).ToArray();

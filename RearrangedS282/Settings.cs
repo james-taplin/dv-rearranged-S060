@@ -107,6 +107,8 @@ namespace RearrangedS282
 		[Draw("Randomly spawn articulated 2-6-6-2 Mallet:", Height = HEIGHT)] public bool spawn2662 = false;
 		[Draw("Randomly spawn articulated 2-2-2-2-2 Triplex:", Height = HEIGHT)] public bool spawn22222 = false;
 		[Draw("Randomly spawn articulated 0-2-2-2-0 Triplex:", Height = HEIGHT)] public bool spawn02220 = false;
+		[Draw("Randomly spawn articulated 0-8-8-0 Angus:", Height = HEIGHT)] public bool spawn08880 = false;
+		[Draw("Randomly spawn articulated 2-6-8-0 Gt. Northern:", Height = HEIGHT)] public bool spawn2680 = false;
 		[Draw("Randomly spawn 4-14-4:", Height = HEIGHT)] public bool spawn4144 = false;
 
 		// Derived from the toggles, not a second authoritative saved pool.
@@ -214,6 +216,10 @@ namespace RearrangedS282
 				RandomWAs.Add(WheelArrangementType.s22222);
 			if (spawn02220)
 				RandomWAs.Add(WheelArrangementType.s02220);
+			if (spawn08880)
+				RandomWAs.Add(WheelArrangementType.s08880);
+			if (spawn2680)
+				RandomWAs.Add(WheelArrangementType.s2680);
 			if (spawn4144)
 				RandomWAs.Add(WheelArrangementType.s4144);
 

@@ -581,7 +581,7 @@ namespace RearrangedS282
         // 4-14-4 presentation, including whole cloned drivetrains.
         private HashSet<Transform> GeneratedPresentationRoots()
         {
-            var roots=new HashSet<Transform>(articulatedAssets.Concat(malletAssets).Concat(triplexAssets).Concat(fourteenAssets).Where(t=>t!=null));
+            var roots=new HashSet<Transform>(articulatedAssets.Concat(malletAssets).Concat(triplexAssets).Concat(fourteenAssets).Concat(BigMalletPresentationRoots()).Where(t=>t!=null));
             foreach(var t in new[] {articulatedRearL,articulatedRearR,malletRearL,malletRearR,triplexMiddleL,triplexMiddleR,triplexRearL,triplexRearR})
                 if(t!=null) roots.Add(t);
             return roots;

@@ -50,6 +50,8 @@ namespace RearrangedS282
 		s22222 = 38,
 		s4144 = 39,
 		s02220 = 40,
+		s08880 = 41,
+		s2680 = 42,
 		/*s2680,
 		s4664*/
 	}
@@ -57,15 +59,16 @@ namespace RearrangedS282
 	public static class WheelArrangement
 	{
 		// Legacy numeric IDs and name-table positions are save compatibility data.
-		// IDs 31/32/37/38/40 identify articulated conversions; ID 33 is the unpowered novelty.
+		// IDs 31/32/37/38/40/41/42 identify articulated conversions; ID 33 is the unpowered novelty.
 		// New conventional IDs are appended; never insert into the legacy range.
 		public static bool IsStandardId(int id) => id >= 0 && id <= (int)WheelArrangementType.s4122;
 		public static bool IsConventionalId(int id) => IsStandardId(id) ||
 			(id >= (int)WheelArrangementType.s260 && id <= (int)WheelArrangementType.s222) || id == (int)WheelArrangementType.s4144;
 		public static bool IsArticulatedId(int id) => id == (int)WheelArrangementType.s2442 || id == (int)WheelArrangementType.s4444 ||
-			id == (int)WheelArrangementType.s2662 || id == (int)WheelArrangementType.s22222 || id == (int)WheelArrangementType.s02220;
+			id == (int)WheelArrangementType.s2662 || id == (int)WheelArrangementType.s22222 || id == (int)WheelArrangementType.s02220 ||
+			id == (int)WheelArrangementType.s08880 || id == (int)WheelArrangementType.s2680;
 		public static bool IsSupportedId(int id) => IsConventionalId(id) || IsArticulatedId(id) || id == (int)WheelArrangementType.s404;
-		public const int SupportedCount = 41;
+		public const int SupportedCount = 43;
 
 		public static int NormalizeSavedId(int id) => IsStandardId(id) ? id : (int)WheelArrangementType.s282;
 
@@ -142,6 +145,8 @@ namespace RearrangedS282
 			"2-2-2-2-2 Articulated Triplex",
 			"4-14-4",
 			"0-2-2-2-0 Articulated Triplex",
+			"0-8-8-0 Angus",
+			"2-6-8-0 Gt. Northern",
 			/*"2-6-8-0",
 			"4-6-6-4 Challenger"*/
 		};
@@ -189,6 +194,8 @@ namespace RearrangedS282
 			4,//"2-2-2-2-2 Articulated Triplex",
 			8,//"4-14-4",
 			0,//"0-2-2-2-0 Articulated Triplex",
+			0,//"0-8-8-0 Angus",
+			2,//"2-6-8-0 Gt. Northern",
 		};
 	}
 }
