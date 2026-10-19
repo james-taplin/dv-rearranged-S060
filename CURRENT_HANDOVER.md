@@ -1,5 +1,8 @@
 ## 1.7.2 fixes + curve diagnostics Stage 1 (Claude), NOT installed, 19 Oct 2026
 
+RELEASED as GitHub PRE-release v1.7.2 (tag on 54b8690), ZIP SHA256
+02f33c477d4d5a71ee6c7007d933a39d48cd18fb894afc43ed3dbc832be96550. Install from that ZIP.
+
 James's 1.7.1 run: triplex had no visible cylinders, he wanted trailing trucks
 back and bigger wheels; 4-14-4 cylinder-cock jets far forward. Also approved
 curve-dynamics Stage 1 (diagnostics only). Feasibility report (read-only, local
