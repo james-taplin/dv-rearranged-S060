@@ -1,4 +1,4 @@
-## 1.8.0 curving Stage 2: curve drag + squeal (Claude), RELEASED pre-release, NOT installed, 19 Oct 2026
+## 1.8.0 curving Stage 2: curve drag + squeal (Claude), RELEASED pre-release v1.8.0 (tag cffd00c), NOT installed, 19 Oct 2026
 
 James approved Stage 2 (drag), then squeal, with derail risk after the flange
 term and the triplex measurement are fixed. Next: "fix some of the arrangements".
