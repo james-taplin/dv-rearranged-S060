@@ -1,5 +1,11 @@
 ## 1.6.1 duplex rear guide fix (Claude), INSTALLED 19 Oct 2026
 
+RELEASED on James's request as GitHub PRE-release v1.6.1 on the fork:
+https://github.com/james-taplin/dv-rearranged-S282/releases/tag/v1.6.1
+(annotated tag on a7d9aeb; asset RearrangedS282-B99-1.6.1-Test.zip, SHA256
+432a4c0ea0225f6f28a7310778be51e7d1f9c219cc3028fb4655f3437af35b00, contains the
+installed DLL 4D787B79...). Marked pre-release: no in-game acceptance yet.
+
 Installed on James's go-ahead; install rebuild of the same clean source gave DLL
 4D787B79806A99FC1B306E4936EEFCC8CC7BFFC2058023DCBFD063B24B7F1D76 (integration
 checks rerun on it). 1.5.1 backup: build/runtime-trial-1.6.1/installed-backup-20261019-114824.
