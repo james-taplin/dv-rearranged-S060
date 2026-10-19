@@ -84,7 +84,8 @@ namespace RearrangedS282
                     {
                         articulatedSimulation = ArticulatedSimulation.Ensure(loco);
                         if (id == (int)WheelArrangementType.s2662) ApplyMalletGeometry();
-                        else if (id == (int)WheelArrangementType.s22222) ApplyTriplexGeometry();
+                        else if (id == (int)WheelArrangementType.s22222) ApplyTriplexGeometry(true);
+                        else if (id == (int)WheelArrangementType.s02220) ApplyTriplexGeometry(false);
                         else ApplyArticulatedGeometry(id);
                     }
                     else

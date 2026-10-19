@@ -1,3 +1,28 @@
+## 1.9.0 0-2-2-2-0 triplex added (Claude), RELEASED pre-release, NOT installed, 19 Oct 2026
+
+James asked for a "less meme" triplex: 0-2-2-2-0, with the first cylinder
+further forward, the engines spaced further apart and bigger drivers. It is a
+new layout (his choice, ID 40); the 2-2-2-2-2 is unchanged. He also asked to
+keep the Franklin setup.
+- Catalogue: s02220 = 40, "0-2-2-2-0 Articulated Triplex", 0 carrying wheels,
+  articulated, SupportedCount 41; spawn02220 setting (off).
+- ArticulatedSimulation: TrucklessTriplexId 40; IsTriplexId(38|40) runs the
+  middle engine; IsDuplexId includes it. The frame split also uses IsTriplexId.
+- Triplex.cs: ApplyTriplexGeometry(trucks) / MeasureTriplex(trucks).
+  - No trucks: front = Franklin front + 0.6 m, gaps 0.25 m, last driver's rear
+    edge at the 1.8.1 trailing wheel's rear edge (rear-bogie local -3.7 minus 0.355).
+  - Hand estimate (UNVERIFIED): scale about 0.91, drivers about 1.30 m.
+  - The middle and rear static clones (guides, calipers, springs) are now
+    rebuilt when the layout scale changes (triplexAssetsScale), because they
+    were mapped only once. Assumes the sources are back in the prepared pose
+    at that point, as the original code already did.
+- Tests: catalogue 1,374 (41 IDs), integration 138, GraphProbe checks the
+  triplex IDs; the other suites pass. Validate.FrontCouplingMounts.ps1 does
+  not compile under Windows PowerShell 5 (C# 6 syntax in WheelArrangement.cs,
+  needs pwsh 7, which isn't installed). That was already the case before this change.
+- Walschaerts on the triplex: answered James's question; no change made.
+- ZIP SHA256 9d6aa0ef1d067f6a5b944a2f9b820387e2eda1d0403a11ad1c180ab9fb1b4bef, DLL 5BAD585B...6F5A.
+
 ## 1.8.1 triplex bigger drivers, 4-14-4 spacing (Claude), RELEASED pre-release v1.8.1 (tag f31e01f), INSTALLED, 19 Oct 2026
 
 Installed from the released ZIP (C859CEFA...24482; DLL 1EE31FE8...DE54 == build, Info.json 1.8.1).

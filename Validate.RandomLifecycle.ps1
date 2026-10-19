@@ -41,25 +41,26 @@ namespace RearrangedS282 {
    var oldNames="s440,s442,s444,s460,s462,s464,s080,s082,s084,s280,s282,s284,s280Big,s282Big,s284Big,s480,s482,s484,s0100,s0102,s0104,s2100,s2102,s2104,s4100,s4102,s4104,s0120,s2120,s2122,s4122,s2442,s4444,s404".Split(',');
    for(int id=0;id<oldNames.Length;id++)Check((int)Enum.Parse(typeof(WheelArrangementType),oldNames[id])==id,"Legacy save ID moved: "+oldNames[id]);
    Check((int)WheelArrangementType.s260==34 && (int)WheelArrangementType.s240==35 && (int)WheelArrangementType.s222==36,"New conventional IDs must append at34/35/36");
-   Check((int)WheelArrangementType.s2662==37 && (int)WheelArrangementType.s22222==38 && (int)WheelArrangementType.s4144==39,"Mallet, triplex and 4-14-4 must append at37/38/39");
-   Check(WheelArrangement.SupportedCount==40 && WheelArrangement.WheelArrangementNames.Length==40 && WheelArrangement.NumOfNondrivenWheels.Length==40,"Catalogue metadata must contain all40 IDs");
+   Check((int)WheelArrangementType.s2662==37 && (int)WheelArrangementType.s22222==38 && (int)WheelArrangementType.s4144==39 && (int)WheelArrangementType.s02220==40,"Mallet, triplex, 4-14-4 and 0-2-2-2-0 must append at37/38/39/40");
+   Check(WheelArrangement.SupportedCount==41 && WheelArrangement.WheelArrangementNames.Length==41 && WheelArrangement.NumOfNondrivenWheels.Length==41,"Catalogue metadata must contain all41 IDs");
+   Check(WheelArrangement.WheelArrangementNames[40]=="0-2-2-2-0 Articulated Triplex" && WheelArrangement.NumOfNondrivenWheels[40]==0 && WheelArrangement.IsArticulatedId(40) && !WheelArrangement.IsConventionalId(40),"0-2-2-2-0 is a parseable articulated entry with no carrying wheels");
    Check(WheelArrangement.WheelArrangementNames[39]=="4-14-4" && WheelArrangement.NumOfNondrivenWheels[39]==8 && WheelArrangement.IsConventionalId(39) && !WheelArrangement.IsArticulatedId(39),"4-14-4 is a parseable conventional entry with8 non-driven wheels");
    Check(WheelArrangement.WheelArrangementNames[38]=="2-2-2-2-2 Articulated Triplex" && WheelArrangement.NumOfNondrivenWheels[38]==4,"Triplex name must keep a parseable Whyte prefix and4 non-driven wheels");
    Check(WheelArrangement.WheelArrangementNames[37]=="2-6-6-2 Articulated Mallet" && WheelArrangement.NumOfNondrivenWheels[37]==4,"Mallet name must keep a parseable Whyte prefix and4 non-driven wheels");
    Check(WheelArrangement.WheelArrangementNames[34]=="2-6-0 Mogul" && WheelArrangement.WheelArrangementNames[35]=="2-4-0" && WheelArrangement.WheelArrangementNames[36]=="2-2-2 Giant-driver clearance prototype","New names must retain parseable Whyte prefixes");
    Check(WheelArrangement.NumOfNondrivenWheels[34]==2 && WheelArrangement.NumOfNondrivenWheels[35]==2 && WheelArrangement.NumOfNondrivenWheels[36]==4,"New non-driven wheel counts are2/2/4");
-   for(int id=0;id<40;id++)Check(WheelArrangement.IsStandardId(id)==(id<=30),"Historical IsStandardId semantics changed");
+   for(int id=0;id<41;id++)Check(WheelArrangement.IsStandardId(id)==(id<=30),"Historical IsStandardId semantics changed");
    Check(WheelArrangement.IsConventionalId(34) && WheelArrangement.IsConventionalId(35) && WheelArrangement.IsConventionalId(36) && !WheelArrangement.IsConventionalId(31) && !WheelArrangement.IsConventionalId(32) && !WheelArrangement.IsConventionalId(33) && !WheelArrangement.IsConventionalId(37) && !WheelArrangement.IsConventionalId(38),"New conventional helper must keep articulated/novelty classification separate");
    Check(WheelArrangement.IsArticulatedId(31) && WheelArrangement.IsArticulatedId(32) && WheelArrangement.IsArticulatedId(37) && WheelArrangement.IsArticulatedId(38) && !WheelArrangement.IsArticulatedId(36),"Mallet and triplex must be classified articulated");
    var fields=typeof(Settings).GetFields().Where(f=>f.FieldType==typeof(bool) && f.Name.StartsWith("spawn") && f.Name!="spawnRandomWA").ToArray();
-   Check(fields.Length==40,"Every supported arrangement needs one pool toggle");
-   Check(!settings.spawn2442 && !settings.spawn4444 && !settings.spawn2662 && !settings.spawn22222 && !settings.spawn4144 && !settings.spawn404,"Articulated and novelty random choices must be opt-in");
+   Check(fields.Length==41,"Every supported arrangement needs one pool toggle");
+   Check(!settings.spawn2442 && !settings.spawn4444 && !settings.spawn2662 && !settings.spawn22222 && !settings.spawn02220 && !settings.spawn4144 && !settings.spawn404,"Articulated and novelty random choices must be opt-in");
    for(int id=0;id<WheelArrangement.SupportedCount;id++){
     Check(WheelArrangement.IsRuntimeId(id),"Radio catalogue excludes supported arrangement");
     int next=WheelArrangement.NextRuntimeId(id,1);
     Check(WheelArrangement.NextRuntimeId(next,-1)==id,"Radio forward/reverse traversal lost an ID");
    }
-   Check(WheelArrangement.IsRuntimeId(39) && !WheelArrangement.IsRuntimeId(40),"New ID39 selectable; unknown ID40 rejected");
+   Check(WheelArrangement.IsRuntimeId(40) && !WheelArrangement.IsRuntimeId(41),"New ID40 selectable; unknown ID41 rejected");
    foreach(var field in fields){
     foreach(var other in fields)other.SetValue(settings,false);
     field.SetValue(settings,true);settings.OnChange();
@@ -90,7 +91,7 @@ namespace RearrangedS282 {
     Check(roundtrip.LoadPayload(value) && roundtrip.PendingId==id,"Supported save ID rejected: "+id);
     roundtrip.RecordApplied(id);Check(JToken.DeepEquals(value,roundtrip.SavePayload()),"Saved ID did not round-trip: "+id);
    }
-   foreach(var invalid in new JToken[]{new JObject{["version"]=2,["arrangement"]=30,["future"]=true},new JObject{["version"]=1,["arrangement"]=40},new JObject{["version"]=1,["arrangement"]=-1},new JObject{["version"]=1,["arrangement"]="30"},JToken.Parse("[1,2,3]"),JToken.Parse("{\"version\":1,\"arrangement\":9999999999999999999999999999999}")}){
+   foreach(var invalid in new JToken[]{new JObject{["version"]=2,["arrangement"]=30,["future"]=true},new JObject{["version"]=1,["arrangement"]=41},new JObject{["version"]=1,["arrangement"]=-1},new JObject{["version"]=1,["arrangement"]="30"},JToken.Parse("[1,2,3]"),JToken.Parse("{\"version\":1,\"arrangement\":9999999999999999999999999999999}")}){
     var value=new ConventionalArrangementState();value.BeginIdentity("invalid");
     Check(!value.LoadPayload(invalid) && value.PendingId==null,"Invalid/future metadata was applied");value.SelectInitial(settings,random);
     Check(JToken.DeepEquals(invalid,value.SavePayload()),"Unknown metadata must survive unchanged");

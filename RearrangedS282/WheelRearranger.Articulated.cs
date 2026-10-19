@@ -438,7 +438,7 @@ namespace RearrangedS282
                     // triplex adds its middle hinge as a second cut.
                     var pins=new List<Vector3> {worldPin};
                     var owners=new List<(Transform root,string label)> {(articulatedFrontRoot,"front")};
-                    if(id==ArticulatedSimulation.TriplexId && triplex!=null)
+                    if(ArticulatedSimulation.IsTriplexId(id) && triplex!=null)
                     { pins.Add(articulatedFrontFrame.parent.TransformPoint(new Vector3(0f,0f,triplex.MiddlePinZ))); owners.Add((articulatedMiddleRoot,"middle")); }
                     owners.Add((articulatedRearRoot,"rear"));
                     foreach(string name in ArticulatedSplitFrames)
