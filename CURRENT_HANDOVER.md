@@ -1,4 +1,8 @@
-## 1.7.1 triplex rework (Claude), NOT installed, 19 Oct 2026
+## 1.7.1 triplex rework (Claude), INSTALLED 19 Oct 2026
+
+Installed from the released ZIP itself (no rebuild): installed DLL equals the
+release DLL 4595C66A...EB354. 1.6.1 backup (DLL 4D787B79...):
+build/runtime-trial-1.7.1/installed-backup-20261019-124612. Settings kept.
 
 RELEASED as GitHub PRE-release v1.7.1 (tag on e4e9c3a):
 https://github.com/james-taplin/dv-rearranged-S282/releases/tag/v1.7.1
