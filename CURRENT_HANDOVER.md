@@ -1,4 +1,11 @@
-## 1.5.0 2-6-6-2 Mallet built (Claude), NOT installed, 19 October 2026
+## 1.5.0 2-6-6-2 Mallet built (Claude), INSTALLED 19 October 2026
+
+Installed on James's go-ahead (game closed). Install rebuild recompiled the same
+committed source (git clean) to DLL 824D3FDA396AA96D76ADEBD09C1B110BACE5A2224508F4DD0A0827EEA77447E2
+(earlier candidate hash 2316F171... differed only by recompilation); the 125
+compiled integration checks were rerun against the installed DLL and pass.
+1.4.5 backup (DLL 3ADA1658...): build/runtime-trial-1.5.0/installed-backup-20261019-100918.
+No game run yet.
 
 James's 1.4.5 structural run: 37/37 pass, no Pacific/Hudson "moved only" log line,
 so the 1.4.4 shear came from a particle holder (now position-only). Everything
