@@ -1,0 +1,22 @@
+REARRANGED S282 B99 - 1.3.6 BETA 2
+Changes since public 1.3.3 Beta 1
+
+- Restored optional random spawning across all 31 conventional arrangements.
+  Random spawning defaults off; choices apply to new S282s and persist per engine.
+- Added manual arrangement persistence using native per-car save data. Restoration
+  waits until switching is safe; manual selections override a pending restore.
+- Added opt-in power diagnostics: road-derived, wheel-port and crank RPM, slip/
+  slide, controls, torque, pressures, flow and active mod versions.
+- Added a rod synchronization candidate: fifth/sixth wheels copy the corresponding
+  fourth wheel's quaternion in LateUpdate, after normal animation evaluation.
+- Added optional Delta trailing truck compatibility for S282 Model Tweaks 1.1.0 /
+  DV Car Changer 1.5.4. Delta visuals use the current single trailing axle while
+  retaining the arrangement's physical running gear. Zero/two-trailer layouts
+  keep the selection but hide Delta graphics.
+- Added lifecycle handling around visual cleanup, geometry snapshots and pooling.
+  Updating or unloading requires restarting the game.
+
+Rod appearance, Delta apply/remove/delete, random spawning and saved restoration
+still need in-game confirmation in 1.3.6. See TEST_STATUS.txt.
+No duplexes, steam-power fix or speed cap added. Realistic Firing overspeed remains
+under investigation. B99 oilcup support from 1.3.3 is retained.

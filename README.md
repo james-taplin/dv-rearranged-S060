@@ -1,5 +1,22 @@
 # Rearranged S282
 
+> Current local B99 trial: version 1.4.4 adds 2-6-0, 2-4-0, Pacific/Hudson
+> Walschaerts geometry polish and a collider-free, adjustable giant-driver 2-2-2
+> clearance prototype (default 2.8m tread diameter; unfinished rods hidden).
+> All 34 original choices remain, including
+> articulated 2-4-4-2, 4-4-4-4 and unpowered 4-0-4 Drivers not found. Added and
+> inactive running gear integrates with native explosion/repair materials.
+> Articulation uses native DV bogies and
+> the tested Heavy Mallet position/aim constraint approach. Saved selections and
+> optional random arrangements are supported; articulated and novelty choices default off.
+> Compilation and offline checks pass. This trial still needs in-game articulated
+> driving, visual, audio and lifecycle validation. The earlier 31-layout structural
+> pass on B99 `99-build2702` belongs to version 1.3.3, not this DLL.
+> Build/package/install: `Build.RuntimeTrial.ps1`; test instructions and limitations:
+> `RUNTIME_TRIAL_TESTING.txt`, `ARTICULATED_TEST_STATUS.txt`, `CURRENT_HANDOVER.md`.
+> The original upstream README below is historical; its implementation details
+> do not describe every change in the B99 fork.
+
 This is a Derail Valley mod that changes the [wheel arrangement](https://en.wikipedia.org/wiki/Wheel_arrangement) of the S282 locomotive.
 
 It can convert the S282 into any of these:
@@ -126,3 +143,9 @@ The workflow is like this:
 
 Source code is distributed under the MIT license.
 See [LICENSE](LICENSE) for more information.
+# Current B99 experimental trial
+
+All 31 conventional arrangements are available in the development build made by
+`Build.AllStandard.ps1`. No duplexes. See `ALL_STANDARD_TESTING.md` for installation,
+the structural-test button location and remaining manual checks. This trial is not
+a completed release; in-game validation of the expanded arrangements is outstanding.

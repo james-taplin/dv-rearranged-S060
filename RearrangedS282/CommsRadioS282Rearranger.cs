@@ -46,7 +46,7 @@ namespace RearrangedS282
 		private TrainCar PointedCar = null;
 		private MeshRenderer HighlighterRender;
 
-		private int selectedWheelArrangement;
+		private int selectedWheelArrangement = (int)WheelArrangementType.s282;
 
 		private const float SIGNAL_RANGE = 100f;
 		private static readonly Vector3 HIGHLIGHT_BOUNDS_EXTENSION = new Vector3(0.25f, 0.8f, 0f);
@@ -71,7 +71,8 @@ namespace RearrangedS282
 				display = deleter.display;
 				selectionMaterial = new Material(deleter.selectionMaterial);
 				skinningMaterial = new Material(deleter.deleteMaterial);
-				trainHighlighter = deleter.trainHighlighter;
+				// Each mode owns its highlight object; do not reparent the vanilla one.
+				trainHighlighter = Instantiate(deleter.trainHighlighter);
 
 				// sounds
 				HoverCarSound = deleter.hoverOverCar;
@@ -299,8 +300,8 @@ namespace RearrangedS282
 					if ((PointedCar != null) && (PointedCar == SelectedCar))
 					{
 						//clicked on the selected car again, this means confirm
-						ApplySelectedWheelArrangement();
-						CommsRadioController.PlayAudioFromRadio(ConfirmSound, transform);
+						bool applied = ApplySelectedWheelArrangement();
+						CommsRadioController.PlayAudioFromRadio(applied ? ConfirmSound : CancelSound, transform);
 					}
 					else
 					{
@@ -316,11 +317,7 @@ namespace RearrangedS282
 		{
 			if (CurrentState == State.SelectWheelArrangement)
 			{
-				selectedWheelArrangement--;
-				if (selectedWheelArrangement == -1)
-				{
-					selectedWheelArrangement = WheelArrangement.WheelArrangementNames.Length - 1;
-				}
+				selectedWheelArrangement = WheelArrangement.NextRuntimeId(selectedWheelArrangement, -1);
 				SetSelectedWheelArrangement(selectedWheelArrangement);
 				return true;
 			}
@@ -335,11 +332,7 @@ namespace RearrangedS282
 		{
 			if (CurrentState == State.SelectWheelArrangement)
 			{
-				selectedWheelArrangement++;
-				if (selectedWheelArrangement >= WheelArrangement.WheelArrangementNames.Length)
-				{
-					selectedWheelArrangement = 0;
-				}
+				selectedWheelArrangement = WheelArrangement.NextRuntimeId(selectedWheelArrangement, 1);
 				SetSelectedWheelArrangement(selectedWheelArrangement);
 				return true;
 			}
@@ -354,30 +347,47 @@ namespace RearrangedS282
 
 		#region wheel arrangment stuff
 
-		private void ApplySelectedWheelArrangement()
+		private bool ApplySelectedWheelArrangement()
 		{
-			if (selectedWheelArrangement < 0 || selectedWheelArrangement > WheelArrangement.WheelArrangementNames.Length)
+			if (!WheelArrangement.IsRuntimeId(selectedWheelArrangement))
 			{
 				Main.Logger.Error("Tried to select out-of-bounds wheel arrangement");
-				return;
+				return false;
 			}
 			if (SelectedCar == null)
 			{
 				Main.Logger.Error("Tried to select null locomotive");
+				return false;
 			}
 			if (SelectedCar.carType != TrainCarType.LocoSteamHeavy)
 			{
 				Main.Logger.Error("Tried to rearrange something that wasn't an S282");
+				return false;
 			}
 
-			SelectedCar.GetOrAddComponent<WheelRearranger>()
-				.SwitchWheelArrangement(selectedWheelArrangement);
+#if B99_STAGE2 || B99_ALL_STANDARD
+			bool applied = SelectedCar.GetOrAddComponent<WheelRearranger>().TrySwitchStage2(selectedWheelArrangement);
+#if B99_ALL_STANDARD
+			if (applied) ConventionalSpawn.RecordApplied(SelectedCar, selectedWheelArrangement);
+#endif
+			return applied;
+#else
+			SelectedCar.GetOrAddComponent<WheelRearranger>().SwitchWheelArrangement(selectedWheelArrangement);
+			return true;
+#endif
 		}
 
 		private void SetSelectedWheelArrangement(int wa)
 		{
 			string selectedWheelArrangement = WheelArrangement.WheelArrangementNames[wa];
 			display.SetContent($"Select Wheel Arrangement:\n{selectedWheelArrangement}");
+		}
+
+		private void OnDestroy()
+		{
+			if (trainHighlighter != null) Destroy(trainHighlighter);
+			if (selectionMaterial != null) Destroy(selectionMaterial);
+			if (skinningMaterial != null) Destroy(skinningMaterial);
 		}
 
 		#endregion

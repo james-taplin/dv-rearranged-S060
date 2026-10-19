@@ -1,87 +1,27 @@
 <Project Sdk="Microsoft.NET.Sdk">
-	<PropertyGroup>
-		<AssemblyName>RearrangedS282</AssemblyName>
-		<TargetFramework>net48</TargetFramework>
-		<LangVersion>9.0</LangVersion>
-		<!-- <Nullable>enable</Nullable> -->
-		<WarningsAsErrors>CS8600;CS8602;CS8603</WarningsAsErrors>
-	</PropertyGroup>
-
-	<!-- Derail Valley -->
-	<ItemGroup>
-		<Reference Include="Assembly-CSharp">
-		</Reference>
-		<Reference Include="DV.ThingTypes">
-		</Reference>
-		<Reference Include="DV.Simulation">
-			<HintPath>C:\Program Files (x86)\Steam\steamapps\common\Derail Valley\DerailValley_Data\Managed\DV.Simulation.dll</HintPath>
-		</Reference>
-		<Reference Include="DV.BrakeSystem">
-		</Reference>
-		<Reference Include="DV.WeatherSystem">
-		</Reference>
-		<Reference Include="DV.Utils">
-		</Reference>
-		<Reference Include="Newtonsoft.Json">
-		</Reference>
-	</ItemGroup>
-
-	<!-- Unity -->
-	<ItemGroup>
-		<Reference Include="UnityEngine" />
-		<Reference Include="UnityEngine.CoreModule" />
-		<Reference Include="UnityEngine.AudioModule" />
-		<Reference Include="UnityEngine.IMGUIModule" />
-		<Reference Include="UnityEngine.PhysicsModule" />
-		<Reference Include="UnityEngine.AnimationModule" />
-		<Reference Include="UnityEngine.AssetBundleModule" />
-		<Reference Include="UnityEngine.ParticleSystemModule" />
-		<Reference Include="Unity.TextMeshPro" />
-	</ItemGroup>
-
-	<!-- Mod Loader -->
-	<ItemGroup>
-		<PackageReference Include="Krafs.Publicizer" Version="2.2.1">
-		  <PrivateAssets>all</PrivateAssets>
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-		<PackageReference Include="Lib.Harmony" Version="2.2.2" />
-		<Publicize Include="Assembly-CSharp" IncludeCompilerGeneratedMembers="false" />
-		<Publicize Include="DV.Simulation" IncludeCompilerGeneratedMembers="false" />
-		<PackageReference Include="UnityModManager" Version="0.27.2" />
-		<Reference Include="LocoMeshSplitter" />
-	</ItemGroup>
-	
-	<!-- Null Checking -->
-	<ItemGroup>
-		<PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-		<PackageReference Include="Nullable" Version="1.3.1" PrivateAssets="all" />
-	</ItemGroup>
-	<ItemGroup>
-	  <Compile Update="Properties\Resources.Designer.cs">
-	    <DesignTime>True</DesignTime>
-	    <AutoGen>True</AutoGen>
-	    <DependentUpon>Resources.resx</DependentUpon>
-	  </Compile>
-	</ItemGroup>
-	<ItemGroup>
-	  <EmbeddedResource Update="Properties\Resources.resx">
-	    <Generator>ResXFileCodeGenerator</Generator>
-	    <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-	  </EmbeddedResource>
-	</ItemGroup>
-
-	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-		<!-- Copy to build folder -->
-		<Copy SourceFiles="$(TargetPath)" DestinationFolder="../build/" />
-		
-		<Copy SourceFiles="$(ProjectDir)..\s282_drivetrain\ExportedProject\Assets\AssetBundles\s282_drivetrain" DestinationFolder="../build/assets" />
-
-		<!-- Package after Release build -->
-		<Exec Condition="'$(ConfigurationName)' == 'Debug' And '$(OS)' == 'Windows_NT'" Command="pwsh -executionpolicy bypass -Command &quot;(../package.ps1 -IncludeBuildNum)&quot;" />
-		<Exec Condition="'$(ConfigurationName)' == 'Debug' And '$(OS)' != 'Windows_NT'" Command="pwsh  -Command &quot;(../package.ps1 -IncludeBuildNum)&quot;" />
-
-		<Exec Condition="'$(ConfigurationName)' == 'Release' And '$(OS)' == 'Windows_NT'" Command="pwsh -executionpolicy bypass -Command &quot;(../package.ps1)&quot;" />
-		<Exec Condition="'$(ConfigurationName)' == 'Release' And '$(OS)' != 'Windows_NT'" Command="pwsh  -Command &quot;(../package.ps1)&quot;" />
-	</Target>
+  <PropertyGroup>
+    <AssemblyName>RearrangedS282</AssemblyName>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <GamePath Condition="'$(GamePath)' == ''">B:\SteamLibrary\steamapps\common\Derail Valley</GamePath>
+    <ManagedPath>$(GamePath)\DerailValley_Data\Managed</ManagedPath>
+    <Version>1.3.0</Version>
+    <NuGetAudit>false</NuGetAudit>
+    <RestoreIgnoreFailedSources>true</RestoreIgnoreFailedSources>
+    <Stage Condition="'$(Stage)' == ''">1</Stage>
+    <Version Condition="'$(Stage)' == '3'">1.3.3</Version>
+    <DefineConstants Condition="'$(Stage)' == '1'">$(DefineConstants);B99_STAGE1</DefineConstants>
+    <DefineConstants Condition="'$(Stage)' == '2'">$(DefineConstants);B99_STAGE2</DefineConstants>
+    <DefineConstants Condition="'$(Stage)' == '3'">$(DefineConstants);B99_ALL_STANDARD</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="$(ManagedPath)\*.dll" Private="false" />
+    <Reference Include="$(ManagedPath)\UnityModManager\0Harmony.dll" Private="false" />
+    <Reference Include="$(ManagedPath)\UnityModManager\UnityModManager.dll" Private="false" />
+    <Reference Include="$(GamePath)\Mods\LocoMeshSplitter\LocoMeshSplitter.dll" Private="false" />
+    <!-- The original project's publicizer, operating only on build-local copies. -->
+    <PackageReference Include="Krafs.Publicizer" Version="2.2.1" PrivateAssets="all" />
+    <Publicize Include="Assembly-CSharp;DV.Simulation" IncludeCompilerGeneratedMembers="false" />
+    <Compile Remove="Sim\**\*.cs;Patches\DuplexSimPatches.cs;Patches\AddTwoCylinders.cs" />
+  </ItemGroup>
 </Project>

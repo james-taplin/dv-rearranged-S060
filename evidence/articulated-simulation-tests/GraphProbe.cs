@@ -1,0 +1,54 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using DV.Damage;
+using DV.Simulation.Cars;
+using DV.ThingTypes;
+using LocoSim.Definitions;
+using LocoSim.Implementations;
+using Newtonsoft.Json.Linq;
+using RearrangedS282;
+using UnityEngine;
+internal static class GraphProbe {
+ static readonly List<string> Checks=new();
+ static void Check(bool b,string s){if(!b)throw new Exception(s);Checks.Add(s);}
+ static object Hook(string n,params object[] args)=>typeof(ArticulatedSimulation).GetMethod(n,BindingFlags.Static|BindingFlags.NonPublic).Invoke(null,args);
+ sealed class Car {
+  internal TrainCar car;internal SimController sim;internal DamageController damage;internal SimConnectionDefinition original;internal ReciprocatingSteamEngineDefinition main;
+  internal Car(bool native=true){var go=new GameObject("car");car=go.AddComponent<TrainCar>();car.carType=TrainCarType.LocoSteamHeavy;if(native)new GameObject("LocoS282A_Body").transform.SetParent(go.transform,false);sim=go.AddComponent<SimController>();car.SimController=sim;damage=go.AddComponent<DamageController>();damage.mechanicalPTDamagerPortIds=new[]{"steamEngine.GENERATED_MECHANICAL_DAMAGE"};damage.mechanicalPTHealthStateExternalInPortIds=new[]{"steamEngine.HEALTH_STATE_EXT_IN"};original=go.AddComponent<SimConnectionDefinition>();main=go.AddComponent<ReciprocatingSteamEngineDefinition>();main.ID="steamEngine";var ids=new[]{"controls","steamConsumptionCalculator","boiler","steamEngine","exhaust","traction"};original.executionOrder=ids.Select(id=>{if(id=="steamEngine")return(SimComponentDefinition)main;var d=go.AddComponent<EmptyDefinition>();d.ID=id;return d;}).ToArray();original.connections=new[]{new Connection("steamEngine.TORQUE_OUT","traction.TORQUE_IN"),new Connection("other.OUT","other.IN")};original.portReferenceConnections=new[]{"THROTTLE_CONTROL","REVERSER_CONTROL","CYLINDER_COCK_CONTROL","INTAKE_PRESSURE","INTAKE_TEMPERATURE","INTAKE_QUALITY","CRANK_RPM","LUBRICATION_NORMALIZED"}.Select(id=>new PortReferenceConnection("steamEngine."+id,"source."+id)).Concat(new[]{new PortReferenceConnection("steamConsumptionCalculator.ENGINE","steamEngine.INTAKE_FLOW"),new PortReferenceConnection("exhaust.EXHAUST_FLOW","steamEngine.EXHAUST_FLOW"),new PortReferenceConnection("exhaust.ENGINE_MAX_FLOW","steamEngine.MAX_FLOW")}).ToArray();sim.connectionsDefinition=original;}
+  internal void Init(){Hook("BeforeInitialize",sim,car,damage);sim.simFlow=new SimulationFlow(sim.connectionsDefinition);Hook("AfterInitialize",sim,car);}
+ }
+ static string Shape(SimConnectionDefinition graph)=>string.Join("|",graph.executionOrder.Select(d=>d.ID))+"#"+string.Join("|",graph.connections.Select(w=>w.fullPortIdOut+">"+w.fullPortIdIn))+"#"+string.Join("|",graph.portReferenceConnections.Select(w=>w.portReferenceId+">"+w.portId));
+ static int Main(string[] args){try{
+  var a=new Car();string baseline=Shape(a.original);var oldDamagers=a.damage.mechanicalPTDamagerPortIds;var oldHealth=a.damage.mechanicalPTHealthStateExternalInPortIds;
+  a.Init();var owner=ArticulatedSimulation.Ensure(a.car);var graph=a.sim.connectionsDefinition;
+  Check(graph!=a.original&&Shape(a.original)==baseline,"Preparation creates owned graph and leaves all original connection arrays and ordering unchanged");
+  Check(graph.executionOrder.Where(d=>a.original.executionOrder.Contains(d)).SequenceEqual(a.original.executionOrder),"Every original native definition and relative execution order is retained");
+  Check(graph.executionOrder.Count(d=>d.ID==ArticulatedSimulation.RearEngineId)==1&&graph.executionOrder.Length==a.original.executionOrder.Length+4,"Exactly one rear native engine and three native sum definitions are added");
+  Check(!owner.IsActive&&owner.MainEngine!=owner.RearEngine,"Stock startup binds two distinct native engines with rear dormant");
+  Check(a.main.cylinderBore==.61f&&a.main.steamChestVolume==1000&&a.main.throttleMaxFlow==6&&a.main.numCylinders==2,"Original main calibration remains unchanged");
+  var rear=graph.executionOrder.OfType<ArticulatedRearEngineDefinition>().Single();
+  Check(Math.Abs(rear.cylinderBore*rear.cylinderBore/(a.main.cylinderBore*a.main.cylinderBore)-owner.RearCapacityFraction)<.00001,"Rear bore is calibrated before native construction using aggregate swept volume");
+  Check(rear.noOilDamagePerRev==a.main.noOilDamagePerRev&&rear.waterDamagePercentagePerChuff==a.main.waterDamagePercentagePerChuff&&rear.cylinderCrackDamage==a.main.cylinderCrackDamage,"Rear physical cylinders retain all native wear and condensate damage coefficients");
+  Check(a.damage.mechanicalPTDamagerPortIds.Length==2&&a.damage.mechanicalPTHealthStateExternalInPortIds.Length==2&&oldDamagers.Length==1&&oldHealth.Length==1,"Per-car native damage/service IDs append once without mutating original arrays");
+  var order=graph.executionOrder.Select(d=>d.ID).ToArray();
+  Check(Array.IndexOf(order,"rearrangedEngineIntake")<Array.IndexOf(order,"steamConsumptionCalculator")&&Array.IndexOf(order,"steamConsumptionCalculator")<Array.IndexOf(order,"boiler")&&Array.IndexOf(order,"boiler")<Array.IndexOf(order,"steamEngine"),"Both-engine intake sum preserves native previous-tick boiler-demand timing");
+  Check(Array.IndexOf(order,"steamEngine")<Array.IndexOf(order,ArticulatedSimulation.RearEngineId)&&Array.IndexOf(order,ArticulatedSimulation.RearEngineId)<Array.IndexOf(order,"rearrangedEngineTorque")&&Array.IndexOf(order,"rearrangedEngineTorque")<Array.IndexOf(order,"traction"),"Both engines tick before native torque sum and traction");
+  foreach(var pair in new[]{("rearrangedEngineTorque","TORQUE_OUT"),("rearrangedEngineExhaust","EXHAUST_FLOW"),("rearrangedEngineIntake","INTAKE_FLOW")})
+   Check(graph.portReferenceConnections.Any(w=>w.portReferenceId==pair.Item1+".MAIN"&&w.portId=="steamEngine."+pair.Item2)&&graph.portReferenceConnections.Any(w=>w.portReferenceId==pair.Item1+".REAR"&&w.portId==ArticulatedSimulation.RearEngineId+"."+pair.Item2),pair.Item1+" references both actual engine output ports");
+  Check(graph.connections.Single(w=>w.fullPortIdIn=="traction.TORQUE_IN").fullPortIdOut=="rearrangedEngineTorque.OUT"&&graph.portReferenceConnections.Single(w=>w.portReferenceId=="steamConsumptionCalculator.ENGINE").portId=="rearrangedEngineIntake.OUT"&&graph.portReferenceConnections.Single(w=>w.portReferenceId=="exhaust.EXHAUST_FLOW").portId=="rearrangedEngineExhaust.OUT","Torque, boiler demand and exhaust consume native aggregate outputs");
+  Check(graph.portReferenceConnections.Single(w=>w.portReferenceId=="exhaust.ENGINE_MAX_FLOW").portId=="steamEngine.MAX_FLOW","Native initialized exhaust maximum-flow normalization remains intact");
+  Check(graph.portReferenceConnections.Where(w=>w.portReferenceId.StartsWith(ArticulatedSimulation.RearEngineId+".")).All(w=>a.original.portReferenceConnections.Any(o=>o.portReferenceId=="steamEngine"+w.portReferenceId.Substring(ArticulatedSimulation.RearEngineId.Length)&&o.portId==w.portId)),"Rear shares exact main native RPM/control/boiler/lubrication feed references");
+  var b=new Car();b.Init();var other=ArticulatedSimulation.Ensure(b.car);owner.MainEngine.crankRotation=.37f;owner.MainEngine.crankRotationReadOut.Value=.37f;
+  foreach(int id in new[]{31,32,31}){owner.Apply(id);Check(owner.IsActive&&!other.IsActive,"Arrangement "+id+" enables only its own rear engine");Check(owner.RearEngine.crankRotation==owner.MainEngine.crankRotation,"Rear crank phase matches native visual wheel group");owner.MainEngine.torqueOut.Value=123;owner.MainEngine.intakeFlowReadOut.Value=.4f;owner.MainEngine.exhaustFlowReadOut.Value=.3f;owner.RearEngine.torqueOut.Value=99;owner.RearEngine.intakeFlowReadOut.Value=5;owner.Restore();a.sim.simFlow.TryGetPort("rearrangedEngineTorque.OUT",out var t);a.sim.simFlow.TryGetPort("rearrangedEngineIntake.OUT",out var q);a.sim.simFlow.TryGetPort("rearrangedEngineExhaust.OUT",out var e);Check(!owner.IsActive&&owner.RearEngine.torqueOut.Value==0&&t.Value==123&&q.Value==.4f&&e.Value==.3f,"Restore immediately clears rear and restores main-only aggregate values");}
+  var old=new JObject{["steamEngine"]=new JObject{["cylCracked"]=true},["other"]=7};var arguments=new object[]{owner.Flow,old};Hook("LoadLegacyState",arguments);var migrated=(JObject)arguments[1];Check(!ReferenceEquals(old,migrated)&&old[ArticulatedSimulation.RearEngineId]==null&&((JObject)migrated[ArticulatedSimulation.RearEngineId]).Count==0&&migrated["steamEngine"].Value<bool>("cylCracked"),"Legacy save migration clones caller data and adds empty uncracked rear state only");
+  var current=new JObject{[ArticulatedSimulation.RearEngineId]=new JObject{["cylCracked"]=true}};var currentArgs=new object[]{owner.Flow,current};Hook("LoadLegacyState",currentArgs);Check(ReferenceEquals(current,currentArgs[1])&&current[ArticulatedSimulation.RearEngineId].Value<bool>("cylCracked"),"Existing rear crack save data is preserved unchanged");
+  a.Init();Check(a.sim.connectionsDefinition==graph&&a.damage.mechanicalPTDamagerPortIds.Length==2&&a.sim.connectionsDefinition.executionOrder.Length==10&&!ArticulatedSimulation.Ensure(a.car).IsActive,"Repeated native initialization reuses one owned graph without duplicate definitions or damage IDs");
+  var ccl=new Car(false);ccl.Init();Check(ccl.sim.connectionsDefinition==ccl.original&&ccl.car.GetComponent<ArticulatedSimulation>()==null,"Other SteamHeavy CCL vehicle without native S282 body is excluded");
+  var broken=new Car();broken.original.portReferenceConnections=broken.original.portReferenceConnections.Where(w=>w.portReferenceId!="exhaust.EXHAUST_FLOW").ToArray();string brokenShape=Shape(broken.original);var brokenDamage=broken.damage.mechanicalPTDamagerPortIds;broken.Init();Check(broken.sim.connectionsDefinition==broken.original&&Shape(broken.original)==brokenShape&&ReferenceEquals(brokenDamage,broken.damage.mechanicalPTDamagerPortIds),"Preparation failure rolls back definitions and leaves original standard graph and damage IDs available");
+  bool refused=false;try{ArticulatedSimulation.Ensure(broken.car);}catch(InvalidOperationException ex){refused=ex.Message.Contains("Reload the save");}Check(refused,"Failed or late articulated preparation refuses conversion with actionable reload/respawn explanation");
+  Directory.CreateDirectory(args[0]);File.WriteAllText(Path.Combine(args[0],"graph-validation.json"),new JObject{["passed"]=true,["count"]=Checks.Count,["checks"]=new JArray(Checks),["limitations"]="Actual full ArticulatedSimulation.cs graph preparation/lifecycle/save shim executed with narrow Unity/Harmony/native API stand-ins. Separate native probe runs the real engine constructors/Tick. Does not exercise actual Harmony dispatch, Mono lifecycle or rail dynamics."}.ToString());Console.WriteLine("PASS "+Checks.Count+" graph/lifecycle checks");return 0;
+ }catch(Exception ex){Console.Error.WriteLine(ex);return 1;}}
+}

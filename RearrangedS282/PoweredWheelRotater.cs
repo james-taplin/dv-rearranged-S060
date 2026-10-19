@@ -1,15 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace RearrangedS282
 {
-	//This class matches syncs the rotation of the paired wheel with another wheel.
-	//Well, it could work on any GameObject, but I only need to do this for the fifth
-	//drive axle on 10-coupled locomotives.
+	// The native Animator drives the rods and original wheels. Added fifth/sixth
+	// wheels must copy its completed pose, not the previous frame's Update pose.
 	internal class PoweredWheelRotater : MonoBehaviour
 	{
 		//Wheel whose position we'll match
@@ -20,11 +14,11 @@ namespace RearrangedS282
 			this.coupledWheel = coupledWheel;
 		}
 
-		public void Update()
+		public void LateUpdate()
 		{
-			if (coupledWheel is not null)
+			if (coupledWheel != null)
 			{
-				this.transform.localEulerAngles = coupledWheel.transform.localEulerAngles;
+				transform.localRotation = coupledWheel.transform.localRotation;
 			}
 		}
 

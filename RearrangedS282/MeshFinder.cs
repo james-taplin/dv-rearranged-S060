@@ -27,7 +27,6 @@ namespace RearrangedS282
 		private static readonly String importPathFull = System.IO.Path.Combine(dvFolderPath, @"DerailValley_Data\resources.assets");
 		private static readonly String exportPathFull = System.IO.Path.Combine(Main.ModPath, @"assets");
 		private static readonly String sideRodMeshName = "s282_mech_wheels_connect";
-		private static readonly String mainRodMeshName = "s282_mech_push_rod_to_connect";
 
 		public Mesh TwoAxleSideRodMesh
 		{ get; private set; }
@@ -35,10 +34,35 @@ namespace RearrangedS282
 		{ get; private set; }
 		public Mesh FiveSixAxleSideRodMesh
 		{ get; private set; }
-		public Mesh TwoAxleDuplexSideRodMesh
-		{ get; private set; }
-		public Mesh DuplexMainRodMesh
-		{ get; private set; }
+
+		private Mesh duplexMainRodMesh;
+		// Only articulated selections need this export. Keep standard conversion
+		// independent of the optional bundle and its shorter connecting rod.
+		internal Mesh DuplexMainRodMesh
+		{
+			get
+			{
+				if (duplexMainRodMesh != null) return duplexMainRodMesh;
+				const string meshName = "s282_mech_push_rod_to_connect";
+				generateMeshFromGameFiles(meshName);
+				var source = new OBJLoader().Load(Path.Combine(exportPathFull, meshName + ".obj"));
+				if (source == null) throw new InvalidOperationException("Articulated connecting rod export was not found.");
+				try
+				{
+					var vertices = source.vertices;
+					if (vertices.Length == 0 || !vertices.Any(v => v.z > 2f))
+						throw new InvalidOperationException("Articulated connecting rod topology differs from the original S282 mesh.");
+					for (int i = 0; i < vertices.Length; i++)
+						if (vertices[i].z > 2f) vertices[i].z -= 1.52f;
+					source.name = "Rearranged articulated short main rod";
+					source.vertices = vertices;
+					source.RecalculateNormals(); source.RecalculateTangents(); source.RecalculateBounds();
+					duplexMainRodMesh = source;
+					return duplexMainRodMesh;
+				}
+				catch { UnityEngine.Object.Destroy(source); throw; }
+			}
+		}
 
 		readonly struct Range
 		{
@@ -153,14 +177,11 @@ namespace RearrangedS282
 			Main.Logger.Log("exportPathFull: " + exportPathFull);*/
 
 			getSideRodMeshes();
-			getMainRodMesh();
 			clearAssetStudioLogs();
 
 			UnityEngine.Object.DontDestroyOnLoad(TwoAxleSideRodMesh);
             UnityEngine.Object.DontDestroyOnLoad(ThreeAxleSideRodMesh);
 			UnityEngine.Object.DontDestroyOnLoad(FiveSixAxleSideRodMesh);
-			UnityEngine.Object.DontDestroyOnLoad(TwoAxleDuplexSideRodMesh);
-			UnityEngine.Object.DontDestroyOnLoad(DuplexMainRodMesh);
 		}
 
 		//This looks in the game files with AssetStudio, finds the specified mesh,
@@ -183,7 +204,7 @@ namespace RearrangedS282
 			var process = new System.Diagnostics.Process();
 			process.StartInfo.FileName = Path.Combine(assetStudioPath, assetStudioEXEName);
 			process.StartInfo.RedirectStandardInput = true;
-			process.StartInfo.RedirectStandardOutput = true;
+			process.StartInfo.RedirectStandardOutput = false;
 			process.StartInfo.CreateNoWindow = true;
 			process.StartInfo.UseShellExecute = false;
 			process.StartInfo.Arguments =
@@ -191,7 +212,13 @@ namespace RearrangedS282
 				$"-o \"{exportPathFull}\" " +
 				$"-t mesh --filter-by-name \"{meshName}\"";
 			process.Start();
-			process.WaitForExit();
+			if (!process.WaitForExit(60000))
+			{
+				process.Kill();
+				throw new InvalidOperationException("Rod mesh extraction timed out after 60 seconds.");
+			}
+			if (process.ExitCode != 0) throw new InvalidOperationException("Rod mesh extraction failed: " + process.ExitCode);
+			process.Dispose();
 			//Main.Logger.Log(process.StandardOutput.ReadToEnd());
 		}
 
@@ -296,9 +323,10 @@ namespace RearrangedS282
 			Mesh sideRodMesh = new OBJLoader().Load($"{exportPathFull}\\{sideRodMeshName}.obj");
 			if (sideRodMesh is null)
 			{
-				Main.Logger.Error($"MeshFinder can't find the mesh at {exportPathFull}\\{sideRodMeshName}.obj");
-				return;
+				throw new InvalidOperationException($"MeshFinder can't find the mesh at {exportPathFull}\\{sideRodMeshName}.obj");
 			}
+			if (sideRodMesh.vertexCount < 508 || sideRodMesh.triangles.Length < 524 * 3)
+				throw new InvalidOperationException("S282 connecting rod topology is incompatible with the original geometry recipes.");
 
 			//Load the new two axle siderod mesh into the game
 			TwoAxleSideRodMesh = UnityEngine.Object.Instantiate(sideRodMesh);
@@ -367,41 +395,9 @@ namespace RearrangedS282
 			TwoAxleSideRodMesh.vertices = twoAxleSideRodVerts;
 			TwoAxleSideRodMesh.triangles = twoAxleSideRodTris;
 
-			//Create duplex side rod mesh. Same as the 4 axle side rod mesh, but the
-			//spacing is a bit different.
-			TwoAxleDuplexSideRodMesh = UnityEngine.Object.Instantiate(TwoAxleSideRodMesh);
-			Vector3[] twoAxleDuplexSiderodVerts = TwoAxleDuplexSideRodMesh.vertices;
-			foreach (Range range in verticesToMoveForward325)
-			{
-				for (int i = range.start; i < range.end; i++)
-				{
-					twoAxleDuplexSiderodVerts[i].z += 0.17f;
-				}
-			}
-			for (int i = 152; i < 211; i += 2)
-			{
-				twoAxleDuplexSiderodVerts[i].z += 0.17f;
-			}
-			foreach (Range range in verticesToMoveForward015)
-			{
-				for (int i = range.start; i < range.end; i++)
-				{
-					twoAxleDuplexSiderodVerts[i].z += 0.17f;
-				}
-			}
-			twoAxleDuplexSiderodVerts[173].z += 0.17f;
-			twoAxleDuplexSiderodVerts[175].z += 0.17f;
-			twoAxleDuplexSiderodVerts[237].z += 0.17f;
-			twoAxleDuplexSiderodVerts[239].z += 0.17f;
-
-			TwoAxleDuplexSideRodMesh.vertices = twoAxleDuplexSiderodVerts;
-
 			TwoAxleSideRodMesh.RecalculateNormals();
 			TwoAxleSideRodMesh.RecalculateTangents();
 			TwoAxleSideRodMesh.RecalculateBounds();
-			TwoAxleDuplexSideRodMesh.RecalculateNormals();
-			TwoAxleDuplexSideRodMesh.RecalculateTangents();
-			TwoAxleDuplexSideRodMesh.RecalculateBounds();
 
 			//Load the new three axle siderod mesh into the game
 			ThreeAxleSideRodMesh = UnityEngine.Object.Instantiate(sideRodMesh);
@@ -464,33 +460,6 @@ namespace RearrangedS282
 			FiveSixAxleSideRodMesh.RecalculateNormals();
 			FiveSixAxleSideRodMesh.RecalculateTangents();
 			FiveSixAxleSideRodMesh.RecalculateBounds();
-		}
-
-		private void getMainRodMesh()
-		{
-			generateMeshFromGameFiles(mainRodMeshName);
-
-			Mesh mainRodMesh = new OBJLoader().Load($"{exportPathFull}\\{mainRodMeshName}.obj");
-			if (mainRodMesh is null)
-			{
-				Main.Logger.Error($"MeshFinder can't find the mesh at {exportPathFull}\\{mainRodMeshName}.obj");
-				return;
-			}
-
-			DuplexMainRodMesh = UnityEngine.Object.Instantiate(mainRodMesh);
-			Vector3[] duplexMainRodVerts = DuplexMainRodMesh.vertices;
-			int[] duplexMainRodTris = DuplexMainRodMesh.triangles;
-			for (int i = 0; i < duplexMainRodVerts.Length; i++)
-			{
-				if (duplexMainRodVerts[i].z > 2)
-				{
-					duplexMainRodVerts[i] = new Vector3(duplexMainRodVerts[i].x, duplexMainRodVerts[i].y, duplexMainRodVerts[i].z - 1.52f);
-				}
-			}
-			DuplexMainRodMesh.vertices = duplexMainRodVerts;
-			DuplexMainRodMesh.RecalculateNormals();
-			DuplexMainRodMesh.RecalculateTangents();
-			DuplexMainRodMesh.RecalculateBounds();
 		}
 
 		internal static Mesh alterCrossheadGuideLMesh(Mesh mesh)

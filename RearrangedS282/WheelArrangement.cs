@@ -9,7 +9,6 @@ namespace RearrangedS282
 {
 	public enum WheelArrangementType
 	{
-		//s240 = 0,
 		s440 = 0,
 		s442,
 		s444,
@@ -44,6 +43,9 @@ namespace RearrangedS282
 		s2442,
 		s4444,
 		s404,
+		s260 = 34,
+		s240 = 35,
+		s222 = 36,
 		/*s2662,
 		s2680,
 		s4664*/
@@ -51,6 +53,43 @@ namespace RearrangedS282
 
 	public static class WheelArrangement
 	{
+		// Legacy numeric IDs and name-table positions are save compatibility data.
+		// IDs 31/32 identify articulated conversions; ID 33 is the unpowered novelty.
+		// New conventional IDs are appended; never insert into the legacy range.
+		public static bool IsStandardId(int id) => id >= 0 && id <= (int)WheelArrangementType.s4122;
+		public static bool IsConventionalId(int id) => IsStandardId(id) ||
+			(id >= (int)WheelArrangementType.s260 && id <= (int)WheelArrangementType.s222);
+		public static bool IsArticulatedId(int id) => id == (int)WheelArrangementType.s2442 || id == (int)WheelArrangementType.s4444;
+		public static bool IsSupportedId(int id) => IsConventionalId(id) || IsArticulatedId(id) || id == (int)WheelArrangementType.s404;
+		public const int SupportedCount = 37;
+
+		public static int NormalizeSavedId(int id) => IsStandardId(id) ? id : (int)WheelArrangementType.s282;
+
+		public static int NextStandardId(int id, int direction)
+		{
+			int count = (int)WheelArrangementType.s4122 + 1;
+			return (NormalizeSavedId(id) + (direction < 0 ? count - 1 : 1)) % count;
+		}
+
+		public static bool IsRuntimeId(int id)
+		{
+#if B99_STAGE2
+			return id == (int)WheelArrangementType.s282 || id == (int)WheelArrangementType.s284;
+#else
+			return IsSupportedId(id);
+#endif
+		}
+
+		public static int NextRuntimeId(int id, int direction)
+		{
+#if B99_STAGE2
+			return id == (int)WheelArrangementType.s282 ? (int)WheelArrangementType.s284 : (int)WheelArrangementType.s282;
+#else
+			int current = IsSupportedId(id) ? id : (int)WheelArrangementType.s282;
+			return (current + (direction < 0 ? SupportedCount - 1 : 1)) % SupportedCount;
+#endif
+		}
+
 		//The idea here is that the values of the enum WheelArrangementType can be
 		//used as indices for the array WheelArrangementNames.
 		//Ideally I would have used an enum with a string value (like in Rust), or
@@ -89,9 +128,12 @@ namespace RearrangedS282
 			"2-12-0",
 			"2-12-2",
 			"4-12-2 Union Pacific",
-			"2-4-4-2 Duplex",
-			"4-4-4-4 Duplex",
+			"2-4-4-2 Articulated",
+			"4-4-4-4 Articulated",
 			"4-0-4 Drivers not found",
+			"2-6-0 Mogul",
+			"2-4-0",
+			"2-2-2 Giant-driver clearance prototype",
 			/*"2-6-6-2",
 			"2-6-8-0",
 			"4-6-6-4 Challenger"*/
@@ -133,6 +175,9 @@ namespace RearrangedS282
 			4,//"2-4-4-2",
 			8,//"4-4-4-4",
 			8,//"4-0-4",
+			2,//"2-6-0 Mogul",
+			2,//"2-4-0",
+			4,//"2-2-2 Giant-driver clearance prototype",
 		};
 	}
 }

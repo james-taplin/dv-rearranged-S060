@@ -415,3 +415,22 @@ FodyWeavers.xsd
 
 # .nfs files are created when an open file is removed but is still being accessed
 .nfs*
+
+# Local evidence: logs, tester material and video frames stay on disk only.
+# Offline validation fixtures and the two files the scripts read are kept.
+evidence/*
+!evidence/additional-arrangements-tests/
+!evidence/articulated-effects-tests/
+!evidence/articulated-geometry-tests/
+!evidence/articulated-simulation-tests/
+!evidence/delta-compatibility-tests/
+!evidence/pacific-hudson-valve-gear/
+!evidence/power-diagnostics-tests/
+!evidence/restored-features-tests/
+!evidence/rolling-audio-tests/
+!evidence/beta1-high-speed-rod-report/
+evidence/beta1-high-speed-rod-report/*
+!evidence/beta1-high-speed-rod-report/PoweredWheelRotater.before.cs
+!evidence/all-standard-1.3.3-passed-20261017-005225/
+evidence/all-standard-1.3.3-passed-20261017-005225/*
+!evidence/all-standard-1.3.3-passed-20261017-005225/review.json

@@ -1,0 +1,104 @@
+Rearranged S282 B99 - 1.4.4 expanded trial
+
+This trial adds Pacific/Hudson Walschaerts alignment, 2-6-0 Mogul, 2-4-0 and a
+renderer-only giant-driver 2-2-2 clearance prototype. The prototype defaults to
+2.8m tread diameter, adjustable2.1-3.6m, and is excluded from default random spawns.
+Its rods are deliberately hidden and its wheel visuals have no colliders. It
+tests spatial interference, not a completed or calibrated locomotive design.
+The 4-6-2/4-6-4 polish keeps native cutoff clips and repositions the existing
+static mating parts; cab reach rods and mechanical lubricator linkage remain
+hidden. No custom animation clock or cylinder-physics calibration is introduced.
+
+New source-geometry fixtures exercise the exact production partials with
+managed transform/mesh stand-ins. Additional arrangements:1,891 assertions,
+including diameter reapplication, correct tread height/rotation, native anchor
+alignment, collider observation, six oil providers, restoration/disposal and
+second-car isolation. Repeated per-transform checks contribute to that count;
+it is not1,891 independent Unity/game scenarios. See validation receipts for
+the Pacific/Hudson native animation/geometry fixture and compiled integration.
+Pacific/Hudson:29,970 assertions across96 actual native High/Med/Low cutoff poses
+and1,344 native dry-pipe vertex samples. Endpoint blending checks concern the
+highest/lowest-Y extrema, not a guarantee that every angled socket face is rigid.
+Pipe socket seating and all final presentation still require game inspection.
+Compiled native integration:120 checks on1.4.4, including stable0-33 IDs, all37
+choices, added routes, minimal visual components and unchanged physics/rod helpers.
+All37 radio choices retain native per-car persistence and original IDs0-33.
+
+1.4.3 adds the original unpowered 4-0-4 and native explosion/repair material
+registration for added and inactive running gear. All 34 original IDs are now
+selectable. The 4-0-4 random toggle defaults off. No new locomotive design added.
+This is implementation plus offline validation, not a game acceptance pass.
+
+Included together: articulated 2-4-4-2 and 4-4-4-4, plus all 31 conventional layouts.
+The native DV bogies and the tested Heavy Mallet position/aim constraint approach
+remain authoritative. No separate articulated rigidbody or curve solver is added.
+
+OFFLINE VALIDATION
+- Native B99 reference build: zero warnings and errors.
+- Rolling-audio regression uses the actual helper and decompiled native cache
+  reset/update/dispatch with data/audio stand-ins, including three-axle totals
+  used by the new2-4-0 and experimental2-2-2. It reproduces old cache failures
+  and verifies native reset recovery:198 assertions,33 transitions,10 old cache
+  failures reproduced,
+  including brake-update starvation, detached interiors and late initialization.
+- Front coupling regression executes the actual mount-capture helper with a native
+  MovePilot/hierarchy model and checks compiled native field/constructor wiring.
+  The old path reproduces 3.29 m of chain/hose drift across seven no-leading
+  selections; fixed complete-catalogue sweeps restore mounts and leave IK/state alone.
+- Articulated audio discovery fixture checks separate interior roots, shared roots,
+  repeated refresh and exact native car/flow ownership. Actual sound needs game tests.
+- 40 checks using the real native steam engine constructor, Tick, ports and save
+  behaviour: the enabled rear engine matches native outputs, the disabled engine
+  adds no torque/steam/wear, and observed native repairs still work while dormant.
+- 31 actual-source graph/lifecycle checks with adapters: cloned per-car wiring,
+  steam/torque/exhaust sums and order, old saves, switching and failure rollback.
+- 3,947 assertions across 205 frame-mesh partitions using the actual clipper with
+  vector/mesh stand-ins: geometry, material groups, winding and vertex attributes.
+- 81 actual-source diagnostic checks with stand-ins, including separate engines,
+  failed updates, native exception identity and diagnostic I/O/logger failures.
+- 1,340 random/catalogue/save-policy checks with managed stand-ins, including new IDs.
+- 286 actual-source/native-algorithm assertions: 28 powered/unpowered/stock
+  transitions and 11 explosion/repair cycles, including initially hidden drivers,
+  inactive LODs, late rear parts and exact material-reference restoration.
+  Actual Unity physics dispatch, rendering and game lifecycle are not executed.
+- Compiled/native metadata integration checks include unchanged conventional
+  conversion-math/rod methods and matching native patch signatures. The changed
+  B99PhysicsState zero-driver path is covered by the executed transition fixture.
+- 6,720 rod timing poses with a simulated frame sequence and compiled inspection.
+
+These are not in-game driving, visual or audio passes. James will test both
+articulated layouts together. The optional structural test now covers 37 layouts;
+the earlier successful 31-layout game report belongs to 1.3.3, not this DLL.
+
+TRIAL SCOPE
+Two native two-cylinder engines use the accepted shared native traction/RPM/slip
+model. The main engine and mass are retained; the rear is an explicit conservative
+native-equivalent capacity addition, not a calibrated historical compound model.
+Both actual steam demands are charged to the existing boiler.
+
+The existing six native oilcup circuits and refill controls remain functional.
+The rear engine shares native lubrication; separate rear refill circuits are not
+added. The shared chimney retains the native main pressure response for pulses.
+Named cylinder walk/item shells follow the moving frame; the fused native boiler
+collision hull is retained. Native detailed frame halves meet at an uncapped
+articulation cut. Actual clearance, footing, materials and sound need game viewing.
+
+Realistic Firing's reported overspeed remains unresolved. Current beta
+recommendation is to run without Realistic Firing and test native issues
+independently; RF-specific compatibility work is out of scope. This build does
+not install or change MultiCylinderChuffFix or any other mod. Restart for tests.
+
+Reporter logs now confirm a stale rolling-audio cache error that aborts updates
+before the brake module. The native cache refresh corrects that code defect;
+in-game playback remains unverified. F4's circled boiler/firebox numeric blanks
+are intentional; the separate tender quantities are present. A persistently empty
+level bar remains a separate unresolved symptom. RF 1.13.4 injector exceptions
+abort boiler/engine ticks, a credible stale-torque hypothesis for the new overspeed
+run, not a confirmed cause. Passive diagnostics include failed updates.
+The front mount fix is a verified published-code defect that can explain chain/
+hose drift; it is not an in-game confirmation of that reporter's exact sequence.
+
+Use RUNTIME_TRIAL_TESTING.txt for the combined test procedure. New2-6-0 and2-4-0
+layouts and the experimental2-2-2 are included in1.4.4. No triplex,4-14-4,
+compound receiver or independent slip system added. The original zero-driver
+novelty remains restored from1.4.3. All game visual/driving acceptance is pending.

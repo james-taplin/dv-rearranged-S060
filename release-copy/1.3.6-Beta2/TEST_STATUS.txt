@@ -1,0 +1,49 @@
+REARRANGED S282 B99 - 1.3.6 BETA 2 TEST STATUS
+18 October 2026
+
+This package contains the existing 1.3.6.0 test DLL, without rebuilding it.
+DLL SHA256:
+89F99281247B67B1EB806465AE6C681F73620BE9CF93ED237CBA0D581FCDC538
+
+PASSED OFFLINE CHECKS
+- Build against the installed B99 assemblies: 0 warnings, 0 errors.
+- Rod timing: 6,720 poses across 56 speed/frame-rate/direction scenarios. The
+  actual helper source matched the simulated current source pose in every case;
+  the old Update helper lagged in every moving pose. Speeds: 20, 60, 100, 120,
+  200, 376 and 462 km/h; frame rates: 20, 30, 60 and 144 fps; both directions.
+  Installed DLL inspection confirms LateUpdate quaternion copying and all four
+  fifth/sixth-wheel bindings. Extreme speeds exercise pose mathematics only.
+- Delta compatibility: 129 checks using actual adapter/visual source with narrow
+  Unity, Harmony and native stand-ins.
+- Power diagnostics: 42 actual-source checks with stand-ins.
+- Arrangement settings, random-pool, identity and save-data policy: 1,157 checks
+  using actual source with managed stand-ins; 0 failures.
+- Compiled comparison retains the tested native physics and power-diagnostics
+  method bodies. No new hard dependency or bundled Delta assets were introduced.
+
+WHAT THESE CHECKS DO NOT ESTABLISH
+There is no 1.3.6 in-game structural, high-speed rod, rendered Delta, save/reload,
+repaint, deletion or pooled-reuse validation yet. Stand-ins do not establish actual
+Unity animation scheduling, renderer behaviour, delayed destruction, native save
+hook ordering or live Harmony dispatch. The attempted standalone real-Harmony
+host failed during Harmony initialization before the adapter ran; it is not a
+successful runtime test. No game was launched for these checks.
+
+EARLIER BASELINE ONLY
+The 1.3.3 DLL passed all 31 stationary structural arrangements in game on
+17 October 2026, including stock restoration, a second-locomotive control and
+preservation of six native oilcup bindings. That result belongs to 1.3.3 and does
+not certify the changed 1.3.6 DLL or full driving/oilcup-refill behaviour.
+
+PRIORITY IN-GAME RETESTS
+1. Fast 2-12-0 and 4-12-2: inspect rods on both sides, steady and slipping.
+2. Delta on 4-12-2/2-12-2: apply/remove twice, reverse the selection order,
+   save/reload, repaint and delete. Check another locomotive stays unchanged.
+3. Manual/random choices: save/reload, deferred restoration and pooled reuse.
+4. Two stock stationary S282s: rerun structural checks and inspect native oilcups.
+5. Separate stock/4-12-2 diagnostic captures with Realistic Firing cylinders off/on.
+
+KNOWN UNRESOLVED REPORT
+Extreme acceleration with Realistic Firing's cylinder model remains under
+investigation. Switching that feature off reportedly stopped the reporter's
+overspeed. This build contains diagnostics, not a confirmed power-model fix.

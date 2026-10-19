@@ -1,0 +1,124 @@
+NEXUS RELEASE COPY - READY TO PASTE
+
+MOD TITLE
+Rearranged S282 - B99 Conventional Arrangements Beta
+
+SHORT SUMMARY
+B99 update of SatiricRug's Rearranged S282 by JimTaplin. Choose from 31 conventional
+wheel arrangements, with native B99 physics and six oilcup bindings. No duplexes;
+arrangement selections are temporary in this beta.
+
+DESCRIPTION
+This beta brings the conventional arrangements from SatiricRug's Rearranged S282
+to Derail Valley B99. The B99 port is by JimTaplin, with full credit to the original
+author and the original license retained.
+
+Choose from 31 arrangements using Wheel Rearranger on the comms radio, including
+four-, six-, eight-, ten- and twelve-coupled layouts and the high-speed variants.
+The update uses B99's native per-locomotive wheel/traction/slip systems and preserves
+the six native oilcup circuits, refill controls and position-sync bindings.
+
+IMPORTANT: this is a conventional-arrangements beta. Duplexes are not included.
+Selected arrangements do not persist across reloads, and random spawning is off.
+Please use a sandbox save while testing.
+
+Requirements
+- Windows version of Derail Valley B99; tested on 99-build2702.
+- Unity Mod Manager.
+- Locomotive Mesh Splitter; tested with version 1.1.9.
+  https://www.nexusmods.com/derailvalley/mods/867
+Derailroader and CCL are not required by this mod.
+
+Installation
+Close the game, back up your old RearrangedS282 folder, then install this ZIP with
+Unity Mod Manager, or extract its RearrangedS282 folder into the game's Mods folder.
+Replace the old version rather than keeping a second active copy. Keep the included
+AssetStudioModCLI_net472_win64_contained folder: the original mesh exporter prepares
+rod meshes locally from your installed game.
+
+Using the mod
+Select Wheel Rearranger on the comms radio, select an S282, choose an arrangement
+and confirm. The engine must be stopped, railed, with regulator closed and force/
+slip settled. Choose 2-8-2 Mikado to restore stock. First use may pause briefly for
+mesh preparation. Manual use supports changing multiple S282s independently.
+
+Test status
+All 31 stationary structural tests passed in game, covering axle counts, stock
+restoration, second-locomotive isolation and preservation of all six oilcup bindings.
+This beta uses the exact DLL from that successful run. Initial visual feedback is
+positive. More feedback is wanted on motion/rod geometry, loaded pulling, wheelslip,
+sanding, audio/particles, oilcup opening/refilling/alignment, LODs and external-control
+unload/reload. Repair/explosion and broad mod compatibility remain unverified.
+
+Physics scope
+Native S282 mass and engine dimensions are retained. Axle count, driver registration
+and wheel radius update per locomotive. Load is currently approximated as equal
+weight per physical axle; the arrangements are not calibrated prototype simulations.
+
+Reporting a problem
+Please give the arrangement, previous arrangement, locomotive ID, steps to reproduce,
+screenshot/video, game/mod versions and other relevant mods. Include Player.log and
+UMM Log.txt. If you run the optional structural test in the mod's UMM settings,
+include stage2-runtime-checks.json too. The download includes a manual-test checklist.
+
+Credits and permissions
+SatiricRug / Peter Schinske - original Rearranged S282, arrangement geometry and
+original implementation, released under MIT.
+JimTaplin - B99 conventional-arrangement port, integration, testing and beta release.
+This is an independent fork; no original-author endorsement is claimed.
+Original mod: https://www.nexusmods.com/derailvalley/mods/752
+Original source: https://github.com/pjschinske/dv-rearranged-S282
+
+Additional credits: Derail Valley Modding (template), Dummiesman (OBJ importer),
+Radu/Perfare/aelurum (AssetStudio), Milosz Krajewski/Yann Collet (LZ4),
+Jb Evain/Novell (Mono.Cecil), James Newton-King (Json.NET), .NET contributors,
+Brotli Authors/Google, Matthaus G. Chajdas (CSspv), and Igor Pavlov (LZMA SDK).
+SatiricRug's Locomotive Mesh Splitter is a separate dependency.
+
+The original MIT licence, copyright notices and full third-party notices are
+included. This B99 port is released under MIT; bundled components retain their own
+licences. Reuse the MIT-covered code under those terms, keeping its notices.
+The source link above is the original upstream source, not a published B99 fork.
+
+Development disclosure: the B99 port was developed with OpenAI Codex assistance
+and tested in game by JimTaplin.
+
+MAIN FILE
+Filename: RearrangedS282-B99-1.3.3-Beta1.zip
+File display name: Rearranged S282 B99 - Conventional Beta 1
+Version: 1.3.3
+File description: First public B99 beta by JimTaplin. 31 conventional arrangements,
+native B99 oilcup bindings and per-car physics updates. No duplexes. Arrangement
+selections are temporary; random spawning is disabled. Requires UMM and Loco Mesh
+Splitter. Includes the original local rod-mesh exporter.
+
+CHANGELOG - 1.3.3 / FIRST PUBLIC BETA
+- Ported all 31 conventional arrangements to B99's per-car simulation data.
+- Updated powered-wheel registration, axle counts and wheel-radius/RPM data.
+- Restored the captured stock configuration when selecting the stock 2-8-2.
+- Updated native drivetrain names and lubricator/compressor control bindings.
+- Preserved the six native oilcup circuits and their refill/position bindings.
+- Added an optional 31-arrangement structural test and manual-test checklist.
+- Kept duplexes, arrangement persistence and random spawning disabled.
+
+PUBLISHER NOTES - DO NOT PASTE THIS SECTION INTO THE DESCRIPTION
+- Upload ONLY RearrangedS282-B99-1.3.3-Beta1.zip as the playable main file.
+- This copy and CHECKSUMS.txt are companion release material, not game mods.
+- Binary/UMM version stays 1.3.3; Beta 1 is the release/file label.
+- Original license, author notices and third-party licences are included. Preserve the visible original
+  author credit and link when creating the new Nexus page.
+- Add Locomotive Mesh Splitter and Unity Mod Manager as requirements.
+- The optional diagnostic button is retained in the tested DLL.
+- Do not claim saved arrangements, duplex support or completed compatibility tests.
+- Pick screenshots from your current beta that demonstrate several driver counts.
+- This package has been prepared locally; no Nexus page/file has been uploaded
+  or published by Codex. Check the chosen title and description in Nexus before posting.
+- Complete Nexus's permission/licence fields consistently with MIT for this port;
+  third-party components retain their own terms. Credit alone is not permission.
+- Check the current Nexus AI-code disclosure/tagging policy. The development
+  disclosure above is factual; choose tags according to that policy and the
+  actual development process, rather than treating MIT as an exemption.
+
+- Current Nexus tagging guidance: AI-Generated Content covers generated mod code;
+  AI Media also covers the generated mod-page description if you use this draft.
+  See the current File Submission Guidelines and MIT_FORK_CHECKLIST.txt.

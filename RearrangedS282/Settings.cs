@@ -49,26 +49,34 @@ namespace RearrangedS282
 		[Header("Valve gear")]
 		[Draw("Show x-4-x valve gear:", Height = HEIGHT)] public bool show4CoupledValveGear = false;
 		[Draw("Show x-6-x valve gear:", Height = HEIGHT)] public bool show6CoupledValveGear = false;
+		[Draw("Polished Walschaerts on 4-6-2 / 4-6-4 (reapply):", Height = HEIGHT)] public bool polishedPacificHudsonValveGear = true;
 		[Draw("Show x-8-x valve gear:", Height = HEIGHT)] public bool show8CoupledValveGear = true;
 		[Draw("Show high-speed 2-8-2 valve gear:", Height = HEIGHT)] public bool show282BigValveGear = false;
 		[Draw("Show x-10-x valve gear:", Height = HEIGHT)] public bool show10CoupledValveGear = true;
 		[Draw("Show x-12-x valve gear:", Height = HEIGHT)] public bool show12CoupledValveGear = true;
 
+		[Header("Experimental 2-2-2: non-colliding clearance prototype")]
+		[Header("Reapply the arrangement after changing its driver diameter")]
+		[Draw("2-2-2 driver diameter (metres):", DrawType.Slider, Min = 2.1, Max = 3.6, Precision = 2)]
+		public float giant222DriverDiameterMetres = 2.8f;
+
 		[Header("Random spawns")]
-		[Draw("Spawn S282 with random wheel arrangement:", DrawType.Toggle, Height = HEIGHT)] public bool spawnRandomWA = true;
+		[Draw("Spawn S282 with random wheel arrangement:", DrawType.Toggle, Height = HEIGHT)] public bool spawnRandomWA = false;
 		
 		[Draw("Randomly spawn 4-4-0:", Height = HEIGHT)] public bool spawn440 = true;
 		[Draw("Randomly spawn 4-4-2:", Height = HEIGHT)] public bool spawn442 = true;
 		[Draw("Randomly spawn 4-4-4:", Height = HEIGHT)] public bool spawn444 = true;
 		[Draw("Randomly spawn 4-6-0:", Height = HEIGHT)] public bool spawn460 = true;
 		[Draw("Randomly spawn 4-6-2:", Height = HEIGHT)] public bool spawn462 = true;
-		/*[Draw("Randomly spawn 4-6-4:", Height = HEIGHT)] public bool spawn464 = true;*/
+		[Draw("Randomly spawn 4-6-4:", Height = HEIGHT)] public bool spawn464 = true;
 		[Draw("Randomly spawn 0-8-0:", Height = HEIGHT)] public bool spawn080 = true;
 		[Draw("Randomly spawn 0-8-2:", Height = HEIGHT)] public bool spawn082 = true;
 		[Draw("Randomly spawn 0-8-4:", Height = HEIGHT)] public bool spawn084 = true;
 		[Draw("Randomly spawn 2-8-0:", Height = HEIGHT)] public bool spawn280 = true;
 		[Draw("Randomly spawn 2-8-2:", Height = HEIGHT)] public bool spawn282 = true;
+		[Draw("Randomly spawn high-speed 2-8-0:", Height = HEIGHT)] public bool spawn280Big = true;
 		[Draw("Randomly spawn high-speed 2-8-2:", Height = HEIGHT)] public bool spawn282Big = true;
+		[Draw("Randomly spawn high-speed 2-8-4:", Height = HEIGHT)] public bool spawn284Big = true;
 		[Draw("Randomly spawn 2-8-4:", Height = HEIGHT)] public bool spawn284 = true;
 		[Draw("Randomly spawn 4-8-0:", Height = HEIGHT)] public bool spawn480 = true;
 		[Draw("Randomly spawn 4-8-2:", Height = HEIGHT)] public bool spawn482 = true;
@@ -86,10 +94,16 @@ namespace RearrangedS282
 		[Draw("Randomly spawn 2-12-0:", Height = HEIGHT)] public bool spawn2120 = true;
 		[Draw("Randomly spawn 2-12-2:", Height = HEIGHT)] public bool spawn2122 = true;
 		[Draw("Randomly spawn 4-12-2:", Height = HEIGHT)] public bool spawn4122 = true;
-		[Draw("Randomly spawn 2-4-4-2:", Height = HEIGHT)] public bool spawn2442 = true;
-		[Draw("Randomly spawn 4-4-4-4:", Height = HEIGHT)] public bool spawn4444 = true;
+		[Draw("Randomly spawn articulated 2-4-4-2:", Height = HEIGHT)] public bool spawn2442 = false;
+		[Draw("Randomly spawn articulated 4-4-4-4:", Height = HEIGHT)] public bool spawn4444 = false;
+		[Draw("Randomly spawn unpowered 4-0-4 Drivers not found:", Height = HEIGHT)] public bool spawn404 = false;
+		[Draw("Randomly spawn 2-6-0 Mogul:", Height = HEIGHT)] public bool spawn260 = true;
+		[Draw("Randomly spawn 2-4-0:", Height = HEIGHT)] public bool spawn240 = true;
+		[Draw("Randomly spawn experimental 2-2-2 clearance prototype:", Height = HEIGHT)] public bool spawn222 = false;
 
-		public List<WheelArrangementType> RandomWAs;
+		// Derived from the toggles, not a second authoritative saved pool.
+		[System.Xml.Serialization.XmlIgnore]
+		public List<WheelArrangementType> RandomWAs = new();
 
 		public override void Save(UnityModManager.ModEntry modEntry)
 		{
@@ -109,6 +123,8 @@ namespace RearrangedS282
 				RandomWAs.Add(WheelArrangementType.s460);
 			if (spawn462)
 				RandomWAs.Add(WheelArrangementType.s462);
+			if (spawn464)
+				RandomWAs.Add(WheelArrangementType.s464);
 
 			//EIGHT COUPLED
 
@@ -123,8 +139,12 @@ namespace RearrangedS282
 				RandomWAs.Add(WheelArrangementType.s280);
 			if (spawn282)
 				RandomWAs.Add(WheelArrangementType.s282);
+			if (spawn280Big)
+				RandomWAs.Add(WheelArrangementType.s280Big);
 			if (spawn282Big)
 				RandomWAs.Add(WheelArrangementType.s282Big);
+			if (spawn284Big)
+				RandomWAs.Add(WheelArrangementType.s284Big);
 			if (spawn284)
 				RandomWAs.Add(WheelArrangementType.s284);
 
@@ -138,25 +158,25 @@ namespace RearrangedS282
 			//TEN COUPLED
 
 			if (spawn0100)
-				RandomWAs.Add(WheelArrangementType.s080);
+				RandomWAs.Add(WheelArrangementType.s0100);
 			if (spawn0102)
-				RandomWAs.Add(WheelArrangementType.s082);
+				RandomWAs.Add(WheelArrangementType.s0102);
 			if (spawn0104)
-				RandomWAs.Add(WheelArrangementType.s084);
+				RandomWAs.Add(WheelArrangementType.s0104);
 
 			if (spawn2100)
-				RandomWAs.Add(WheelArrangementType.s280);
+				RandomWAs.Add(WheelArrangementType.s2100);
 			if (spawn2102)
-				RandomWAs.Add(WheelArrangementType.s282);
+				RandomWAs.Add(WheelArrangementType.s2102);
 			if (spawn2104)
-				RandomWAs.Add(WheelArrangementType.s284);
+				RandomWAs.Add(WheelArrangementType.s2104);
 
 			if (spawn4100)
-				RandomWAs.Add(WheelArrangementType.s480);
+				RandomWAs.Add(WheelArrangementType.s4100);
 			if (spawn4102)
-				RandomWAs.Add(WheelArrangementType.s482);
+				RandomWAs.Add(WheelArrangementType.s4102);
 			if (spawn4104)
-				RandomWAs.Add(WheelArrangementType.s484);
+				RandomWAs.Add(WheelArrangementType.s4104);
 
 			//TWELVE COUPLED
 
@@ -168,12 +188,30 @@ namespace RearrangedS282
 				RandomWAs.Add(WheelArrangementType.s2122);
 			if (spawn4122)
 				RandomWAs.Add(WheelArrangementType.s4122);
-
-			//DUPLEX
 			if (spawn2442)
 				RandomWAs.Add(WheelArrangementType.s2442);
 			if (spawn4444)
 				RandomWAs.Add(WheelArrangementType.s4444);
+			if (spawn404)
+				RandomWAs.Add(WheelArrangementType.s404);
+			if (spawn260)
+				RandomWAs.Add(WheelArrangementType.s260);
+			if (spawn240)
+				RandomWAs.Add(WheelArrangementType.s240);
+			if (spawn222)
+				RandomWAs.Add(WheelArrangementType.s222);
+
+		}
+
+		internal int PickRandomArrangement(System.Random random)
+		{
+			if (random == null) throw new ArgumentNullException(nameof(random));
+			// Refresh here as well as OnChange, so UI and programmatic edits cannot
+			// leave a stale pool. Articulated/novelty layouts and the experimental
+			// giant-driver clearance prototype remain opt-in.
+			OnChange();
+			return RandomWAs.Count == 0 ? (int)WheelArrangementType.s282
+				: (int)RandomWAs[random.Next(RandomWAs.Count)];
 		}
 	}
 }
