@@ -1,4 +1,7 @@
-## 1.7.3 driver-weight cap (Claude), RELEASED pre-release v1.7.3 (tag 6d43064), NOT installed, 19 Oct 2026
+## 1.7.3 driver-weight cap (Claude), RELEASED pre-release v1.7.3 (tag 6d43064), INSTALLED, 19 Oct 2026
+
+Installed from the released ZIP (DLL 0B742F4B...F275E4 == release, Info.json 1.7.3).
+1.7.2 backup: build/runtime-trial-1.7.3/installed-backup-20261019-175014. Settings kept.
 
 James approved option A with these targets after the 1.7.2 runs.
 - 1.7.2 results: the structural test passed all 40 layouts
