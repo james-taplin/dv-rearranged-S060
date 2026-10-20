@@ -5,16 +5,18 @@ of the **S060**, the B99 0-6-0 tank engine, at runtime through the comms radio �
 the same idea as [Rearranged S282](https://www.nexusmods.com/derailvalley/mods/752),
 applied to the little shunter.
 
-## Status: P1 spike built, awaiting an in-game test.
+## Status: 0-4-0 proven in game, 0-8-0 built and awaiting a test.
 
 This repository is a fork of the Rearranged S282 B99 port, taken at `65c8e8a`.
-The default build (`Stage=1`) is now the **P1 spike**: a mod-manager window with
-one button that turns a stationary S060 into an 0-4-0 and back. No comms radio, no
+The default build (`Stage=1`) is the **spike build**: a mod-manager window with
+buttons that turn a stationary S060 into an **0-4-0** or an **0-8-0** and back. No comms radio, no
 persistence, no spawn hooks, and the only Harmony patch is `Bogie.Axles`. The
 inherited S282 geometry is compiled but never reached, so it is safe alongside the
 real Rearranged S282.
 
-It has not been driven in game yet. `docs/TESTING-P1.md` is the checklist;
+The 0-4-0 converted, restored and rode well on 20 Oct 2026, which settled the
+open question: the bogie pivots can be left where DV put them. The 0-8-0 has not
+been driven yet. `docs/TESTING.md` is the checklist;
 `docs/FEASIBILITY.md` has the measurements everything is built on.
 
 ### What the S060 is, measured
@@ -38,8 +40,13 @@ through the extraction path in `MeshFinder`.
   axle), rebuilds `Bogie.Axles`, re-registers two powered axles, writes
   `poweredAxles.NUM`, moves the adhesion weight onto the two drivers and hides
   that axle's caliper. Bogie pivots left as DV set them.
-- **P2** — 0-6-2: trailing truck behind driver 1, where there is 1.31 m of clear
-  low space. The cheapest way to add wheels.
+- **P2** — 0-8-0, built: a fourth driver behind driver 1 at the stock 1.549 m
+  spacing, cloned from driver 2's wheel with the coupling rod extended by a second
+  shifted copy. It needs no new meshes at all, which is why it overtook the
+  trailing truck.
+- **P2.5** — 0-6-2: trailing truck behind driver 1. Needs the S282's 0.773 m pony
+  wheel, so it needs the runtime extractor packaged, which is the only reason it
+  is not done first.
 - **P3** — forward wheels and bigger frames: 2-6-0 (needs the split cylinder block
   moved), 0-8-0 by re-centring the driver group, then driver rescaling, which is
   what unlocks 0-10-0.

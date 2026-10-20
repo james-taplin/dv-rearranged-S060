@@ -1,7 +1,7 @@
-{
+﻿{
   "Id": "RearrangedS060",
-  "Version": "0.1.0",
-  "DisplayName": "Rearranged S060 - P1 0-4-0 spike",
+  "Version": "0.2.0",
+  "DisplayName": "Rearranged S060 - P1/P2 spikes 0-4-0 + 0-8-0",
   "Author": "james-taplin, forked from SatiricRug's Rearranged S282",
   "EntryMethod": "RearrangedS060.Main.Load",
   "ManagerVersion": "0.27.3",
