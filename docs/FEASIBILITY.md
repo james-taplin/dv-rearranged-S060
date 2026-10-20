@@ -11,7 +11,9 @@ the B99 S060 tank engine?
 prerequisites are already solved by the same author's code. The limiting factor is
 the short frame, and the probe moved *which* arrangements are cheap: adding wheels
 **behind** the rear driver is easy, adding them in **front** fights the cylinders
-and the coupler, and a fourth driver at stock spacing does not fit at all.
+and the coupler, and a fourth driver only fits if the whole driver group is
+re-centred. Rescaling the drivers, as the inherited S282 code already does, widens
+every one of those limits.
 
 Evidence is of two kinds, and the text says which:
 
@@ -120,13 +122,36 @@ So, revised:
 - **2-6-0 / 2-6-2T** — a leading truck lands in the cylinder and valve-gear zone.
   Possible, because the cylinders are splittable and movable, but it means moving
   the cylinder block and retiming the gear — a bigger job than the trailing truck.
-- **0-8-0** — **does not fit at stock spacing.** A fourth driver at 1.549 m would
-  centre at Z +3.250 and span 2.485..4.015, overlapping the front coupler box by
-  ~0.55 m and reaching past the body shell front. It needs either reduced spacing
-  (~1.0–1.2 m, which then sits inside the cylinder zone anyway) or smaller drivers.
-  This is a *downgrade* from my pre-probe guess that the 8.46 m body left room.
-- **0-10-0, 0-8-2, 4-6-0** — not without shrunken drivers, and 4-6-0 needs ~2.5 m
-  ahead of driver 3 that plainly is not there.
+- **0-8-0** — fits, but only by **re-centring the whole driver group**. Taking the
+  coupler boxes as the limit, a full-size wheel centre can sit anywhere from
+  Z −2.758 to +2.758 (±3.470 less the 0.712 m radius), a 5.52 m band; four
+  drivers at the stock 1.549 m spacing need 4.65 m of it, so they fit symmetrically
+  at about ±2.32 and ±0.77 with 0.87 m to spare. What does *not* work — and what
+  I wrongly reported before measuring — is hanging a fourth driver off the front
+  while the other three stay put: that one would centre at +3.25 and foul the front
+  coupler box. Re-centring means moving all four drivers, both coupling rods and
+  the main rod, and the front driver would then sit inside the present valve-gear
+  zone (Z 1.875–3.460), so the gear has to be re-rodded — which adding a driver
+  implies anyway.
+- **Rescaled drivers** — the inherited S282 code already scales drivers and gear
+  together (it runs 0.68 for the 4-14-4), and shrinking them widens the band: at
+  1.2 m drivers (r 0.6) it grows to ±2.87, i.e. 5.74 m. That is what makes the
+  longer rigid arrangements possible rather than merely cramped.
+- **0-10-0** — plausible *with* rescaling: five drivers at 1.3 m spacing need
+  5.20 m against the 5.74 m band that 1.2 m drivers give. At full size it needs
+  6.20 m and does not fit.
+- **0-2-2-0 duplex, Franklin poppet gear** — the joke is supported by what the
+  fork already inherits: the S282's duplex simulation (`Sim/Duplex*.cs`,
+  `Patches/DuplexSimPatches.cs`, `Patches/AddTwoCylinders.cs`) and the Franklin
+  cylinder meshes in `models/` and the `s282_drivetrain` bundle. Note the csproj
+  currently excludes those sim files from the build
+  (`<Compile Remove="Sim\**\*.cs;...">`), so re-enabling them is part of the job.
+  Two single-driver engines with ~2.3 m Franklin cylinders want roughly 4.6 m plus
+  wheels against a 5.5 m band, so the drivers would have to come down to about
+  0.8–1.0 m. Tight, not absurd — it needs laying out properly before it is a
+  promise.
+- **4-6-0 / 0-8-2** — still no. A four-wheel leading truck wants ~2.5 m ahead of
+  the front driver, and after re-centring there is less room there, not more.
 - **0-4-4-0 Mallet** — the S282's articulated path assumes a long-framed tender
   loco with two native engines. Not a target.
 
@@ -183,15 +208,20 @@ All from the probe run cited above. Nothing here is inferred.
 ## 6. Suggested staging
 
 - **P0** — done. Probe mod built, installed and run; section 5 is its output.
-- **P1** — spike: 0-4-0. Hide driver 2 or 3, swap to the two-axle coupling rod,
-  drop the matching `[axle]` from `Axle_F`, update `poweredAxles.NUM` and the
-  `PoweredWheelsManager` list, hide that axle's brake caliper. Check rods,
-  animation, wheelslip and derailment.
+- **P1** — built, awaiting an in-game test. Drops the middle driver, rebuilds
+  `Bogie.Axles` without its axle, re-registers two powered axles, writes
+  `poweredAxles.NUM`, moves the adhesion weight onto the two drivers and hides
+  that axle's caliper. Bogie pivots left as DV set them, so the ride should be
+  unchanged — that is the main thing the test checks. Test build and checklist:
+  `RearrangedS060/test-P1-0.1.0/`.
 - **P2** — 0-6-2: trailing truck behind driver 1 with S282 pony wheels, a cloned
   axle on `Axle_R`, and the rear subframe adjusted. Cheaper than P3, so it comes
   first now.
-- **P3** — forward wheels: 2-6-0, which needs the split cylinder block moved, and
-  a reduced-spacing or small-driver 0-8-0 if it still looks right.
+- **P3** — forward wheels and bigger rigid frames: 2-6-0 (the split cylinder block
+  has to move), then 0-8-0 by re-centring the driver group, then driver rescaling,
+  which is what unlocks 0-10-0.
+- **P3.5** — the 0-2-2-0 Franklin duplex meme, once rescaling works: re-enable the
+  inherited duplex sim files and lay out two single-driver engines.
 - **P4** — shell: comms radio, saved arrangements, spawn pool, diagnostics, tests,
   ported from the S282 mod.
 

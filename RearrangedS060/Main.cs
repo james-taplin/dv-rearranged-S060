@@ -22,12 +22,23 @@ namespace RearrangedS060
 			Logger = modEntry.Logger;
 			ModPath = modEntry.Path;
 #if B99_STAGE1
-			// Stage 1 validates the B99 assembly without running unported geometry/physics
-			// or writing arrangement data into a player's save. Remove this build gate
-			// only when the stage 2 runtime update path has been validated.
-			modEntry.OnGUI = entry => GUILayout.Label(
-				"B99 stage 1 build baseline. Wheel rearrangement is not active yet.");
-			Logger.Log("B99 stage 1 baseline loaded. No Harmony patches applied; stock locomotives retained.");
+			// Stage 1 is the S060 P1 spike: one manual 0-4-0 conversion, driven from
+			// this window, with no comms radio, no persistence and no spawn hooks. The
+			// inherited S282 geometry is compiled but never reached.
+			try
+			{
+				var p1Harmony = new Harmony(modEntry.Info.Id);
+				// The only patch the spike needs: Bogie.Axles must stop handing back
+				// axles we have deactivated.
+				p1Harmony.CreateClassProcessor(typeof(Patches.BogieAxlesPatch)).Patch();
+			}
+			catch (Exception ex)
+			{
+				Logger.LogException("S060 P1 patch failed", ex);
+				return false;
+			}
+			modEntry.OnGUI = entry => S060SpikeWindow.Draw();
+			Logger.Log("S060 P1 spike loaded: manual 0-4-0 conversion only. Stock S282s are untouched.");
 			return true;
 #elif B99_STAGE2 || B99_ALL_STANDARD
 			// Register B99 integrations explicitly. Legacy B98 global patches stay disabled.

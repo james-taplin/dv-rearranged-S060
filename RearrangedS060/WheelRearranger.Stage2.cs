@@ -92,7 +92,7 @@ namespace RearrangedS060
 
         private void InitializeStage2()
         {
-            var physics = new B99PhysicsState(loco);
+            var physics = new B99PhysicsState(loco, 4); // inherited S282 path
             if (physics.OriginalTotalAxles != 6)
                 throw new InvalidOperationException("Stage 2 requires the stock six-axle S282 geometry.");
             var powered = physics.OriginalPowered;

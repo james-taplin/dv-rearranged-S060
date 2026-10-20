@@ -50,7 +50,7 @@ namespace RearrangedS060
                         throw new InvalidOperationException("Loco Mesh Splitter has not prepared this S282 yet.");
                     // Extract rods before modifying the locomotive, using the original mod's helper.
                     var meshes = MeshFinder.Instance;
-                    stage2Physics = new B99PhysicsState(loco);
+                    stage2Physics = new B99PhysicsState(loco, 4); // inherited S282 path
                     stockGeometry = new GeometryState(loco);
                     explosionMaterials = new B99ExplosionMaterials(loco,
                         transform.Find("LocoS282A_Body/MovingParts_LOD0"));

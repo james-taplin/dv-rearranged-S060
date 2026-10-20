@@ -34,19 +34,21 @@ namespace RearrangedS060
         public PoweredWheel[] OriginalPowered => (PoweredWheel[])originalPowered.Clone();
         public int OriginalTotalAxles => originalShared.numOfAxles;
 
-        public B99PhysicsState(TrainCar car)
+        // expectedPoweredAxles guards against selecting a locomotive whose drivetrain
+        // another mod has already altered: the S060 ships with 3, the S282 with 4.
+        public B99PhysicsState(TrainCar car, int expectedPoweredAxles)
         {
             this.car = car ?? throw new ArgumentNullException(nameof(car));
             if (car.entity == null || !car.entity.IsConverted)
-                throw new InvalidOperationException("S282 B99 entity conversion is still pending.");
+                throw new InvalidOperationException("B99 entity conversion is still pending.");
             sim = car.SimController;
             if (sim?.simFlow == null || sim.drivingForce == null || sim.tractionPortsFeeder == null ||
                 sim.wheelslipController == null || sim.poweredWheels?.poweredWheels == null)
-                throw new InvalidOperationException("S282 native simulation is not initialized.");
+                throw new InvalidOperationException("Native simulation is not initialized.");
             // TryGet also rejects selection before the native entity conversion finishes.
             if (!car.entity.TryGetComponentData<AdhesionControllerSystem.StaticSharedAdhesionCalculationData>().IsSome(out originalShared) ||
                 !car.entity.TryGetComponentData<AdhesionControllerSystem.StaticAdhesionCalculationData>().IsSome(out originalFriction))
-                throw new InvalidOperationException("S282 B99 entity data is not initialized yet.");
+                throw new InvalidOperationException("B99 entity data is not initialized yet.");
             if (!sim.simFlow.TryGetPort(sim.wheelslipController.numberOfPoweredAxlesPortId, out poweredAxlesPort))
                 throw new InvalidOperationException("Native powered axle port was not found.");
             originalPowered = (PoweredWheel[])sim.poweredWheels.poweredWheels.Clone();
@@ -62,8 +64,12 @@ namespace RearrangedS060
             rotations = car.GetComponentsInChildren<PoweredWheelRotationViaAnimation>(true);
             originalAnimationRadii = rotations.Select(r => r.wheelRadius).ToArray();
             originalCircumferences = rotations.Select(r => r.wheelCircumference).ToArray();
-            if (originalShared.numOfAxles != car.NumberOfAxles || originalPowered.Length != 4 || originalPort != 4f)
-                throw new InvalidOperationException("Stage 2 requires an unmodified four-driver S282 with consistent axle data.");
+            if (originalShared.numOfAxles != car.NumberOfAxles ||
+                originalPowered.Length != expectedPoweredAxles || originalPort != expectedPoweredAxles)
+                throw new InvalidOperationException("Expected an unmodified locomotive with " +
+                    expectedPoweredAxles + " powered axles and consistent axle data; found " +
+                    originalPowered.Length + " powered, port " + originalPort +
+                    ", " + originalShared.numOfAxles + " axles.");
             ConventionalPhysics.RpmPerMetrePerSecond(originalForceRadius);
         }
 

@@ -5,16 +5,17 @@ of the **S060**, the B99 0-6-0 tank engine, at runtime through the comms radio �
 the same idea as [Rearranged S282](https://www.nexusmods.com/derailvalley/mods/752),
 applied to the little shunter.
 
-## Status: stage 0 scaffold. It does nothing yet.
+## Status: P1 spike built, awaiting an in-game test.
 
 This repository is a fork of the Rearranged S282 B99 port, taken at `65c8e8a`.
-The machinery is inherited and working; **the geometry is still the S282's** and
-has not been retargeted. The default build (`Stage=1`) applies no Harmony patches
-at all and shows a label in the mod manager saying so, which makes it safe to
-install alongside the real Rearranged S282 — but pointless to, until P1 lands.
+The default build (`Stage=1`) is now the **P1 spike**: a mod-manager window with
+one button that turns a stationary S060 into an 0-4-0 and back. No comms radio, no
+persistence, no spawn hooks, and the only Harmony patch is `Bogie.Axles`. The
+inherited S282 geometry is compiled but never reached, so it is safe alongside the
+real Rearranged S282.
 
-Do not publish or install this expecting function. See `docs/FEASIBILITY.md` for
-what was measured and what is still unverified.
+It has not been driven in game yet. `docs/TESTING-P1.md` is the checklist;
+`docs/FEASIBILITY.md` has the measurements everything is built on.
 
 ### What the S060 is, measured
 
@@ -33,21 +34,27 @@ through the extraction path in `MeshFinder`.
 - **P0** — done. A read-only probe mod dumped the live S060's bogies, axles,
   clearances, splitter API, sim ports and animators; section 5 of the feasibility
   doc is now answered from it.
-- **P1** — 0-4-0: drop driver 2 or 3 (not driver 1 — `Axle_R` holds only one
-  axle), swap to the two-axle coupling rod, update `poweredAxles.NUM` and the
-  `PoweredWheelsManager` list, hide that axle's brake caliper.
+- **P1** — built. Drops the middle driver (not driver 1 — `Axle_R` holds only one
+  axle), rebuilds `Bogie.Axles`, re-registers two powered axles, writes
+  `poweredAxles.NUM`, moves the adhesion weight onto the two drivers and hides
+  that axle's caliper. Bogie pivots left as DV set them.
 - **P2** — 0-6-2: trailing truck behind driver 1, where there is 1.31 m of clear
   low space. The cheapest way to add wheels.
-- **P3** — forward wheels: 2-6-0 (needs the split cylinder block moved) and a
-  reduced-spacing 0-8-0 if it still looks right.
+- **P3** — forward wheels and bigger frames: 2-6-0 (needs the split cylinder block
+  moved), 0-8-0 by re-centring the driver group, then driver rescaling, which is
+  what unlocks 0-10-0.
+- **P3.5** — the 0-2-2-0 Franklin duplex meme, using the duplex sim and Franklin
+  cylinder meshes the fork already inherits.
 - **P4** — shell: comms radio, saved arrangements, spawn pool, diagnostics,
   tests, ported from the S282 mod.
 
-What fits, measured against the car's 7 colliders: 0-4-0 and 0-6-2 are cheap,
-2-6-0 means moving the cylinders, and **0-8-0 does not fit at stock spacing** — a
-fourth driver would centre at Z +3.25 and overlap the front coupler box. 4-6-0 and
-0-10-0 need shrunken drivers at best. The S282's duplexes, Mallets and triplexes
-are not targets.
+What fits, measured against the car's 7 colliders: 0-4-0 and 0-6-2 are cheap, and
+2-6-0 means moving the cylinders. A full-size wheel centre can sit between Z
+−2.758 and +2.758, so **0-8-0 fits at stock spacing only if the whole driver group
+is re-centred** (about ±2.32 and ±0.77); bolting a fourth driver onto the front
+while the others stay put does not fit. Rescaling the drivers, which the inherited
+S282 code already does, widens that band and is what makes 0-10-0 and the 0-2-2-0
+duplex plausible. 4-6-0 remains out.
 
 Physics axles split 2 + 1 across `Axle_F` / `Axle_R`, with the single axle at the
 cab end, and they are named plainly `[axle]` rather than the S282's
