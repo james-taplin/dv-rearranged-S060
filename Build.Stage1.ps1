@@ -1,22 +1,22 @@
 param([string]$GamePath = 'B:\SteamLibrary\steamapps\common\Derail Valley', [ValidateSet(1,2,3)][int]$Stage = 1)
 $ErrorActionPreference = 'Stop'
 $sdk = 'C:\Program Files\dotnet\dotnet.exe'
-$project = Join-Path $PSScriptRoot 'RearrangedS282\RearrangedS282.csproj'
+$project = Join-Path $PSScriptRoot 'RearrangedS060\RearrangedS060.csproj'
 $output = Join-Path $PSScriptRoot "build\stage$Stage"
 New-Item -ItemType Directory -Path $output -Force | Out-Null
 $argsForBuild = @($project, '-c', 'Release', "-p:GamePath=$GamePath", "-p:Stage=$Stage", '--verbosity', 'minimal')
 & $sdk build @argsForBuild 2>&1 | Tee-Object -FilePath (Join-Path $output 'build.log')
 if ($LASTEXITCODE -ne 0) { throw "Stage $Stage build failed." }
-$dll = Join-Path $PSScriptRoot 'RearrangedS282\bin\Release\net48\RearrangedS282.dll'
+$dll = Join-Path $PSScriptRoot 'RearrangedS060\bin\Release\net48\RearrangedS060.dll'
 Copy-Item -LiteralPath $dll -Destination $output -Force
 $gameAssemblies = @('Assembly-CSharp.dll', 'DV.Simulation.dll', 'UnityEngine.CoreModule.dll', 'UnityModManager\0Harmony.dll', 'UnityModManager\UnityModManager.dll')
 $receipt = [ordered]@{
-    upstreamCommit = '24e24d5'
+    upstreamCommit = '65c8e8a'
     configuration = "Stage $Stage development build; no installation performed"
     utc = [DateTime]::UtcNow.ToString('o')
     sdk = (& $sdk --version)
-    output = Get-FileHash -LiteralPath (Join-Path $output 'RearrangedS282.dll') -Algorithm SHA256 | Select-Object Path, Hash
-    sources = @(Get-ChildItem (Join-Path $PSScriptRoot 'RearrangedS282') -Recurse -File -Filter '*.cs' |
+    output = Get-FileHash -LiteralPath (Join-Path $output 'RearrangedS060.dll') -Algorithm SHA256 | Select-Object Path, Hash
+    sources = @(Get-ChildItem (Join-Path $PSScriptRoot 'RearrangedS060') -Recurse -File -Filter '*.cs' |
         Where-Object FullName -NotMatch '\\(bin|obj)\\' | Get-FileHash -Algorithm SHA256 | Select-Object Path, Hash)
     gameReferences = @($gameAssemblies | ForEach-Object {
         Get-FileHash -LiteralPath (Join-Path $GamePath "DerailValley_Data\Managed\$_") -Algorithm SHA256 | Select-Object Path, Hash
