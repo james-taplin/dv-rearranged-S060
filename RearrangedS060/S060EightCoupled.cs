@@ -90,6 +90,8 @@ namespace RearrangedS060
             var rearBogie = Parts.BogieFor(1);
             var axle = UnityEngine.Object.Instantiate(template1.gameObject, template1.parent);
             axle.name = AxleName;
+            // Position is only a starting point: the base class puts every axle
+            // under its wheel once the drivetrain scale is known.
             axle.transform.localPosition = template1.localPosition + new Vector3(0f, 0f, -Spacing);
             axle.transform.localRotation = template1.localRotation;
             added.Add(axle);
@@ -106,7 +108,10 @@ namespace RearrangedS060
             var powered = new[] { Parts.PoweredFor(1), Parts.PoweredFor(2), Parts.PoweredFor(3), addedPowered };
             if (powered.Any(p => p == null))
                 throw new InvalidOperationException("All three stock drivers must keep a PoweredWheel.");
-            Physics.Apply(S060Parts.DriverRadius, powered, totalAxles: 4, driverWeightFraction: 1f);
+            foreach (int driver in new[] { 1, 2, 3 })
+                AxlePairs.Add((Parts.AxleFor(driver), Parts.RightWheel(driver)));
+            AxlePairs.Add((addedAxle, wheels[Parts.MechanismRight]));
+            Physics.Apply(Scale.DriverRadius, powered, totalAxles: 4, driverWeightFraction: 1f);
         }
 
         protected override void Undo()

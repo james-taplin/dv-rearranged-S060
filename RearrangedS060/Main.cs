@@ -22,8 +22,8 @@ namespace RearrangedS060
 			Logger = modEntry.Logger;
 			ModPath = modEntry.Path;
 #if B99_STAGE1
-			// Stage 1 is the S060 P1 spike: one manual 0-4-0 conversion, driven from
-			// this window, with no comms radio, no persistence and no spawn hooks. The
+			// Stage 1 is the S060 spike build: manual conversions driven from this
+			// window, with no comms radio, no persistence and no spawn hooks. The
 			// inherited S282 geometry is compiled but never reached.
 			try
 			{
@@ -38,7 +38,7 @@ namespace RearrangedS060
 				return false;
 			}
 			modEntry.OnGUI = entry => S060SpikeWindow.Draw();
-			Logger.Log("S060 P1 spike loaded: manual 0-4-0 conversion only. Stock S282s are untouched.");
+			Logger.Log("S060 spike build loaded: manual 0-4-0 / 0-8-0 / driver-resize conversions. Stock S282s are untouched.");
 			return true;
 #elif B99_STAGE2 || B99_ALL_STANDARD
 			// Register B99 integrations explicitly. Legacy B98 global patches stay disabled.

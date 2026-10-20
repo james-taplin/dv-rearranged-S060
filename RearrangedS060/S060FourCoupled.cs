@@ -54,7 +54,9 @@ namespace RearrangedS060
             var powered = new[] { Parts.PoweredFor(1), Parts.PoweredFor(3) };
             if (powered.Any(p => p == null))
                 throw new InvalidOperationException("Drivers 1 and 3 must both keep a PoweredWheel.");
-            Physics.Apply(S060Parts.DriverRadius, powered, totalAxles: 2, driverWeightFraction: 1f);
+            foreach (int driver in new[] { 1, 3 })
+                AxlePairs.Add((Parts.AxleFor(driver), Parts.RightWheel(driver)));
+            Physics.Apply(Scale.DriverRadius, powered, totalAxles: 2, driverWeightFraction: 1f);
         }
 
         protected override void Undo()

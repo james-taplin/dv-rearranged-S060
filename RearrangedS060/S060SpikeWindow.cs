@@ -9,25 +9,41 @@ namespace RearrangedS060
     internal static class S060SpikeWindow
     {
         private static string status = "Point at a stationary S060, or stand near one.";
+        private static float driverScale = S060DriverScale.Stock;
 
         internal static void Draw()
         {
             var car = Target();
             var current = car == null ? null : S060Conversion.Current(car);
 
-            GUILayout.Label("Rearranged S060 — spike builds (0-4-0 and 0-8-0)");
+            GUILayout.Label("Rearranged S060 — spike builds (0-4-0, 0-8-0, driver resize)");
             GUILayout.Label(car == null
                 ? "No S060 found. Spawn one and stand near it."
                 : "Target: " + S060Conversion.Describe(car));
+
+            GUILayout.Space(4);
+            using (new GUILayout.HorizontalScope())
+            {
+                GUILayout.Label("Driver size " + (2f * S060Parts.DriverRadius * driverScale).ToString("0.00") +
+                    " m  (scale " + driverScale.ToString("0.00") + ")", GUILayout.Width(260));
+                driverScale = GUILayout.HorizontalSlider(driverScale,
+                    S060DriverScale.Smallest, S060DriverScale.Largest, GUILayout.Width(220));
+                if (GUILayout.Button("STOCK SIZE", GUILayout.Width(110)))
+                    driverScale = S060DriverScale.Stock;
+            }
+            GUILayout.Label("Scale is read when you convert. To try another size, restore and convert again.");
+            GUILayout.Space(4);
 
             using (new GUILayout.HorizontalScope())
             {
                 if (car != null && current == null)
                 {
                     if (GUILayout.Button("CONVERT TO 0-4-0", GUILayout.Width(200)))
-                        Run(() => S060Conversion.Convert<S060FourCoupled>(car), "Converted " + car.ID + " to 0-4-0.");
+                        Run(() => S060Conversion.Convert<S060FourCoupled>(car, driverScale), "Converted " + car.ID + " to 0-4-0.");
                     if (GUILayout.Button("CONVERT TO 0-8-0", GUILayout.Width(200)))
-                        Run(() => S060Conversion.Convert<S060EightCoupled>(car), "Converted " + car.ID + " to 0-8-0.");
+                        Run(() => S060Conversion.Convert<S060EightCoupled>(car, driverScale), "Converted " + car.ID + " to 0-8-0.");
+                    if (GUILayout.Button("RESIZE DRIVERS ONLY", GUILayout.Width(200)))
+                        Run(() => S060Conversion.Convert<S060Rescaled>(car, driverScale), "Resized " + car.ID + "'s drivers.");
                 }
                 if (car != null && current != null && GUILayout.Button("RESTORE STOCK 0-6-0", GUILayout.Width(200)))
                     Run(() => S060Conversion.Restore(car), "Restored " + car.ID + " to 0-6-0.");

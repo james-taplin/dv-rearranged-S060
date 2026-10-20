@@ -40,6 +40,11 @@ namespace RearrangedS060
         internal IEnumerable<Transform> Wheels(int index) =>
             wheels.TryGetValue(index, out var list) ? list : Enumerable.Empty<Transform>();
 
+        // DV binds its PoweredWheels to the right-hand mechanism's wheels, so that
+        // is the side anything axle-shaped should be measured against.
+        internal Transform RightWheel(int index) =>
+            Wheels(index).FirstOrDefault(w => w.parent == MechanismRight);
+
         internal Transform AxleFor(int index) =>
             axleForWheel.TryGetValue(index, out var axle) ? axle : null;
 

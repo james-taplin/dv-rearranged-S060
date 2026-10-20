@@ -14,6 +14,13 @@ namespace RearrangedS060
 
         protected S060Parts Parts { get; private set; }
         protected B99PhysicsState Physics { get; private set; }
+        protected S060DriverScale Scale { get; private set; }
+
+        // Each entry pairs a live physics axle with the visual wheel it drives.
+        // After any scaling the axles are moved onto their wheels, so the two
+        // never drift apart whatever size the drivetrain ends up.
+        protected readonly List<(Transform axle, Transform wheel)> AxlePairs =
+            new List<(Transform, Transform)>();
 
         // The stock S060: three coupled axles, all powered.
         protected const int StockPoweredAxles = 3;
@@ -22,6 +29,37 @@ namespace RearrangedS060
 
         protected abstract void Apply();
         protected abstract void Undo();
+
+        private readonly List<(Transform axle, Vector3 position)> axleHome =
+            new List<(Transform, Vector3)>();
+
+        // A bogie's axles sit outside the drivetrain, so scaling does not move
+        // them. Put each one under the wheel it drives, in the bogie's own space.
+        private void AlignAxlesToWheels()
+        {
+            foreach (var (axle, wheel) in AxlePairs)
+            {
+                if (axle == null || wheel == null) continue;
+                axleHome.Add((axle, axle.localPosition));
+                float carZ = Parts.Car.transform.InverseTransformPoint(wheel.position).z;
+                var local = axle.parent.InverseTransformPoint(
+                    Parts.Car.transform.TransformPoint(new Vector3(0f, 0f, carZ)));
+                axle.localPosition = new Vector3(axle.localPosition.x, axle.localPosition.y, local.z);
+            }
+            // Force both bogies to rebuild their axle lists from where the axles
+            // now actually are.
+            Parts.FrontBogie.axles = null;
+            Parts.RearBogie.axles = null;
+        }
+
+        private void RestoreAxlePositions()
+        {
+            foreach (var (axle, position) in axleHome)
+                if (axle != null) axle.localPosition = position;
+            axleHome.Clear();
+            if (Parts.FrontBogie != null) Parts.FrontBogie.axles = null;
+            if (Parts.RearBogie != null) Parts.RearBogie.axles = null;
+        }
 
         internal static S060Conversion Current(TrainCar car) =>
             car != null && active.TryGetValue(car, out var state) ? state : null;
@@ -33,21 +71,25 @@ namespace RearrangedS060
             return car.ID + ": " + (state == null ? "stock 0-6-0" : state.Name);
         }
 
-        internal static void Convert<T>(TrainCar car) where T : S060Conversion, new()
+        internal static void Convert<T>(TrainCar car, float driverScale) where T : S060Conversion, new()
         {
             if (car == null) throw new ArgumentNullException(nameof(car));
             if (active.ContainsKey(car))
                 throw new InvalidOperationException(car.ID + " is already converted; restore it first.");
             RequireStationary(car);
 
+            var parts = S060Parts.Resolve(car);
             var state = new T
             {
-                Parts = S060Parts.Resolve(car),
-                Physics = new B99PhysicsState(car, StockPoweredAxles)
+                Parts = parts,
+                Physics = new B99PhysicsState(car, StockPoweredAxles),
+                Scale = new S060DriverScale(parts)
             };
             try
             {
+                state.Scale.Apply(driverScale);
                 state.Apply();
+                state.AlignAxlesToWheels();
             }
             catch
             {
@@ -56,7 +98,9 @@ namespace RearrangedS060
                 throw;
             }
             active[car] = state;
-            Main.Logger.Log("S060 " + car.ID + " converted: " + state.Name);
+            Main.Logger.Log("S060 " + car.ID + " converted: " + state.Name +
+                ", driver scale " + state.Scale.Factor.ToString("0.00") +
+                " (" + (2f * state.Scale.DriverRadius).ToString("0.00") + " m drivers)");
         }
 
         internal static void Restore(TrainCar car)
@@ -66,6 +110,8 @@ namespace RearrangedS060
                 throw new InvalidOperationException(car.ID + " is not converted.");
             RequireStationary(car);
             state.Undo();
+            state.Scale.Restore();
+            state.RestoreAxlePositions();
             active.Remove(car);
             Main.Logger.Log("S060 " + car.ID + " restored to stock 0-6-0.");
         }
