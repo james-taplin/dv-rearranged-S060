@@ -77,7 +77,8 @@ reports in its own folder). Game `99-build2702`.
 ## State: what is proven and what is not
 
 **Proven in game (20 Oct):**
-- 0-4-0 converts, restores and **rides well**. This settled the open question:
+- 0-4-0 converts, restores and **rides well** — driven light engine at full
+  regulator and full cutoff. This settled the open question:
   the bogie pivots can be left where DV put them, with an axle offset from its
   pivot. Everything since relies on that.
 - 0-8-0 converts cleanly. Probe confirms `poweredAxles.NUM = 4`, two axles on
@@ -87,7 +88,9 @@ reports in its own folder). Game `99-build2702`.
   total adhesion is the same on two axles as on three. Only per-axle load changes.
 
 **Not verified:**
-- **Nothing has been driven.** The single most important unknown is **rod sync**:
+- **Driving status: 0-4-0 driven successfully once; 0-8-0 and 0.3.0 resizing not
+  yet tested in motion.** The single most important unknown is **rod sync**, and
+  it only exists on the 0-8-0, so it has never moved under power:
   the 0-8-0's extension rod and fourth wheel are not in the native clips and copy
   an animated part's pose in `LateUpdate` (`S060FollowPose`). If that stutters,
   lags or drifts, it blocks every later arrangement.
