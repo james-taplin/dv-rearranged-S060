@@ -30,20 +30,28 @@ through the extraction path in `MeshFinder`.
 
 ### Plan
 
-- **P0** — read-only probe mod (built separately, under
-  `Desktop\Derail Valley Mods\Mods (code)\RearrangedS060Probe`) dumps the S060's
-  bogie/axle layout, clearances, sim ports and animators. Answers section 5 of
-  the feasibility doc. **Pending a run in game.**
-- **P1** — 0-4-0: hide driver 3, swap to the two-axle coupling rod, align the
-  native axle. If this works the rest is bookkeeping.
-- **P2** — 0-8-0: clone a driver and a native axle, extend the coupling rod.
-- **P3** — trucks: 2-6-0 and 0-6-2.
+- **P0** — done. A read-only probe mod dumped the live S060's bogies, axles,
+  clearances, splitter API, sim ports and animators; section 5 of the feasibility
+  doc is now answered from it.
+- **P1** — 0-4-0: drop driver 2 or 3 (not driver 1 — `Axle_R` holds only one
+  axle), swap to the two-axle coupling rod, update `poweredAxles.NUM` and the
+  `PoweredWheelsManager` list, hide that axle's brake caliper.
+- **P2** — 0-6-2: trailing truck behind driver 1, where there is 1.31 m of clear
+  low space. The cheapest way to add wheels.
+- **P3** — forward wheels: 2-6-0 (needs the split cylinder block moved) and a
+  reduced-spacing 0-8-0 if it still looks right.
 - **P4** — shell: comms radio, saved arrangements, spawn pool, diagnostics,
   tests, ported from the S282 mod.
 
-What fits in a 3.10 m frame is 0-4-0, 0-8-0, 2-6-0, 0-6-2, 2-6-2T and
-combinations. 4-6-0 probably does not; 0-10-0 only with shrunken drivers. The
-S282's duplexes, Mallets and triplexes are not targets.
+What fits, measured against the car's 7 colliders: 0-4-0 and 0-6-2 are cheap,
+2-6-0 means moving the cylinders, and **0-8-0 does not fit at stock spacing** — a
+fourth driver would centre at Z +3.25 and overlap the front coupler box. 4-6-0 and
+0-10-0 need shrunken drivers at best. The S282's duplexes, Mallets and triplexes
+are not targets.
+
+Physics axles split 2 + 1 across `Axle_F` / `Axle_R`, with the single axle at the
+cab end, and they are named plainly `[axle]` rather than the S282's
+`[axle] drive N` — so the inherited lookups do not transfer.
 
 ## Building
 
