@@ -4,19 +4,19 @@ Build: repo `rearranged-s060`, stage 1, 20 Oct 2026.
 DLL SHA-256 `7AEA354A6D56840FCD305230F64FF11B867A96EFEAE2BBF27A4C8A200A2B87A1`.
 ZIP SHA-256 `70D07FD0AEE736BAF2258C45BA8A3F1CA79C0E4F580E2457D55A40336F6B60A1`.
 
-**Not installed.** Drop the `RearrangedS060` folder into `Derail Valley\Mods\`
-when you want it, or install the zip through the mod manager. It needs
-LocoMeshSplitter, which you already have. It can sit alongside Rearranged S282 —
+**Installed** at `Derail Valley\Mods\RearrangedS060` on 20 Oct 2026, with
+James's go-ahead and the game shut down; all three files hash-match the build. It
+needs LocoMeshSplitter, which is already there. It can sit alongside Rearranged S282 —
 different mod Id, different assembly, and it only patches `Bogie.Axles`.
 
 ## What it does
 
 Adds one window to the mod manager with a single button. To find it: **Ctrl+F10**
 → the **Mods** tab → scroll to **Rearranged S060 - P1 0-4-0 spike** → click that
-row to expand it. The buttons are inside that expanded entry; there is nothing on
-the comms radio at this stage. The window reads **CONVERT TO 0-4-0**, and **RESTORE STOCK 0-6-0** once converted. No comms
-radio, no saving, no spawn hooks, nothing automatic. Target is whatever S060 you
-are looking at, else the nearest one.
+row to expand it. The buttons live inside that expanded entry: **CONVERT TO
+0-4-0**, and **RESTORE STOCK 0-6-0** once converted. There is nothing on the comms
+radio at this stage — that is P4 work — and no saving, no spawn hooks and nothing
+automatic. The target is whatever S060 you are looking at, else the nearest one.
 
 It drops the **middle** driver and leaves drivers 1 and 3 coupled, 3.10 m apart.
 Driver 2 had to be the one to go: `Axle_R` owns only driver 1, so taking driver 1
