@@ -1,7 +1,7 @@
 {
   "Id": "RearrangedS060",
   "Version": "0.1.0",
-  "DisplayName": "Rearranged S060 - stage 0 scaffold (inactive)",
+  "DisplayName": "Rearranged S060 - P1 0-4-0 spike",
   "Author": "james-taplin, forked from SatiricRug's Rearranged S282",
   "EntryMethod": "RearrangedS060.Main.Load",
   "ManagerVersion": "0.27.3",

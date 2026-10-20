@@ -11,8 +11,10 @@ different mod Id, different assembly, and it only patches `Bogie.Axles`.
 
 ## What it does
 
-Adds one window to the mod manager (Ctrl+F10 → *Rearranged S060*) with a single
-button: **CONVERT TO 0-4-0**, and **RESTORE STOCK 0-6-0** once converted. No comms
+Adds one window to the mod manager with a single button. To find it: **Ctrl+F10**
+→ the **Mods** tab → scroll to **Rearranged S060 - P1 0-4-0 spike** → click that
+row to expand it. The buttons are inside that expanded entry; there is nothing on
+the comms radio at this stage. The window reads **CONVERT TO 0-4-0**, and **RESTORE STOCK 0-6-0** once converted. No comms
 radio, no saving, no spawn hooks, nothing automatic. Target is whatever S060 you
 are looking at, else the nearest one.
 
