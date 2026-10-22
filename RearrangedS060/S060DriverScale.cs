@@ -5,12 +5,14 @@ using UnityEngine;
 
 namespace RearrangedS060
 {
-    // Shrinks or grows the whole visible drivetrain, which is the S282 mod's own
-    // trick for fitting more axles into a frame (it runs about 0.68 for the
-    // 4-14-4). Both DrivingMechanism transforms sit at the car origin, at rail
-    // level, so scaling them uniformly keeps every wheel on the rail, keeps the
-    // rods attached to their crank pins, and takes the cylinders and valve gear
-    // with it — no re-rodding, no re-timing, nothing to animate differently.
+    // Running-gear layout scaling, NOT independent wheel-diameter editing.
+    // Gauge is the X axis and must remain stock. The working S282 implementation
+    // uses (-1, f, f)/(1, f, f), e.g. WheelRearranger.cs:2431-2432. The original
+    // S060 implementation incorrectly multiplied X too; James's 0.824x test and
+    // screenshot confirmed the resulting lateral misalignment on 21 Oct 2026.
+    // Scaling Y/Z together preserves circular wheels and the native rod motion,
+    // but also changes axle pitch and cylinder placement. That remains an
+    // experimental layout change, not a completed independent resize feature.
     //
     // What it does NOT scale, because they live outside the mechanism:
     //   * the native [axle] objects under each bogie — those are repositioned to
@@ -19,9 +21,9 @@ namespace RearrangedS060
     //     are hidden while a non-stock scale is applied rather than left floating
     //     around wheels of the wrong size.
     //
-    // Scaling moves the cylinders bodily towards the car centre, because they are
-    // part of the drivetrain. Moving them back out independently is what
-    // DriveRetarget is for, and that is the next job rather than this one.
+    // CylinderFittings translates the full-size stock cylinders and every
+    // associated outlet after the arrangement places its mechanisms. The upper
+    // branches bend back to their fixed boiler mounts. No cylinder scaling.
     internal sealed class S060DriverScale
     {
         internal const float Stock = 1f;
@@ -32,6 +34,7 @@ namespace RearrangedS060
             new List<(Transform, Vector3)>();
         private readonly List<Renderer> hiddenBrakes = new List<Renderer>();
         private readonly S060Parts parts;
+        private S060CylinderFittings fittings;
 
         internal float Factor { get; private set; } = Stock;
         internal float DriverRadius => S060Parts.DriverRadius * Factor;
@@ -53,9 +56,8 @@ namespace RearrangedS060
             {
                 var original = mechanism.localScale;
                 originals.Add((mechanism, original));
-                // DrivingMechanism_L is mirrored (x = -1), so scale component-wise
-                // rather than assigning a uniform vector.
-                mechanism.localScale = original * factor;
+                // Retain lateral size and the left mechanism's mirror exactly.
+                mechanism.localScale = new Vector3(original.x, original.y * factor, original.z * factor);
             }
 
             // Brake gear belongs to the body, not the drivetrain, so at any other
@@ -70,12 +72,24 @@ namespace RearrangedS060
 
         internal void Restore()
         {
+            fittings?.Dispose(); fittings = null;
             foreach (var (mechanism, scale) in originals)
                 if (mechanism != null) mechanism.localScale = scale;
             originals.Clear();
             foreach (var renderer in hiddenBrakes) if (renderer != null) renderer.enabled = true;
             hiddenBrakes.Clear();
             Factor = Stock;
+        }
+
+        // Destruction fallback: release owned meshes without touching dead
+        // transforms, native physics or detached audio controller lifetimes.
+        internal void ReleaseResources()
+        { fittings?.ReleaseResources(); fittings = null; }
+
+        internal void PositionFittings(float forwardOffset)
+        {
+            if (!Mathf.Approximately(Factor, Stock) || Math.Abs(forwardOffset) > .00001f)
+                fittings = S060CylinderFittings.Apply(parts, Factor, forwardOffset);
         }
 
         private IEnumerable<Renderer> BrakeRenderers() =>

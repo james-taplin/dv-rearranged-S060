@@ -12,11 +12,13 @@ namespace RearrangedS060.Patches
 	[HarmonyPatch(typeof(Bogie), nameof(Bogie.Axles), MethodType.Getter)]
 	internal class BogieAxlesPatch
 	{
-		static void Postfix(Bogie __instance)
+		static void Postfix(Bogie __instance, ref Bogie.AxleInfo[] __result)
 		{
-			__instance.axles =
-				__instance.axles
-				.Where((source, index) => source.transform.gameObject.activeSelf)
+			// The getter has already copied its cache into the return value.
+			// Updating only the cache leaves the FIRST caller holding retired
+			// pony/driver axles until Destroy runs at the end of this frame.
+			__result = __instance.axles = __result
+				.Where(source => source.transform != null && source.transform.gameObject.activeInHierarchy)
 				.ToArray();
 		}
 	}

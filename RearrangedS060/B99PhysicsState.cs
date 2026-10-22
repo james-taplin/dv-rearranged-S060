@@ -29,6 +29,9 @@ namespace RearrangedS060
         private readonly float originalDefinition;
         private readonly bool originalForceEnabled;
         private readonly Port originalEngineBrakingPort;
+#if B99_S060_ARTICULATED
+        private readonly S060WheelCondition wheelCondition;
+#endif
 
         public float DriverRadius => originalForceRadius;
         public PoweredWheel[] OriginalPowered => (PoweredWheel[])originalPowered.Clone();
@@ -71,6 +74,9 @@ namespace RearrangedS060
                     originalPowered.Length + " powered, port " + originalPort +
                     ", " + originalShared.numOfAxles + " axles.");
             ConventionalPhysics.RpmPerMetrePerSecond(originalForceRadius);
+#if B99_S060_ARTICULATED
+            wheelCondition = S060WheelCondition.For(car, originalPowered);
+#endif
         }
 
         public void Apply(float radius, PoweredWheel[] powered, int totalAxles, float driverWeightFraction)
@@ -91,6 +97,9 @@ namespace RearrangedS060
             // Keep wheel-slide friction separate from powered-wheel adhesion.
             car.entity.SetComponentData(shared);
             car.entity.SetComponentData(friction);
+#if B99_S060_ARTICULATED
+            wheelCondition?.Bind(powered);
+#endif
             sim.poweredWheels.poweredWheels = (PoweredWheel[])powered.Clone();
             for (byte i = 0; i < powered.Length; i++) powered[i].index = i;
             poweredAxlesPort.Value = powered.Length;
@@ -110,6 +119,9 @@ namespace RearrangedS060
 
         public void Restore()
         {
+#if B99_S060_ARTICULATED
+            wheelCondition?.Bind(originalPowered);
+#endif
             car.entity.SetComponentData(originalShared);
             car.entity.SetComponentData(originalFriction);
             sim.poweredWheels.poweredWheels = (PoweredWheel[])originalPowered.Clone();

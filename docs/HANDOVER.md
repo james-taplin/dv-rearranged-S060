@@ -1,9 +1,1329 @@
 # Rearranged S060 — handover
 
-Written by Claude, 20 Oct 2026, at commit `cbbdcfe` (version 0.3.0). Everything
-below is either measured or marked as unverified; nothing is inferred.
+## 0.15.0 cleanup candidate — 22 October 2026
 
-## What this is
+User authorized remaining audit cleanup, save compatibility, full testing and
+installation only with the game closed, **without a new backup**. The old backup
+instruction below is superseded. Twelve S060 install-backup folders and five
+independent S060 source/bundle/restore copies were deleted at the user's request;
+receipts: `build/cleanup-0.15.0/backup-removal.json` and
+`build/cleanup-0.15.0/independent-backup-removal.json`. Canonical source/Git history,
+the live installation and canonical builds remain. Historical backup paths below
+describe past actions and are no longer recovery locations.
+
+M01 oil-cup responsibilities split between topology, interactable/controller
+ownership and geometric mounts. M02 engine roles use shared semantic mappings
+while stable native IDs, old aliases and trace/save JSON remain unchanged.
+M04 runtime and authoring share calibration with exact legacy float/double values,
+including the existing one-ULP authored/runtime Dockside stroke difference.
+M05 incomplete cleanup retains ownership and native attachment frames for retry;
+missing donors are rejected before dismantling the old arrangement. This is
+best-effort recovery, not a claim of atomic geometry after arbitrary failures.
+M06 moved 74 inactive source/resource/script files byte-for-byte to
+`archive/legacy-runtime` with a verified manifest. Current build is explicit and
+only supports Stage7; Build.Runtime contains the real builder. Save versions,
+port/circuit IDs, livery/resource/wheel/damage identities and tuning are retained.
+
+Fresh complete Build.Release run passed:
+
+- Runtime: `A9DEEB25495A5A3B1AD5A8308B2A9FCF37B9D3E514216B6AD671404B1022CB7C`.
+  Zero compile warnings/errors.
+- `build/radio-0.15.0/runtime-audits-20261022-213928`: 611 exhaust/audio,
+  41 cock, 117 cleanup and 6,942 collision assertions. The eight new cleanup
+  assertions use the shipping articulated Undo with a transient lamp-owner
+  disposal failure, actual native Transform restoration and retained frame.
+  Physics is explicitly skipped in that failure fixture.
+- 173 functional, 241 native engine/save/ECS, 527 native oiling, 100 repeated
+  same-frame axle-getter, 1,151 geometry, 35 conversion-boundary assertions over
+  14 injected scenarios, 25 compound physics, 18 Meyer native and 17 Dockside
+  native assertions. Conversion scenario discovery/scene services use test
+  doubles; these are not fourteen live native-world tests.
+- Installer: 24 assertions over three isolated fixture scenarios (running-game
+  rejection, tampered-package rejection, no-backup install/protected hashes),
+  `build/installer-proof-20261022-213927`.
+- Fresh reopened packs: `build/meyer/authoring-20261022-213840` and
+  `build/dockside/authoring-20261022-213914`. Motion, rods/pins, pipes, oil cups,
+  native aliases and Meyer lamps pass all required hash-bound reports.
+- Complete package: `build/articulated-0.15.0`, packs retain version 0.6.0.
+
+At this checkpoint 0.14.0 remains the installed test build. The 0.15.0 source
+checkpoint, clean-source build proof and installation record are finalized below
+after those operations. Gameplay acceptance remains pending; no push/publication.
+
+## Current installed audit fixes — 22 October 2026
+
+**Installed and hash verified: S060 0.14.0, Meyer/Dockside packs 0.6.0.**
+Installed at 20:54 UK / 19:54 UTC with the game closed, checked before backup and
+again immediately before copying. Host process checks and Unity runs used normal
+host permissions; sandbox-only process enumeration did not expose host Unity.
+Receipt: `build/articulated-0.14.0/install-receipt-latest.json`.
+Backup: `C:\Users\james\Desktop\Derail Valley Mods\RearrangedS060\installed-backup-0.13.1-20261022-195432Z\mods`.
+All 18 previous files in the three mod folders were backed up and hash verified;
+11 package files installed and hash verified. All five protected files retained:
+S060 Settings.xml, S282 DLL/source bundle, LocoMeshSplitter DLL and probe DLL.
+No game launched, saves edited, public release, Git commit or tree cleanup done.
+
+Final runtime SHA256:
+`6D5B365C31A054B0381912C57D6D19741A6AE14CE42697672C868B6816920146`.
+Both normal default project build and explicit Stage7 build produce this DLL,
+with zero warnings/errors. The project now defaults to the supported Stage7.
+
+### Corrected boundaries
+
+- Native chimney initialization occurs inside SimController.Initialize before
+  our owner postfix. Enroll already initialized readers after publishing the
+  owner; retain Init/Deinit hooks for later readers. Regression starts smoke
+  before owner registration. Meyer chimney/chuffs remain LP-sourced; Dockside
+  retains independent simple-unit pulses and pressure gates.
+- Native TrainAudio can be detached under car.interior. Discovery now includes
+  that root, placement survives late SetupForCar, and ReturnToPool restores
+  original parents/poses. Only native source holders move. Stock cock muting
+  covers control as well as flow to suppress native moving cold-air hiss;
+  articulated unit copies retain their own live readers.
+- Select oil topology synchronously when a conversion commits or returns to
+  stock/release, before delayed cup construction. Cup geometry no longer owns
+  the active mask. Newly initialized stock flows activate their extra big ends.
+  Dormant circuit oil/lid/save values remain intact.
+- Native PrepareForDestroy attempts normal release while the hierarchy exists.
+  Direct destruction has a mesh-only fallback that removes conversion ownership
+  and disposes generated rods/body pipes/rear lamp-buffer meshes idempotently.
+- Meyer rear colliders follow the actual articulated rear frame in physics and
+  render updates while remaining beneath the native car collision root. They
+  retain the car Rigidbody, material and layer; removal disables them immediately.
+  Donor frames are validated before dismantling the prior arrangement.
+- Version1 engine JSON uses an explicit cached, checked native field map;
+  legacy names/order/schema remain identical. Shared production calibration
+  retains existing precision, dimensions and tuning.
+
+### Final validation evidence
+
+`Build.Release.ps1 -SkipAuthoring` completed against these fresh exports:
+
+- Meyer: `build/meyer/authoring-20261022-195230`, bundle SHA256
+  `9CDD9B70602B8834498DC74103188D0A41B65026FC3B27BF69297BC20B59BD87`.
+- Dockside: `build/dockside/authoring-20261022-195249`, bundle SHA256
+  `C577111E6F876E57BB0EFC41CC3C11C595019C243E6DF586D517F7B64B16DC0B`.
+- Final native lifecycle suite:
+  `build/radio-0.14.0/runtime-audits-20261022-195319/runtime-validation.json`.
+  611 exhaust/audio, 41 cock, 109 cleanup and 6,942 collision assertions passed
+  against the shipping candidate. Collision sweeps use 90 pose/cycle combinations
+  with corner/body-ownership checks, not 6,942 separate driving scenes.
+- Package regressions: 173 functional, 223 native engine/save/ECS, 501 oiling,
+  100 repeated same-frame axle-getter, 1,151 measured geometry, 16 Meyer native
+  and 17 Dockside native checks. Separate pure compound suite: 25 passed.
+- Both reopened bundles pass all required motion, pin/rod fit, pipes, oil-cup and
+  native-alias checks; Meyer lamp checks pass. No native game meshes/audio baked
+  into the distributable bundles. Art dimensions/tuning were not intentionally
+  changed in this audit-fix build; pack versions remain 0.6.0.
+- Evidence tampering proofs: healthy fixture accepted; changed bundle, changed
+  report, missing canonical report and replacement before receipt rejected.
+  `build/script-proof-533df91d4c8e4fc295ceccee5887e438/negative-validation.json`.
+  Staging guards reject extra files/subdirectories. All core/asset receipts are
+  canonical manifests; native reopening reports bind the exact bundle SHA256.
+
+`Build.Config.ps1` / optional ignored `Build.Local.json` centralize paths.
+`Prepare.QA.ps1` regenerates native fixtures under ignored build/qa instead of
+relying on older version directories. Current commands are Build.Runtime,
+Build.Release and Test.Runtime; Test.Exhaust forwards to the complete suite.
+Prototype package commands are retired with explicit replacement messages.
+See BUILDING.md and AUDIT-2026-10-22.md for scope and remaining maintainability
+items. A clean clone has not been proven: inherited untracked implementation
+must be preserved and committed before it can exist in a clone.
+
+**Gameplay acceptance remains pending:** first-load hot Meyer/Dockside smoke and
+chuffs, hot/cold cab-cock cycling after audio streaming, oil-can/lid interaction,
+Meyer contact on curves/rerail and longer deletion/pooling sessions. Editor/native
+fixtures do not establish audible balance, full-scene physics or long-session
+memory. Use RADIO-ARTICULATED-TESTING.md. All requested runtime audit defects F01–F08
+are addressed; broad source archiving, semantic slot-name cleanup and further
+authoring calibration consolidation remain documented follow-up work.
+Verde credit is **discordraconequus**, including the installed CREDITS.md.
+
+## Historical handover
+
+The original handover began with Claude on 20 October 2026, at commit `cbbdcfe`
+(version 0.3.0). The following entries record earlier states and evidence.
+
+## Previous exhaust correction — 22 October 2026 (superseded by 0.14.0)
+
+**Installed and hash verified: S060 0.13.1**, unchanged Meyer/Dockside **0.6.0**
+bundles. Installed 22 October at 10:57 UK, game closed and checked twice.
+Receipt: `build/articulated-0.13.1/install-receipt-latest.json`.
+Backup: `C:\Users\james\Desktop\Derail Valley Mods\RearrangedS060\installed-backup-0.13.0-20261022-095755Z\mods`.
+Eleven package files and five protected files verified; settings, S282 DLL/source
+bundle, Loco Mesh Splitter and probe retained. No game launched, saves edited or
+public release performed. Core package includes CREDITS.md.
+
+James supplied discordraconequus's Verde archive with the author's invitation to use
+it as a compound template. Its serialized native HP/MP/LP controls, lower LP
+chuff pressure bands (3/4.5 bar) and LP chimney source informed this correction.
+No Verde art/audio copied. CREDITS.md is now included in the core package;
+both asset README files also credit the reference. Do not blindly copy Verde's
+pressure-to-quality connections or assume its serialized graph was runtime
+validated. The local read-only archive inspection is under
+`build/verde-reference-20261022` (ignored, not packaged).
+
+Confirmed defect: native S060 chimney/chuff readers remained bound to
+`steamEngine`, which is HP in Meyer mode. LP occupies `rs060FrontEngine`
+(the name is a stable logical slot, not its physical location). S060ExhaustPresentation
+now rebinds the original native readers to LP including frequency, water and ash
+inputs; original IDs and pressure bands restore on deinit/stock selection.
+Local cylinder-cock readers remain independently bound to their own stages.
+
+Dockside retains the original native chuff reader for one simple engine and
+creates a second reader from the authored native audio subtree, following the
+working S282 precedent. Mutable curve/loop/config objects are independently
+owned; clips remain native references. The single original smoke reader receives
+both engines' events, each gated by that engine's own exhaust pressure. A local
+presentation-only pressure port exposes max(P1,P2), not summed absolute pressure.
+Events call the native handler directly: a synthetic change-only event port
+would incorrectly collapse equal indices from the two units. No simulation
+graph, resources, engine calibration, saved schema or bundled geometry changed.
+
+Native reader Init/Deinit hooks cover streamed and detached audio instances.
+Mode changes rebind tracked live readers. Deinit removes owned callbacks,
+stops cloned audio, clears native smoke coroutines and restores cached particle
+baselines before re-enumerating inactive leaves. Native LayeredAudio.Stop alone
+retains its cached volume input; call native Reset as well so unchanged input can
+restart stopped loops. Extra-reader failure cleanup never calls Deinit before
+its Init completed.
+
+`Test.Exhaust.ps1` builds Stage7 and runs the production Harmony hooks with
+installed B99 readers in the isolated hidden Unity editor. Final evidence:
+`build/radio-0.13.1/exhaust-native-20261022-095556` — **584 checks pass**,
+12 Stock/Meyer/Dockside cycle sequences plus detached interior readers,
+subscription cleanup, equal-index pulse forwarding, separate hot/cold unit gates,
+actual native chimney coroutine starts and native loop cache reset. Exact runtime
+SHA256 `E280B447F193D2072CA297E710F8ADC5A0B19E84487249C2CEFBB9C96CF1468F`.
+Build.Radio now requires this audit to match its exact DLL hash. Initial test
+fixtures exposed reflected editor component clones losing nested serialized
+configuration; explicit authored configuration copying and fresh mutable objects
+avoid relying on that clone state. All final audit assertions remain enabled.
+Final Stage7 build: zero warnings/errors. Existing regressions rerun successfully:
+173 functional/save/selection, 193 native engine/ECS, 100 axle transitions,
+1,151 measured geometry, 212 native oiling, 16 Meyer and 17 Dockside native
+engine checks. Reused unchanged 0.6.0 bundle geometry evidence. Existing 41 native
+cock checks remain applicable; cylinder-cock code and authored assets unchanged.
+
+The audit uses an inert managed car event source and real native ports/readers;
+it does not load the game world or validate audible mixing. Before public release,
+James must listen to both arrangements under load, watch the chimney through
+switches/coasting, and repeat streaming/save-reload. The 0.13.0 running-gear,
+oil-can/lamp-control gameplay checks also remain pending.
+
+## Current polish revision — 21 October 2026, late evening
+
+**Installed and hash verified: S060 0.13.0 / Meyer and Dockside 0.6.0.**
+Installed 21 October at 23:31 UK with the game closed (checked twice).
+This section supersedes earlier current headings. Receipt:
+`build/articulated-0.13.0/install-receipt-latest.json`.
+Backup: `C:\Users\james\Desktop\Derail Valley Mods\RearrangedS060\installed-backup-0.12.0-20261021-223125Z\mods`.
+Ten installed package files and five protected files hash verified; existing
+settings, S282 DLL/source bundle, mesh splitter and probe retained. No game
+launched or save edited. Runtime SHA256:
+`F8E677D156E2125BDDA6689FDD952665ED191ADA5AA45001ECD3A969B6209396`.
+
+Final exports: Meyer `build/meyer/authoring-20261021-222629`, Dockside
+`build/dockside/authoring-20261021-222710`. Preview and reopened-bundle checks
+pass: motion 17,028/15,972; pipes 423 each (maximum face gap .0325 mm);
+native pin fits 68 each; supported oil cups 14,719 each; conventional rods
+3,120; Meyer lamps/buffers including native LOD restoration 7,596.
+Runtime build has zero warnings/errors. Functional 173, native engines/ECS193,
+axle transitions100, measured geometry1,151, native oiling212, separate native
+Meyer16/Dockside17 and native cock lifecycle41 checks pass. Fresh cock evidence:
+`build/radio-0.13.0/cock-native-final` (hidden licensed editor; batch-mode
+attempt refused licensing and did not execute the audit). Complete in-game
+acceptance remains pending: native oil-can/lid interaction, lamp switches/LODs,
+full running-gear animation and saved/coupled Meyer reload. See testing guide.
+
+James tested 0.12 hot and cycled the cocks, reporting that it looked good. The
+preserved automatic traces confirm positive cock flow in both units of both
+layouts. Meyer L-024: 25 powered samples, 13.05–13.23 bar abs, peak 88.68 kN
+against at least 128.62 kN grip. Dockside L-095: 53 samples, 13.26–14.08 bar abs,
+peak 66.45 kN against at least 128.76 kN grip. Native torque binding is live;
+recorded absence of slip is expected. No adhesion/performance rebalance.
+No rolling-audio or empty-particle-parent flood in the latest log. Evidence:
+`build/radio-0.13.0/test-logs-hot`, including machine-readable trace-summary.json.
+
+A real save/reload defect was present: Meyer support preparation moves bogies
+before S060Parts.Resolve maps original stock axles by car Z. L-024 failed at
+Z=-6.089. Resolution now uses captured original support position/rotation plus
+the unchanged stock bogie-local axle pose. New headless regression covers the
+three measured native stations; complete live save/reload remains a test.
+
+### Governing polish decisions
+
+- Meyer remains one native S060, one identity, two native bogies. The front uses
+  original full-size split S060 cylinder renderers reparented onto its frame,
+  preserving native material/paint and LOD references. Their original transforms
+  restore before frame teardown. Stock crack outlets follow as well. Cock
+  outlets match the native castings; shared cab control and compound sim stay.
+- Body and pipes follow current S282 guidance: keep the genuine inclined boiler
+  fittings, cut/cap only the lower neck and mate actual mesh faces. Found and
+  corrected guessed marker/socket centres, mirrored left inside-out triangles,
+  and deformation of the upper rim of a transfer flange despite a fixed centre.
+  Audits now measure real cap triangles/normals and lower casting intersections,
+  not just guide markers. Dockside boiler supply reaches both cylinder sets.
+- Rear Meyer has a raised sloped open bunker/equipment top, pannier mounts,
+  connected steps/frame fittings and lamp pedestals. No resource capacity added.
+  Native lower lamp housings at both LODs, paired glass and controlled low-light
+  groups move to the bogie; original upper lamp stays on the cab. Native rear
+  buffer heads retain compression through an owned wrapper. Rear-only stem
+  geometry follows the beam; front geometry stays original. Hook plate moves
+  with it. Remove duplicate authored heads. Logical rear coupler is unchanged.
+- Full native front cylinder gland clearance required shortening the visual
+  Meyer main rod to 1.15 m and fitting its guides. Cylinder stroke/engine
+  calibration remain unchanged. Actual crosshead front edge clears the broader
+  native casting by about 30 mm; old centre-only checks missed its intrusion.
+- Preserve the four native guide/crosshead cups in addition to two functional
+  big-end cups per driven axle, including rear units. S060's six original oil
+  circuits are guide/crosshead/big-end on each side. Extend native capacity to
+  twelve points for four-axle layouts, retaining existing IDs/state. Clone native
+  interactable cup prefabs/controllers, fit their measured threaded stems to
+  supported crank/guide mounts, and retain oil/lid state for dormant points.
+  Native simulation handles consumption, refill, damage and save. No decorative
+  dummy cups, new oil simulation, or wheel-size release knobs. Dormant points
+  are masked only during native ticks/service and restored with nested-callback
+  and exception protection; no per-tick buffer allocations. Original six-point
+  saves migrate to twelve without resetting original quantities/lids.
+- Native probe measurements establish the S060 main big end follows REAR
+  driver 1; old comments claiming front driver 3 were wrong. Use measurements,
+  not those comments. 0-4-0/0-8-0 receive owned two/four-boss coupling-rod meshes
+  on the existing animated parents, avoiding a floating middle boss or duplicate
+  overlapping three-boss rods. Stock three-boss geometry remains untouched.
+
+Preview correction: the conspicuous green panel at the cab/rear-section join was
+identified as the CCL SDK DummyPlate (X1.345,Y1.01,Z-3.231), not a native buffer
+beam. An experimental twelve-triangle native beam cut was completely reverted
+when that premise failed; no actual beam/cylinder collision had been established.
+The original native crossmember remains. Only SDK placeholder plates are hidden
+in offline previews; actual native identification plates are unchanged. Do not
+revive that cut based on the old preview screenshot.
+Actual pin fit correction: native S060 wheel 01 has the long main-rod pin
+(outer X1.177509), while 02/03 end at X.987302. Each articulated unit therefore
+uses 01 on its rear/main-rod axle and 02 on its front axle. Coupling rods use
+native X.938477, main-rod plane X1.047852, and cylinder/piston axis remains
+X1.075 (the small offset fits inside the crosshead). The native shaft radius is
+.05742, so earlier .027-radius rod holes clipped the shaft. Use the measured
+shaft with clearance: full-size holes .0595, scaled Dockside holes .042.
+The old Y/Z-only endpoint checks did not establish lateral shaft engagement.
+Strict native X/shoulder/hole checks accompany the new geometry. Driver gauge,
+tread and crank throw remain unchanged; this is native part reuse, not global
+width scaling or a new user tuning option.
+Three agents handled pipe/native-cylinder, Meyer body/lamps, and rods/oil cups;
+root reviewed hot logs and integrated save restoration, tests and packaging.
+Native assets in preview fixtures remain ignored/local and must never enter a
+CCL pack. Debug standalone CCL Meyer still uses its authored cylinder fallback;
+the production native S060 radio path uses the actual vanilla castings.
+
+## Current test revision — 21 October 2026, evening
+
+**Installed and hash verified: S060 0.12.0 / Meyer and Dockside 0.5.0.** This addresses James's
+0.11 test. Installation status and hashes are recorded in the candidate receipt.
+The prior 0.11 section below remains historical evidence, not the latest state.
+Installation completed 21 October at 20:44 UK with game closed (checked twice).
+Backup: `C:\Users\james\Desktop\Derail Valley Mods\RearrangedS060\installed-backup-0.11.0-20261021-194406Z\mods`.
+Receipt: `build/articulated-0.12.0/install-receipt-latest.json`. Ten package files
+and five protected files verified: settings, S282 DLL and source bundle,
+LocoMeshSplitter and probe remain unchanged. No game launched or save changed.
+Runtime compile: zero warnings/errors. 173 functional, 193 actual engine/ECS,
+100 axle transition, 1,146 native geometry, 16 Meyer and 17 Dockside native
+checks passed; native Unity particle audit 41. Authoring compile retains only
+the pre-existing editor-only pipe CS0414 warning. Full gameplay remains pending.
+
+James reports arrangements otherwise ran well, but no expected articulated
+slip, rear Meyer cocks stopped after cycling, Dockside cocks absent, and Franklin
+gear did not fit convincingly. Three agents investigated simulation, particles,
+and geometry. Preserve the single-identity Meyer, all-under-body Dockside,
+fixed release wheel sizes and full-size moved stock cylinders. Do not revive
+separate vehicles, release sliders, global width scaling or extra tank capacity.
+
+- Preserved both new probes (195535/195812) and latest Player logs under
+  `build/radio-0.12.0/test-logs-20261021-2008`. Both snapshots had boiler pressure
+  around atmosphere, closed throttle/cocks and zero torque. They cannot establish
+  the reported powered slip/VFX failure. Do not dismiss the user's observation
+  or claim zero cold flow proves a bug.
+- Found **17,703 rolling-audio IndexOutOfRange errors**, beginning just after
+  Meyer conversion. Actual native CarRollingAudioModule caches lastJointStep
+  per bogie axle. Stage7 omitted the existing S282 refresh after axle changes.
+  S060RollingAudio now calls native ResetJointSoundValues after final converted
+  or restored axle arrays, including detached interior modules. No new hook,
+  exception suppression or audio subsystem. Build IL audit checks both paths.
+- Confirmed native closed cock readers deactivate stopped particle leaves;
+  native Init enumerates active children. Stock mute/restore could therefore
+  replace its cache with empty arrays, exactly matching logged warnings.
+  Reactivate stopped leaves before native Init; restore their original emission
+  baselines. Owned controllers rebuild entries from their actual cloned children
+  and validate all outlet caches, and disable unwanted playOnAwake. Both packs
+  now alias native Wispy + Wave rather than only Wispy, matching CCL's native
+  authoring pattern. Importer handles multiple copier components on one holder.
+- Native reader audit in the actual Unity editor passed **41 checks**, including
+  20 repeated close/reopen cycles with all eight particle systems. It loads the
+  installed reader from Assembly-CSharp (ports/flow in DV.Simulation); no game
+  assets/assemblies are distributed. Evidence `build/radio-0.12.0/cock-native`.
+  This establishes basic reader lifecycle, not complete in-game controller/audio
+  playback. Owned reported failure remains subject to a hot game retest.
+- Actual engine-bank hot cocks cycle tests and native ECS kernel tests pass.
+  At 16 bar absolute/full regulator/full gear/1 RPM Meyer delivers roughly
+  164–168 kN and Dockside 82–93 kN. A ~50 t car at native dry coefficient .24
+  has ~119 kN adhesion; Dockside not slipping dry is physically consistent.
+  No arbitrary grip reduction or forced wheelspin. Native difficulty,
+  prevention and braking can suppress slip. Do not claim a proven slip defect
+  from the two cold/closed snapshots. Bounded read-only powered traces are
+  included to distinguish live torque/grip/control conditions on the next run.
+- Actually rendered a radially scaled native S282 wheel substitution locally.
+  Measured tread/crank datums are nearly identical, so swapping wheels alone
+  does not fix Franklin geometry. Keep live S060 aliases. Fit custom Franklin
+  shaft sections in X/Y (native wheel X unchanged), support valve/axle drives,
+  replace cube rods with shaped bored-eye rods and fit crosshead guides. See
+  `Dockside/GEOMETRY-0.5.0.md`. Experiment meshes/previews remain ignored QA data;
+  no native meshes, textures or audio enter the packs.
+
+New export evidence: Meyer `build/meyer/authoring-20261021-193936` and Dockside
+`build/dockside/authoring-20261021-194029`. Reopened bundles pass 15,480/19,066
+motion checks and 81 moving-pipe checks each. Root and geometry agent inspected
+both normal and S282-comparison images. Preview body lacks separate cab/door/
+light components and is not an in-game screenshot.
+
+Gameplay acceptance remains: hot boiler, both cock sets repeatedly open/close,
+Franklin motion/clearance in both directions and curves, native slip with actual
+pressure/force/difficulty conditions. Candidate guide is
+`docs/RADIO-ARTICULATED-TESTING.md`. Install only with game closed and verified
+backup; never launch or terminate the game merely to install.
+
+## Current installation and governing release geometry — 21 Oct 2026, 15:53 UK
+
+**Installed and hash verified: S060 0.11.0, Meyer 0.4.0, Dockside 0.4.0.**
+James confirmed the .10 arrangement works, then reported missing front pipes,
+stock-sized wheels on the non-stock 0-6-0 and overly small .70 / 1 m drivers on
+0-8-0, plus cylinders being scaled too far. His latest steering is decisive:
+**granular wheel-size tweaks are development tools, not release features.**
+Normal controls must offer believable fixed arrangements. The second 0-6-0
+choice is explicitly **0-6-0 Short Wheelbase**, with the same wheels as 0-8-0.
+Do not reintroduce the normal UI slider or silently return this choice to stock.
+The single-identity Meyer and all-under-body Dockside requirements below remain.
+
+### Confirmed cause and changes
+
+- The preserved .10 Player.log shows 0-6-0 choices reapplying stock 1.42 m wheels;
+  installed Settings.xml had driverScale=1. Radio and UMM passed that same value
+  into the non-stock option. ForConversion now makes a distinct short-wheelbase
+  selection at .80 scale / **1.1394048 m tread**, shared with 0-8-0. Both fixed
+  choices ignore obsolete tuning values. Stock stays 1.42 m. Four-coupled uses
+  stock wheels, 0-6-2 stock drivers/pony, Dockside its authored 1 m wheels, and
+  Meyer its authored native-size drivers. No unrelated wheel-size changes.
+- The release UMM/radio slider is removed. Legacy XML is preserved/readable;
+  old resized selection values normalize to each authored arrangement on load.
+  No ID/GUID, fuel/water, damage, wheel-condition or engine-state reset. The
+  release IL audit refuses HorizontalSlider calls and car-spawn/identity writes.
+- Old S060EightCoupled explicitly parented cylinders under a (1,f,f) group and
+  radially mapped outlets. This is removed. S060CylinderFittings translates
+  complete stock cylinder pieces and all cock steam/drip/audio plus crack
+  outlets by the same offset. Their original dimensions, emitter sizes,
+  mirroring and width remain. The native upper branch stays fixed at its boiler
+  end and bends to meet the translated lower branch, using per-car copies of
+  the existing splitter geometry. Originals restore on mode changes/pooling.
+- Measured native cylinder/branch front is **3.6917117 m**. At fixed .80 with
+  the fourth axle held at the stock rear-driver station, cylinder translation
+  is Y=-.1424256, Z=+.3964801: front **4.0881918 m**, inside the measured body
+  front **4.0921 m**. The old 3.470 m 'coupler inner band' is a broad trigger box,
+  not the stock cylinder's structural front limit (stock geometry already
+  extends into it). Keep this distinction; do not re-shrink cylinders merely
+  to satisfy that discarded over-conservative band. Driving fit remains a test.
+- James pointed out the existing S282 Franklin pipes. Inspected branch_pipe
+  has separate intake_manifold_f, intake_manifold_r and dry_pipe_new custom
+  meshes. Dockside's authoring copied only franklin_type_b, omitting these.
+  Both .4 packs now reuse those shapes. S060SteamPipes keeps their moving
+  sockets attached, preserves radial bore/end collars, stretches only the dry
+  pipe centre and bends the front manifold to the boiler. Native upper branch
+  remnants are removed on owned split-body copies while this plumbing is active.
+  Compound HP->receiver->LP and Dockside's parallel boiler supply are unchanged.
+- Reopened-bundle testing caught the S282 static meshes' isReadable=false flag.
+  Instantiating inherited it; reading them at runtime failed. No workaround DLL
+  or GPU readback was added. AuthoringData/S282BranchPipes.json contains only
+  the three hash-verified custom source meshes, reconstructed as CPU-readable
+  Unity Mesh assets by the existing authoring recipe. Reopened bundles validate
+  all six fitted meshes as readable/nonempty. No S282 runtime dependency.
+  Source bundle SHA256 remains
+  `44A1B9EAE0DDA58BE97B9AEDF3877522FBFFAEC060FE02A8385158E095BDB22D`.
+- Meyer rear detailing now includes riveted frame/pannier seams, axleboxes/oil
+  caps, spring hangers, keeper plates, brake hangers/blocks/pull rods/crossshaft,
+  tank straps, rear steps and handrails. New static details are combined into
+  one mesh. All Meyer engine-unit renderers carry live S060 material aliases;
+  appropriate atlas patches avoid smearing the complete cab texture over a
+  small casting. Radio clones use the selected native S060's live material.
+  This is a fictional period-style machine, not a historical class replica.
+  Panniers still add no water capacity. Dockside remains one body, no extension.
+
+### Evidence and remaining game test
+
+- Log preserved at `build/radio-0.11.0/test-logs-20261021-141712/Player.log`.
+  It confirms successful .10 S060 layout transitions with no logged S060
+  conversion exception; unrelated CCL/DoubleTrack/exit errors also exist. James's
+  'works' confirms basic use, not every coupled-save/streaming acceptance case.
+- Clean .11 runtime compile; **173** functional/save/selection checks, **120**
+  production B99 engine-bank checks, **100** production same-frame axle-getter
+  checks, **1,146** actual native geometry/length/steam-pipe checks. Last source
+  cleanup after the tested build only trimmed EOF whitespace in EightCoupled
+  and csproj (no C# tokens or behavior changed); installed hashes remain below.
+- Meyer export `build/meyer/authoring-20261021-144539`: reopened bundle, **15,480**
+  motion assertions and **81** production pipe checks; maximum socket error
+  0.0000076294 m over ±15° unit yaw and rotated/translated body poses.
+- Dockside export `build/dockside/authoring-20261021-144641`: reopened bundle,
+  **19,018** motion assertions and **81** production pipe checks; maximum socket
+  error 0.0000107896 m. Existing Franklin shafts, quartering and phasing retained.
+- Combined packaging additionally passes **16** actual B99 Meyer and **17**
+  Dockside engine/control/save checks. Independent serialized-bundle inspection
+  finds six readable custom pipe meshes per pack and zero textures/AudioClips.
+- Inspected side/angled/yawed renders use transient local native S060 body,
+  wheels and atlas from `build/radio-0.11.0/native-preview.json`/PNG. They are not
+  imported as project assets or packaged. Cab interiors/doors, live steam/audio,
+  rail physics and actual radio interaction are not executed by those previews.
+- Next game checks: Short Wheelbase vs stock (actual wheel size, full cylinders,
+  upper-pipe joins and moved outlets), matching 0-8-0 wheels/rear-wheel/cab and
+  front clearance, articulated pipes/cocks through curves, then stock restoration
+  and save/reload/coupled Meyer. Use docs/RADIO-ARTICULATED-TESTING.md. No game
+  was launched by Codex. Offline checks do not establish live acceptance.
+
+### Installation receipt
+
+The game was checked closed before backup and immediately before copying.
+All **10 package files** and **5 protected files** were hash-verified. Preserved
+Settings.xml, S282 DLL and its source asset bundle, LocoMeshSplitter and probe.
+Only this runtime's backed-up generated cache was removed.
+
+- Backup of .10 runtime and prior .3 packs:
+  `C:\Users\james\Desktop\Derail Valley Mods\RearrangedS060\installed-backup-0.10.0-20261021-145342Z\mods`.
+- Receipt: `build/articulated-0.11.0/install-receipt-latest.json`, also retained
+  beside that backup. Combined ZIP/package and test receipts remain in build.
+- Runtime DLL SHA256:
+  `705ED70B612B88A1479BA5E925FB263772AC255F3E8E54F81912A1967A8AF296`.
+- Meyer bundle SHA256:
+  `C72EE23E08CF167371D9069F2010FB27FF54CCF26A6C23B01D2E6CD2145601F5`.
+- Dockside bundle SHA256:
+  `8704AD9D07163EBEAA765EDE82241424B513A5D9901826A4EA4644B6CC579383`.
+
+Reproduce native QA fixtures with Meyer/tools/Prepare.GeometryEvidence.py in the
+existing UnityPy authoring environment before Build.Radio.ps1. Reuse the checked-in
+custom pipe source JSON; Prepare.BranchPipeSources.py refreshes it only when the
+actual custom source bundle changes. Build/package scripts stage only; installation
+still requires the game closed and a verified backup. Do not infer a separate
+powered B car or revive the granular release size controls in later sessions.
+
+## Governing Meyer clarification — radio-owned rear unit, 21 Oct 2026
+
+James clarified the physical/logical distinction explicitly: **one TrainCar,
+one S060 identity**, with two powered axles beneath the locomotive and two
+powered axles beneath a visually separate pannier B section behind its body.
+The rear section is part of the S060 arrangement, not a separately spawned,
+coupled or saved car. Selecting Meyer on the radio adds the complete arrangement;
+stock or another layout removes the rear section and restores the native car.
+Both cylinder-cock sets use the cab lever; preserve compound HP/receiver/LP,
+fuel/water, damage and saves. Dockside remains entirely under one locomotive,
+with no rear extension. Installation is allowed only with the game closed.
+
+This supersedes the separate-powered-vehicle interpretation immediately below.
+The unbuilt cross-car experiment was reversed; all four affected simulation
+sources match the previously built 0.9 source hashes. No game/mod/save files
+were changed by that experiment. Reuse the existing one-car compound circuit.
+The actual defect is the missing rearward articulated section and its geometry,
+support, coupling/bounds and radio add/remove lifecycle. Validate those against
+native bogie/rerail behavior before changing simulation architecture again.
+
+## Previous installation — attached rear unit, 21 Oct 2026, 12:50 UK
+
+**Installed and hash verified: S060 0.10.0, Meyer 0.3.0, Dockside 0.3.0.**
+Derail Valley was checked closed both before backup and immediately before
+copying. All 10 installed package files match their staged hashes. Settings.xml,
+S282, LocoMeshSplitter and the probe match their pre-install hashes. No game was
+launched; gameplay acceptance remains pending.
+
+- Verified backup of the previous .9 runtime and both prior packs:
+  `C:\Users\james\Desktop\Derail Valley Mods\RearrangedS060\installed-backup-0.9.0-20261021-115021Z\mods`.
+- Receipt: `build/articulated-0.10.0/install-receipt-latest.json`, also retained
+  beside the backup as install-receipt.json. Staged ZIP remains available.
+- Runtime DLL SHA256:
+  `E41A7B3E4E672DBAAE41ADC16B0C223A45042253555669C635C72B890534F5FE`.
+- Meyer bundle SHA256:
+  `1F8E5BD7D7F1CF8112D0E28AE8900F8ADDC3A12699F957C675CB36F3F15BC58B`.
+- Dockside bundle unchanged:
+  `14E672BD811E7D03658736736E7AB034E2CE434DC4F990BA9C46B7811CBC61E7`.
+
+## Attached rear-unit implementation — 21 Oct 2026
+
+Runtime **0.10.0**, Meyer **0.3.0**, unchanged Dockside bundle **0.3.0**.
+Development, packaging and installation are complete as recorded above;
+no game session was launched. Current scope is the governing one-identity
+arrangement above. The earlier separate-car design section is historical only.
+
+### Implemented and native evidence
+
+- Radio/UMM Meyer uses the same native car. Two powered axles are under the body
+  at front pivot +.90 m; the other two are beneath the attached rear pannier
+  frame at -6.10 m, 1.60 m axle pitch. Rear wheel/flange envelopes clear the
+  measured body rear (-4.363802 m). Driver X scale/gauge stays native. Rear deck
+  and buffer beam clear the wheel flanges; the rear coupling point is -8.27 m.
+- S060MeyerSupport retains both native Bogies, rigidbodies, ConfigurableJoints,
+  travellers and logical-car identity. It changes their selected support/start
+  positions, native joint connected anchors and track spans, and updates the
+  native car bounds, coupling distance and logical length. Four live powered
+  axles point at the authored wheel transforms. No spawn, rerail, livery change,
+  sim initialization or new logical car is used for a radio conversion.
+- Native B99 TrainCarColliders.SetupTrainCar moves collision and bogie roots
+  out of [colliders]. Use its cached collisionRoot and instance GetBogies(),
+  not the uninitialized prefab hierarchy. New collision sits under the existing
+  collision root, so native collision toggling finds it. Original capsules,
+  bounds, anchors and lengths are snapshotted and restored.
+- Native Coupler creates its joint from the live anchor when coupled; moving
+  that existing anchor while uncoupled is sufficient. VisualCouplerInit.Init
+  reparents chain and hoses to interior, so the support helper also translates
+  those live objects and their visual root, skipping descendants to avoid double
+  translation. Restore returns their local positions. Rear must be uncoupled
+  and hose disconnected before user add/remove; preflight checks tail clearance.
+- Native Car.length is readonly and exposes no resize setter. A narrow
+  S060LogicLength helper updates/restores only this field on the same Car object.
+  Actual B99 Car field/identity behavior is exercised by the geometry test.
+  Native Bogie.SetupPhysics can run after early save preparation or rerailing;
+  its scoped postfix reasserts the selected joint pivot only for active Meyer.
+- CarsSaveManager restores car states before connections. The save prefix
+  prepares longer supports and rear anchor before native coupling restoration;
+  deferred visual selection follows native initialization/MeshSplitter. Fresh
+  saved geometry may restore despite a saved open regulator; user switching
+  still requires stationary, regulator closed, no slip/slide or traction load.
+  Explicit stock selection and pool teardown also remove early pending support.
+- HP/front S060 and LP/rear pannier animation/effects now match their physical
+  locations. Both cocks share the existing cab lever. The four compound/engine
+  source files were restored exactly to .9 source hashes after the separate-car
+  tangent; the existing serial compound, resource/save ownership and dormancy
+  remain. Panniers do not add water capacity; no proposed 400 L was adopted.
+- Dockside's bundle and all-under-body arrangement are unchanged. No new
+  car/livery ID or dependency was added. The optional canonical CCL Meyer entry
+  remains a standalone one-car prototype/geometry donor, not a companion car.
+
+### Validation and limits
+
+- Runtime clean compile; 164 functional/save/layout checks; 120 actual B99
+  production engine-bank checks; 100 same-frame production axle-getter checks;
+  211 measured-clearance/native readonly-length checks, including 100 expand/
+  restore cycles with identity unchanged. Native geometry tests bypass Car
+  construction only; they do not invoke Unity physics or the radio.
+- Unity export `build/meyer/authoring-20261021-113959`: reopened bundle passes
+  one car/livery, four powered axles, front HP/rear LP animator mapping, attached
+  rear layout/coupler/frame checks, two cock readers, four drips/sound aliases,
+  zero bundled native meshes/audio. All 15,480 motion assertions pass.
+- Inspected side and angled/yawed previews show separated rear unit, clear
+  deck/beam and round cylinders/thin rods. Blue outline is the measured native
+  body envelope; grey discs stand for unresolved native wheel aliases. These
+  renders do not establish in-game final body/texture/gauge or steam playback.
+- Reuse Dockside `build/dockside/authoring-20261021-100810`, 19,002 motion checks.
+  Combined packaging also executes 16 actual B99 Meyer and 17 Dockside checks.
+  Exact build/package hashes and source receipts are in `build/radio-0.10.0`
+  and `build/articulated-0.10.0`. Build/package scripts stage only.
+- In-game acceptance remains required: native body/rod clearance, bogie/yaw and
+  rear coupling on curves, live cocks/audio, coupled save loading, streaming,
+  deletion/pooling, UMM performance and 0-8-0 clearance. Both engines still share
+  native adhesion/slip. Do not equate headless/asset tests with driving results.
+  First conversion uses stopped, clear straight track with rear disconnected.
+
+Install.Articulated.ps1 now resolves the requested package version, validates
+all staged hashes and IDs, checks the game closed before preparation and again
+before copying, and creates a hash-verified backup named for the installed
+runtime version. It preserves Settings.xml, S282, LocoMeshSplitter and probe;
+only this mod's backed-up assembly-cache files may be removed. Final actual
+installed state is recorded in `build/articulated-0.10.0/install-receipt-latest.json`.
+
+## Superseded interpretation — separate cars, 21 Oct 2026
+
+James explicitly clarified that his intended **Meyer is two powered vehicles**:
+the S060/A vehicle and a separate powered B vehicle behind it, with small
+pannier water tanks and compound operation. Both cylinder-cock sets must be
+controlled from the S060 cab. **Dockside is one tank engine with its two engine
+units underneath, with no companion B vehicle.** This distinction supersedes
+all single-body Meyer design instructions below.
+
+Confirmed installed state remains S060 0.9.0 / Meyer 0.2.0 / Dockside 0.3.0.
+The installed Meyer is **not the requested two-vehicle design**. Its two powered
+bogies and decorative panniers are attached to one car; it supplies no separate
+B vehicle or usable pannier-water capacity. Passing its previous offline checks
+does not establish compliance with James's intended design. Do not describe it
+as completed, or use the Dockside's one-body layout as the Meyer specification.
+
+Investigation checked the earlier chat, authoring, current installed mod names,
+repository history and relevant project documentation. The earlier chat and
+handover recorded a single-body interpretation after the "one vehicle, got it"
+reply. That explains the implementation path; it does not override James's
+current clarification. No separate B-unit asset was located in the checked
+project/install locations. Do not claim an existing B asset was deleted, hidden
+or restored without finding evidence of it. Codex's earlier description of a
+rear powered unit did not establish that a separate powered vehicle existed.
+
+Before implementing the correction, inspect the installed native powered-tender
+and working S282 companion-vehicle paths. Prefer standard CCL vehicle data and
+native coupling/spawn/save/resource functionality. Establish the concrete gap
+before adding any cross-vehicle compound/cock coordination. Preserve the A
+vehicle's identity, resources, damage and save state, plus the companion's own
+identity/state. Reconcile wheel counts and water plumbing with the actual
+two-vehicle layout; the old provisional 400 L is not an approved capacity.
+
+This correction updates the design record only. No runtime/asset files were
+rebuilt or installed in response to this clarification. The installation and
+backup evidence below remains accurate; its Meyer design decision is superseded.
+
+## Previous installation — visual/cab correction, 21 Oct 2026, 11:12 UK
+
+**Installed and hash verified: S060 0.9.0, Meyer 0.2.0, Franklin Dockside 0.3.0.**
+This entry supersedes the staged-only .9 and installed .8 notes below. James
+closed the game after reporting the Meyer lacked a visible power bogie and the
+Dockside showed cardboard boxes. Prior authorization covered installing the
+completed correction with a backup. No game was launched by Codex.
+
+### Confirmed causes and corrected decision
+
+- Original Meyer authoring deleted the generic bogie frames and supplied only
+  wheel aliases and buried pannier cubes. It had no visible powered frames or
+  connecting rods. Now both units have frames, springs, round cylinders and
+  native crank-port-driven main/coupling/piston rods. Rear panniers moved outboard
+  and have rounded ends. Keep the previously agreed **one vehicle on two power
+  bogies**, not an auxiliary vehicle. An optional clarification was unanswered;
+  no new approval was inferred. Panniers remain decorative, capacity unchanged.
+- The Dockside source had a cuboid casting, now removed without removing its
+  five animated Franklin shaft/joint channels per side. More significantly,
+  the piston rod clip keyed only Z scale: actual Unity sampling reset X and Y
+  to 1, turning each rod into a metre-wide box. Both animation authors now key
+  all scale axes; audits check the 35 mm rod cross-section at every sampled pose.
+  This defect was missed by the old endpoint-only audit. **Passing numerical
+  motion checks did not validate appearance.** Inspected side/angled/yawed renders
+  are now part of the export evidence. Native aliases use grey preview discs,
+  so these previews do not establish full body/rail fit in game.
+- Meyer uses measured native crank throw .33535485 m, matching piston stroke
+  .6707097 m in both standalone calibration and the in-place compound engine.
+  Wheel X scale and rail gauge are unchanged. Reuse LocoMeshSplitter's existing
+  native shell for both standalone cars to suppress stock cylinders/brakes.
+- The .8 log's missing cab definitions are addressed by copying the native
+  S060's actual seven hatch/door/window definitions, headlight control bindings,
+  six position-provider datums, lubricator marker and explosion datum into the
+  standalone cars. No new cab controller, service or DLL was introduced. Native
+  radio conversions keep their complete existing cab. Effect startup checks
+  include inactive particle aliases and wait for active bogies before binding;
+  inactive startup remains a hypothesis for the logged outlet failure, pending
+  an actual game test. Do not claim cab/effect playback has been verified.
+- Radio selections now reject obsolete asset packs before hiding stock gear.
+  Both updated packs are required for the .9 Meyer/Dockside choices. The .9
+  in-place identity/resource/save and compact .70-scale 0-8-0 work described
+  below is now installed, still awaiting in-game acceptance.
+
+### Evidence and installation
+
+Reopened exports: `build/meyer/authoring-20261021-100836` and
+`build/dockside/authoring-20261021-100810`. Their `*-running-gear-0/1/2.png`
+renders were inspected; old blocks are absent. Unity motion assertions:
+15,480 Meyer and 19,002 Dockside, including ±12-degree yaw. Maximum endpoint
+errors below 0.5 micrometres. These are geometry checks, not physical clearance.
+
+Clean Stage 7 compile, 164 functional checks, 120 actual B99 engine-bank checks,
+100 production axle-getter checks, 16 Meyer native and 17 Dockside native checks
+passed. Native engine checks cover shared cocks, serial compound conservation,
+damage/repair and saves; no Unity driving or cab interaction executed.
+
+Combined test ZIP and package/install receipts: `build/articulated-0.9.0/`.
+Use `Build.Radio.ps1`, then `Package.Articulated.ps1` with explicit completed
+export directories; old Build.Meyer/Build.Dockside scripts stage older versions.
+`Install.Articulated.ps1` verifies the package, checks the game is closed,
+backs up all three prior folders and verifies each backup file before copying.
+
+Verified backup:
+`C:\Users\james\Desktop\Derail Valley Mods\RearrangedS060\installed-backup-0.8.0-20261021-101217Z\mods`.
+All ten installed files match the package receipt. Only the backed-up S060
+generated assembly cache was removed. Settings.xml, S282, LocoMeshSplitter and
+probe DLL match their prior hashes. Game saves and Player.log were not edited.
+S282 was already **1.13.5** before this installation, with DLL hash
+`3FEBE4F4FADA33C8A7DE0C6FF55582AD521F45845197B2A5B74EEC71F3F9AC4C`;
+that exact hash is unchanged afterwards. Older handovers record an earlier S282
+build; this installation did not update it.
+Runtime DLL: `735350AE55CC61265A05BBBFAF6FE3B237BFC1D7431C8E92369EAD6BA23E7AF6`.
+Meyer bundle: `F2E417F93808E6121508CB7D35B6410EA48D79DA4E2F6EF178698D15179DC680`.
+
+Next: follow `docs/RADIO-ARTICULATED-TESTING.md`; check visible frames/rods,
+both cylinder-cock sets, standalone cab/headlights/windows, curves, compact
+0-8-0 fit, retained resources/damage and save/reload. UMM performance is still
+unmeasured. Preserve the next Player.log before another launch overwrites it.
+
+## Latest development — S060 radio 0.9.0 staged, 21 Oct 2026
+
+James requested Meyer and Franklin Dockside on the native S060 wheel changer,
+retaining ID, resources, damage and saves, and a smaller/fitted 0-8-0. He is
+testing the installed 0.8.0. **No installation in this turn.** Installed DLL
+still hashes `65CCDAF33D8ADE6D534B59FF2C52741B0BE39F02D884429A08B25DC393CA6BB7`.
+The following development notes supersede older statements that articulated
+choices are necessarily spawner-only. The installed 0.8.0 is still spawner-only.
+
+### Native/reference decision
+
+Read current S282 `ArticulatedSimulation.cs` and installed B99 implementation.
+Follow its create-once native-flow pattern. Keep the selected TrainCar,
+logicCar/GUID/ID, livery, cab, boiler, fuel/water/resource components, damage and
+save ownership. Do not replace/spawn a CCL locomotive or call Initialize on use.
+Registered, CCL-processed prefabs are read-only visual/effect donors. Confirmed
+CCL's ProxyScriptProcessor runs native proxy replacement on its model prefabs.
+No new DLL/dependency, mesh extraction or global steam-engine Tick patch.
+
+S282's unchanged main engine cannot itself implement the Meyer: native RSE has
+cached readonly cylinder calibration and no receiver/back-pressure model.
+`S060EngineSlot` therefore keeps stable native port contracts while selecting
+once-created calibrated native simple engines or the existing Meyer adapter.
+Original eight cab/supply inputs remain. Only two active slots tick; dormant
+circuits retain chest mass, receiver mass/energy, condensate, temperature, crack,
+damage meter and phase. Main/front modes and all internal native states save
+through their existing native SimComponent save contract. Condition transfers
+retain cracks across layout changes, and service repairs dormant engines.
+HP alone charges boiler demand; LP alone exhausts to blast. Sums initialize
+capacity before SteamExhaust caches normalization, and update on mode switches.
+The same confirmed cache-order correction also supports the separate Dockside.
+
+### Code and geometry
+
+- Stage 7 / `B99_S060_ARTICULATED` produces **0.9.0**. Radio has seven choices:
+  stock, 0-4-0, resized 0-6-0, fitted 0-8-0, 0-6-2, Meyer and Franklin Dockside.
+  UMM has apply buttons and optional articulated spawn-pool entries, default off.
+- Native S060 bogies, rigidbodies, joints and track travellers remain. Clone
+  only two donor bogie frames. Authored visual axles stay in their Animator
+  hierarchy; four native powered axle records live directly under the original
+  bogie_car parents, as required by DV's getter. Pivots remain stock, with axle
+  offsets like the in-game-proven 0-4-0. Actual curve behavior remains untested.
+- Original gear/cylinders/brakes/readers are captured and restored. Native stock
+  cock outlets temporarily read a zero-flow port while both owned engine units
+  supply the cocks. Owned readers unsubscribe before destruction; all cleanup
+  steps attempt restoration even when another cleanup reports an error.
+- Meyer reuses the existing wheel/pannier frames and split native cylinder
+  meshes with unchanged X width. Wheel rotation uses actual crank ports. Detailed
+  Meyer main rods and valve gear are **unfinished**, as in its original prototype.
+  The cylinder fit remains a candidate pending in-game inspection.
+- 0-8-0 caps driver scale at **.70**, including old full-size saves/direct spike
+  calls. Rolling diameter approximately **.996979 m**; rear centre **-1.3978 m**,
+  the stock rear-driver station. Whole four-axle group shifts forwards; moving
+  gear front at .70 is **3.08717 m**, behind the measured 3.470 m coupler band.
+  Split cylinders get the same Y/Z scaling/translation, and native cock outlets
+  move accordingly. X, gauge and mirrors are retained. Rear wheel may overlap
+  the stock cab/footplate envelope just as the stock rear driver does; do not
+  claim the entire wheel is ahead of the cab. Full-body clearance is unverified.
+
+### Wheel damage and saves
+
+Native PoweredWheelsManager saves broken **active array indexes** and loads them
+before deferred geometry. A fourth index would be out of range on the original
+three-wheel S060. Confirmed in native code; configuration cannot solve it.
+`S060WheelCondition` maintains three canonical native wheel identities and one
+retained added-axle slot, syncing states when Physics.Apply/Restore change arrays.
+Native saving receives the original three indexes; the mod's v2 selection save
+retains all four enum states. Full native wheel repair also services the hidden
+slot. GUID/pool teardown clears the ledger. v1 saves still load, and invalid or
+unsupported selection/wheel payloads remain verbatim until explicit selection.
+An explicit stock/conventional choice also cancels a saved articulated engine
+mode even when its geometry has not yet applied.
+
+### Validation and handoff
+
+`Build.Radio.ps1` stages `build/radio-0.9.0/RearrangedS060-0.9.0-radio-test.zip`.
+Hash receipt beside it; this turn does **not** install it. Existing Meyer 0.1.0
+and Dockside 0.2.0 visual packs are required and unchanged.
+
+- Clean Stage 7 compilation; 164 functional selection/layout/save checks.
+- 120 production engine-bank checks against actual publicized B99 engine
+  implementations (method bodies unchanged): shared cocks, quartering/unit phase,
+  serial mass/energy, condition/repair, frozen receiver, exact all-circuit save
+  round trip, corrupt-save rollback and 100 repeated mode cycles.
+- Existing 16 Meyer-native and 17 Dockside-native engine/control checks pass.
+- Existing 100 same-frame axle-getter contract cases pass.
+- IL audit disallows spawn/reinitialize/native identity writes in switching code.
+
+**Not proven:** in-game conversion, complete resource/damage/save/streaming
+round trip, wheel-repair ledger integration, native cock suppression/rebind,
+articulated rail/yaw behavior, collision/pipe/rod fit and UMM performance. No Unity
+scene or gameplay execution occurred. Do not present native headless checks as
+in-game acceptance. Focused next test is in `docs/RADIO-ARTICULATED-TESTING.md`.
+
+### Latest 0.8.0 test log arrived during this work
+
+Preserved `build/radio-0.9.0/test-logs-20261021-102545/Player.log` (last write
+10:25:45 UK). Confirmed native S060 L-050 switches 0-4-0 -> stock -> full-size
+0-8-0 -> 0-6-2 -> stock. No S060 selection-refused entry in this log. The .8
+0-8-0 really was scale 1.00; that is what this .9 fit replaces. Both CCL types
+were spawned, and the Meyer compound prepared successfully.
+
+The standalone CCL vehicles report missing headlight override input, hatch/
+window/sunroof/door ports, no PositionSyncProviderController, no lubricator
+ratchet and missing explosion anchor. These are genuine outstanding standalone
+cab/configuration gaps. The in-place .9 path retains all of those original
+native S060 systems; it does not copy that standalone cab setup.
+
+Both spawns also report cock outlets with no active particle systems. Confirmed
+native CockParticlePortReader uses GetComponentsInChildren without includeInactive.
+Inactive aliases/startup activation are a hypothesis, not a proven sole cause.
+Development runtime now checks includeInactive alias contents, activates only
+owned effect subtrees, and delays standalone binding until bogies/effect roots
+are active. The in-place path uses the same validation before conversion commits.
+This change has compiled, but effect playback is not game-verified. Other log
+exceptions belong to AI traffic/DoubleTrack/shutdown; no new cause was inferred.
+
+## Current installation and test handover — 21 Oct 2026
+
+James authorized finishing Dockside rods/Franklin motion, crank phasing and fit,
+then installing with a backup. He also confirmed the previous radio worked,
+requested S282-like radio wording, and asked about the Meyer. **S060 runtime
+0.8.0 and Franklin Dockside 0.2.0 are now installed. Meyer remains 0.1.0.**
+This entry supersedes all earlier staged-only and installation notes below.
+
+### Log findings and radio/transition correction
+
+Preserved test Player.log at `build/dockside/test-logs-20261021/Player.log`.
+It shows S060 0.6.0 active, successful 0-4-0/0-6-0/0-6-2/0-8-0 selections and
+two `S060 selection refused` errors at an axle Z -2.800 while switching.
+Confirmed cause against native getter IL: Bogie.Axles returns its cached array;
+the inherited postfix replaced only the field, leaving the current return
+value unfiltered. `ref Bogie.AxleInfo[] __result` now filters/updates both the
+return value and cache, excludes inactive hierarchy/destroyed transforms.
+The production postfix passes 100 same-frame getter-contract regression cases.
+No speculative deferred-destruction workaround or new native Tick patch added.
+
+S060 radio keeps its independent registration and targeting, but now matches
+the S282 `WHEEL REARRANGER` title and `Select Wheel Arrangement:` chooser. The
+starting prompt identifies S060 versus S282. Short labels replace long status/
+instruction blocks; resized choices retain a diameter line. Confirm/cancel and
+stationary/regulator safeguards remain. Native per-car save format stays v1.
+
+CCL logged `Successfully loaded car type RS060_Meyer_0440`; no Meyer spawn or
+compound-prepared line was present. James then clarified he had not checked
+the ordinary spawner. No spawner defect was established or patched. Meyer and
+Dockside are separate CCL vehicles in the normal locomotive spawner, not S060
+wheel-arrangement choices and not hidden spike modes.
+
+### Dockside animation and fitting
+
+- Two native simple engine sets under the S060 body, four powered axles, .50 m
+  rolling radius, 1.20 m axle pitch and pivots Z +/-1.40 m. No rear appendage.
+- Read-only native wheel measurement found the pin-cap centre at source
+  (X .98730177, Y -.33535485, Z approximately 0), resources Mesh path ID 5438.
+  Evidence `build/dockside/native-crank-measurement.json`, no geometry exported.
+  The retained-width, radial-only wheel scaling gives .23545967 m crank throw;
+  physical piston stroke now .47091934 m, matching the actual visual pin.
+- Native AnimatorPortReader SET_NORMALIZED_TIME drives one Animator per unit
+  from that unit's actual native crank port. Removed the competing code rotator;
+  powered wheels reference animated right-side visual transforms. Wheel meshes,
+  rods, crossheads, guides and piston rods share a single authored crank clock.
+- Right/left quartering is 90 degrees; production DocksidePhasing seeds the
+  front native engine +.125 turn (45 degrees) once per new SimulationFlow.
+  Rebinding presentation/pooling does not reseed an existing flow. Reverse
+  preserves the relative phase. Native simple-engine save behavior retained.
+- CCL template axles both had name `[axle]`, so animation initially addressed
+  just one. Corrected to `[axle] rear` and `[axle] front`, preserving the native
+  discovery prefix. Reopened-bundle samples now check both actual wheel pins.
+- Original authored Franklin clip is imported locally; only its custom shaft/
+  joint channels are copied, retaining original angles and 2:1 motion. Built
+  bundles omit editor curve bindings, so they are not the motion source. Fixed
+  source clip path `cylinder/u_joint` to the actual `u_joint_mapped` node. No
+  native wheel animation clip or original full clip is bundled.
+- Cylinder axis X +/-1.075, Y .50, unit Z1.60; gearbox Z-.60, main rod length
+  1.40 m. Coupling rods X +/-1.015 and offset main-rod planes prevent overlap;
+  crank-pin bushings bridge them. Cock outlets now follow the fitted cylinder
+  positions. Franklin straight bounds X +/-1.497052, Y .296311..1.189461,
+  car Z -2.229411..3.407567, within the S060 body envelope.
+- The alias body contains baked stock cylinders/calipers. Verified the existing
+  LocoMeshSplitter cache and native loader, then reuse its split S060 LOD0 shell
+  for this car only, hiding exactly its two stock cylinder parts and six stock
+  calipers. Cache is initialized in splitter Main.Load. Clone/material changes
+  affect this car only; no shared prefab mutation or alternate extraction path.
+
+### Evidence, installation and remaining test
+
+- Runtime/authoring compile clean, zero warnings/errors. S060 119 behavior / 32
+  metadata checks; Meyer 25 model / 16 native / 37 metadata checks pass. Dockside
+  17 native engine/control/flow/phasing checks and 100 transition checks pass.
+- Actual Unity export and reopened-bundle audit, including 17,268 pose checks
+  through full cycles and yaw -12/0/+12 degrees: rods meet pins/crossheads,
+  pistons meet axes, all five shafts/joints move on each side, loop/reverse
+  seeking closes. Recorded sampled max endpoint error 3.04e-7 m. Sampled swept
+  half-width at 12 degrees: 1.883637 m; actual track/platform clearance unverified.
+- Latest authoring evidence `build/dockside/authoring-20261021-083732`; local
+  kinematic previews use grey stand-in wheel discs, not native game mesh exports
+  or gameplay screenshots. Package `build/dockside/S060-Franklin-Dockside-0.2.0-test.zip`.
+- Game confirmed closed before backup and install; eight package/ZIP/installed
+  files SHA-verified. All nine previous S060/Meyer files backed up under
+  `C:/Users/james/Desktop/Derail Valley Mods/RearrangedS060/installed-backup-0.6.0-20261021-084302Z/mods`.
+  Receipt beside it and `build/dockside/install-receipt-latest.json`.
+- Installed runtime SHA-256:
+  `65CCDAF33D8ADE6D534B59FF2C52741B0BE39F02D884429A08B25DC393CA6BB7`.
+  Dockside bundle:
+  `D09BBC64DAC30770E97CFA214A2D72FAABCC85060D77D4F3E7743A879097C8D8`.
+- Settings.xml preserved byte-for-byte (C455F4BB...C10AD). Removed only backed-up
+  old generated `RearrangedS060.dll.29145.cache`. Existing Meyer package, S282,
+  S060 probe and LocoMeshSplitter DLLs verified unchanged. No game launch.
+- Ready for James's acceptance tests in `Dockside/README.md`: normal-spawner
+  Dockside, both cock systems, all wheels/rods/shafts forward/reverse, gentle
+  curves, save/reload/respawn; ordinary S060 repeated 0-6-2 -> 0-4-0 -> 0-8-0
+  -> stock radio switching and separate S282 mode. Cab interaction, playback,
+  body/track clearance and driving remain unverified in game.
+- Prototype limits: simple new rod/guide geometry, shared native traction/slip
+  and RPM, unfinished exterior styling/general exhaust presentation. Native
+  simple-engine save state remains limited; do not claim Meyer's detailed
+  receiver/water-state persistence. No commit, push or publication performed.
+
+## Earlier development — Franklin Dockside first draft, 21 Oct 2026
+
+James requested "a 0-4-4-0 small driver franklin simplex meme version/dockside
+tank", then clarified **"articulated duplex, nothin new out back. all under
+the loco"**. Implement this as one vehicle, two pivoting two-axle engine units
+under the S060 body, both simple expansion. No rear appendage/vehicle/pannier.
+This is a separate CCL car/livery `RS060_Franklin_Dockside_0440`, not a radio
+conversion of a saved S060 or a change to the compound Meyer's identity.
+
+First draft is authored, exported, inspected and staged, **not installed**:
+`build/dockside/S060-Franklin-Dockside-0.1.0-draft.zip`. Requires the matching
+staged S060 runtime 0.7.0 (Stage 6). Installed S060 0.6.0 and Meyer 0.1.0 stay
+unchanged; installation hashes were rechecked. The game was not launched.
+
+- Candidates: rolling driver diameter 1.0 m, axle pitch 1.20 m, unit pivots Z
+  +/-1.40 m, two equal cylinder pairs (bore .30 m / stroke .40 m, chest 90 L,
+  maximum admission .8 kg/s each). Body/cab/couplers retain S060 dimensions.
+  Only driver Y/Z scales change; mirrored X scale remains exactly +/-1.
+- Native-first: both native ReciprocatingSteamEngine implementations receive
+  boiler P/T/quality and shared native cab regulator/reverser/cock controls.
+  Native sum definitions combine intakes, exhausts, MAX_FLOW for blast
+  normalization, and torques. No receiver or custom simple-engine calculation.
+- Existing native cab/presentation lifecycle hooks admit the exact dockside
+  ID only in Stage 6. Compound definitions are still replaced ONLY for the
+  original Meyer ID. No new Harmony hook class, DLL or runtime dependency.
+- Reused the fork's actual custom Franklin Type B geometry through an editor
+  copy from the installed S282 asset bundle (read-only, source hash recorded).
+  Nineteen custom mesh assets, four static assemblies, material aliases; no
+  native body/wheel mesh, texture, sound or animation extraction. Standard SDK
+  coupler meshes and Unity built-in Cube/Cylinder shapes remain. Native copies
+  are not evidence of physical/animated fit; measure the saved bundle.
+- Saved Franklin bounds, car-local: X +/-1.372052 m; Y .296311..1.189461 m;
+  Z -2.175678..2.697895 m. All inside measured S060 body envelope. Reopened
+  bundle confirms four powered axles, radius agreement, no X scaling, both
+  cock/audio systems, direct boiler supplies and all four summed quantities.
+  CCL pack-root LoadAllAssets alone omits mesh dependencies; follow the saved
+  prefab's actual MeshFilter references when auditing them.
+- Fourteen actual B99 native engine/control/flow checks passed using exported
+  calibration and read-back graph wiring. Includes both cocks, purging/heating,
+  both boiler intakes, exhaust/max-flow/torque sums, regulator closure, reverse,
+  independent native crack saves. No Unity scene interaction or playback.
+- Shared runtime clean compile. Meyer regression still passes 25 model, 16
+  native adapter and 37 metadata/bundle checks; prior S060 119/32 checks pass.
+  The newly rebuilt Stage 5 file is a development output, NOT the installed
+  0.6.0 or its original receipt. Use installation receipts for installed hashes.
+- Unfinished: rods and crank-to-Franklin animation, unit phase offsets, final
+  cylinder/cock endpoint fitting, frame/support geometry and driving/curves.
+  One shared native traction/slip group and RPM currently; not independent
+  bogie slip. Native simple-engine save behavior retains its crack-state
+  limits; it does not inherit the compound model's detailed state persistence.
+
+Sources/reproduction: `Dockside/Authoring`, `Dockside/Run.Authoring.ps1`,
+`Build.Dockside.ps1`, `tests/Dockside`, `Dockside/README.md`. Actual latest
+authoring path and package hashes are in `build/dockside/package-receipt.json`.
+Continue with motion and fit work before treating this static fit draft as a
+finished Franklin locomotive. No commit, push, publication or game launch.
+
+## Current installation — 21 Oct 2026, Codex
+
+This section supersedes all earlier installation and unfinished-Meyer notes
+below. James instructed: "keep going on the Meyer, get both sets of cylinder
+cocks working from the cab and sort the compound sim", then "great, install
+when done". **RearrangedS060 0.6.0 and RS060_Meyer_0440 0.1.0 are installed.**
+The former includes the 0.5.0 S060 radio/UMM/0-6-2 features and the Meyer module.
+The Meyer is still a development prototype; no game session was launched.
+
+### Installation and rollback evidence
+
+- Verified the game closed immediately before installation. Verified package
+  and ZIP contents, all seven installed file hashes, and six prior-mod backup
+  file hashes. Existing Settings.xml is byte-for-byte unchanged. Removed only
+  the backed-up generated `RearrangedS060.dll.37290.cache`.
+- Full prior 0.4.0 backup:
+  `C:/Users/james/Desktop/Derail Valley Mods/RearrangedS060/installed-backup-0.4.0-20261021-003124Z/mod`.
+  Receipt beside it, also `build/meyer/install-receipt-latest.json`.
+- Installed runtime SHA-256:
+  `F682A029FFA4941759010BFEB001D2D1E672E7101A1187606082EBE465FC88DC`.
+- Installed CCL bundle SHA-256:
+  `C6902C49EBCD33055E82E80CC944C82E326EC4A84C0F98EB738EE3C35F7639DE`.
+- S282, S060 probe and LocoMeshSplitter DLLs verified unchanged. CCL 3.1.11 and
+  LocoMeshSplitter 1.1.9 are installed. No dependency added or updated.
+- To roll back with DV closed: preserve any new test settings if wanted,
+  restore the six backed-up S060 files and remove the new RS060_Meyer_0440
+  folder. The earlier 0.3.0 backup remains available too.
+
+### Meyer implementation and native-first decision
+
+- One vehicle, 0-4+4-0T, HP rear / LP front. Standard CCL steam wizard, one
+  canonical type/livery, native S060 mesh/material/audio aliases, four powered
+  axles and native powered-wheel rotation. No exported native mesh/audio data.
+- Both native cylinder-cock definitions use `cylinderCock.EXT_IN`. Each engine
+  retains independent native condensate, temperature, crank/inlet masks, wear,
+  crack and water-damage behavior. Two native cock particle readers, four water
+  drip aliases and four sound aliases move on the actual bogie frames.
+- Runtime owns native particle/audio Init/Deinit, pause registration and
+  restoring particle baseline parameters on reuse. S060 cab/LOD assignment is
+  scoped to the Meyer livery and occurs at TrainCar.Awake entry, before native
+  SetupInterior. Native cab fields do the actual control binding.
+- Confirmed in the actual B99 engine: no receiver/back-pressure input, piston
+  work subtracts atmosphere, and exhaust-temperature Tick output is never
+  assigned. Native parallel engines cannot supply serial compound behavior.
+  The smallest extension is two scoped engine implementations in the existing
+  S060 DLL, not another dependency or a global engine Tick patch.
+- `MeyerCompoundCycle` holds HP chest -> receiver -> LP chest with finite
+  vapour mass/internal energy. Only HP intake is boiler demand; LP remains open
+  for receiver rundown. Receiver pressure opposes HP work; LP alone exhausts
+  into the blast pipe. Both torques feed native traction. The two bogies still
+  share one native traction/slip group.
+- `MeyerNativeStage` retains native cylinder water/damage/chuff methods without
+  running native simple-engine steam calculation over the compound circuit.
+  Native per-component save data includes stored vapour/energy, water/cracks,
+  temperature, damage and crank. Unknown/corrupt state is refused atomically;
+  there is no implicit receiver refill.
+- Thermodynamics are an ideal-vapour finite-volume approximation, constant
+  gamma 4/3, no two-phase receiver model or historical/IF97 calibration.
+  Native cylinder condensation/drainage remains active.
+
+### Validation, limits and next test
+
+- Clean runtime and authoring compilation. S060 regression: 119 behavior and
+  32 metadata/package checks. Meyer: 25 conservation/compound checks, 16 actual
+  B99 native port/water/damage/save checks, 37 metadata/bundle checks. Native
+  tests execute unchanged B99 method bodies from a build-local publicized
+  reference; they do not execute Unity scenes, Harmony dispatch or playback.
+- Actual Unity export and reopened-bundle audit passed: one car/livery, four
+  powered axles, two cock readers, four drips, four sound aliases, zero bundled
+  native meshes/AudioClips. Latest authoring evidence:
+  `build/meyer/authoring-20261021-002309`. Package:
+  `build/meyer/S060-Meyer-0.1.0-prototype.zip`; receipts under `build/meyer`.
+- Corrected authoring lessons: CCL OnValidate auto-registers definitions; remove
+  added references before explicit execution ordering, then reopen the bundle
+  to check unique IDs. New wizard graphs already contain live connection lists;
+  call AfterImport only for existing serialized graphs to avoid erasing wires
+  with unsaved empty JSON. Actual template bogies are direct car children.
+- Rod animation and finished cylinder/frame meshes remain unfinished. Panniers
+  are placeholders; proposed 400 L adds no water yet. Cock endpoints and bogie
+  collision capsules are fit candidates. Full boiler/exhaust presentation beyond
+  cylinder cocks is unfinished. Rail alignment, driving/curves, physical cab
+  access, effect playback, save/reload and pooling require game acceptance.
+- James's test steps: `Meyer/TESTING.md`, also installed as the vehicle README.
+  Spawn the separate Meyer, open the one cab cock lever, check HP then LP
+  discharge once the receiver fills; purge and close both, check regulator
+  rundown, reverse/curves, save/reload and respawn. Ordinary S060 must retain
+  its radio/UMM behavior and the Meyer must be excluded from that radio.
+
+## Earlier implementation history
+
+### Previous 0.4.0 installation — 21 Oct 2026, Codex
+
+James explicitly confirmed the game was closed and authorized installing the
+latest S060 build with a backup. **0.4.0 is now installed**, superseding earlier
+"staged only / 0.3.0 installed" notes below. It includes the S060 radio/settings,
+native per-car saving, cached UMM targeting and X/gauge-preserving scale fix.
+
+- Installed DLL SHA-256:
+  `5453DC8B4D998C237BEBFD863B74AD2A08FFBAA73A18524EBCD4C8C2230467E6`.
+- Verified full prior-mod backup:
+  `C:/Users/james/Desktop/Derail Valley Mods/RearrangedS060/installed-backup-0.3.0-20261021-002637/mod`.
+- Install receipt: `install-receipt.json` beside that backup, also copied to
+  `build/functional/install-receipt-latest.json`.
+- Verified package/ZIP, source and game-reference hashes before installation;
+  four backup files and four installed package files passed SHA-256 checks.
+  No existing S060 settings XML was present. Removed one backed-up, generated
+  0.3.0 assembly cache so UMM cannot reuse that cached DLL.
+- S282 and S060 probe DLL hashes were checked unchanged. No game launch or
+  runtime validation was performed. James is testing radio interaction, UMM
+  performance and wheel alignment next; use `docs/FUNCTIONAL-TESTING.md`.
+
+### Earlier development — 21 Oct 2026, Codex
+
+This section supersedes the older "not started" / "0.4 staged" notes below.
+James authorized starting 0-6-2 and Meyer while testing installed 0.4.0.
+At this earlier checkpoint 0.5.0 was staged only. James subsequently authorized
+the 0.6.0/Meyer installation recorded at the top of this document.
+
+#### 0-6-2 prototype
+
+- Added stable arrangement ID 3 (`SixTwo`), radio/UMM choice, persistence and
+  opt-in random pool. Fixed stock drivers for this first layout; other slider
+  settings cannot silently resize it.
+- Three stock powered axles plus one unpowered pony axle at candidate car Z
+  -2.8 m, using the existing rear bogie, four total axles and nominal .75
+  adhesion-weight share. Frame, coupling and curve fit still require testing.
+- Donor comes from `TrainCarType.LocoSteamHeavy.ToV2().prefab`, with guards on
+  native S282 body, mesh, component types and wheel-rotation membership. No
+  mesh export, runtime extractor, donor spawning or shared-prefab mutation.
+- Read-only `Meyer/tools/Audit.PonyDonor.py` confirmed the actual B99 resources
+  asset: `LocoS282A/Axle_F/bogie_car/[axle]/axleF_model`, axle transform 135137,
+  only Transform/MeshFilter/MeshRenderer components. The native rotator points
+  to that exact axle with .355 m radius, X axis, affectedByWheelSlide=false.
+  Evidence `build/meyer/native-pony.json`. Stripped behavior fields were read
+  using the verified managed field layout and strict serialized-length guards.
+- The transient native wheel rotator unsubscribes its native
+  MovementStateChanged handler before destruction; native WheelRotationBase
+  subscribes in Awake but supplies no destruction unsubscribe.
+- Latest package `build/functional/RearrangedS060-0.5.0.zip`; clean compile,
+  119 behavior checks / 32 metadata-package checks passed. This is offline
+  evidence, not proof that conversion/rotation/driving works in game.
+- Installed 0.4.0 DLL hash rechecked unchanged:
+  `5453DC8B4D998C237BEBFD863B74AD2A08FFBAA73A18524EBCD4C8C2230467E6`.
+
+#### Meyer scope and cylinder-cock requirement
+
+James chose **0-4+4-0T**, two powered axles on each bogie. He asked for small
+pannier tanks on the rear bogie; these should provide usable water. 400 L
+total is a provisional fit candidate, not finalized or implemented capacity.
+
+Latest requirement: working cylinder cocks on the rear unit, operated from
+the S060 cab. Asked whether "tender vehicle" meant a separate powered car;
+James clarified **"i misunderstood, theyre one vehicle, got it."** Keep the
+single-body Meyer. Both engine sets must respond to the existing cab lever,
+with independent native cylinder-water/flow state, steam, drips and audio at
+their actual cylinders. Do not invent a remote tender control system.
+
+Inspected current S282 fork's ArticulatedSimulation and ArticulatedEffects.
+The auxiliary definitions reuse native cab references. Cock/drip/audio binding
+is separate from engine physics. Its Erie tender effects are explicitly
+excluded from Secondaries while IsTenderEngine, so that powered-tender example
+does **not** prove working tender effects. For this one-car Meyer, use native
+cab/CCL wiring for both engines before considering any custom control hook.
+
+Authoring started in `Meyer/`, with README describing scope and unfinished work.
+`Setup.Authoring.ps1` copied the existing CCL 3.1.9 SDK into a new ignored Unity
+2019.4.40 project; L74/game untouched. `MeyerDraftBuilder` uses standard CCL
+wizard, one canonical type/variant, native mesh/material grabbers, custom
+two-axle bogies and rear pannier shape placeholders. Native names/materials
+were audited without exporting game meshes/textures/audio.
+
+Offline authoring compilation passes without warnings/errors. Actual Editor
+run first exposed a wrong guessed visual-bogie path. Fixed against the actual
+generated CCL template (BogieF/BogieR are direct car children, collision bogies
+are separate) and preserved ContactPoints. The rerun succeeded:
+`build/meyer/authoring-20261020-234918/authoring-result.json`. No editor process
+left running by that script. The initial sandbox IPC failure required running
+the installed Editor outside sandbox; no new software/license changes.
+
+This is **an authoring draft, not a drivable Meyer**. Rod animation, cab,
+collision fit, water circuit, compound receiver and cylinder-cock bindings
+remain unfinished. Result flags explicitly say false. No bundle exported or
+installed; S060 ZIP excludes Meyer. Native parallel engines are not true
+compound expansion; preserve the unresolved HP back-pressure / receiver mass,
+heat and LP feed requirements. Do not silently substitute L74's simpling
+equivalent or treat aliased mesh names as proof of correct animated fit.
+
+### Historical development update — Codex, 20 Oct 2026
+
+#### 21 Oct follow-up: 0.3.0 UMM slowdown and three probe captures
+
+**Subsequent width correction, 21 Oct:** James supplied
+`C:/Users/james/Pictures/Screenshots/Screenshot 2026-10-20 235658.png` showing
+the resized wheel/rail misalignment and rejected indiscriminate whole-mechanism
+scaling. This is now a confirmed defect, not an unverified rail-contact question:
+the probe records X scale 0.824038 as well as Y/Z, narrowing the whole assembly
+by about 17.6%. Inspection of the working S282 source found the native-compatible
+precedent at `WheelRearranger.cs:2431-2432`: X stays -1/+1 while Y/Z change.
+S060DriverScale now preserves original X/mirroring and scales only Y/Z; the
+false comment claiming uniform scaling matched the S282 was removed.
+
+This is the narrow gauge correction. **Independent diameter editing remains
+unfinished**: Y/Z group scaling still changes axle pitch and cylinder placement,
+and proportionally shrinking pitch and wheels does not create more relative
+wheel clearance. UMM/test instructions state this explicitly. Stop treating
+whole-group scaling as the finished solution to the cramped 0-8-0. Check native
+animation/rod geometry and deliberate wheel/cylinder positions before extending
+resizing. The correction is staged only; installed 0.3.0 is unchanged and the
+new lateral alignment still needs in-game verification.
+Both the Stage 1 prototype and Stage 4 functional code compile after these
+corrections with zero warnings/errors. Functional checks remain 99 behavior /
+29 metadata-package checks; this does not measure the FPS improvement or wheel
+contact in game.
+
+James reports severe slowdown with the spike UMM window expanded and recovery
+when switching to the read-only probe window. Evidence is preserved locally
+under `build/investigation-20261021-umm/` (Player.log, UMM-Log.txt, perfprobe.log
+and all three probe reports); these diagnostic artifacts are not committed.
+
+All three reports target L-086 / GUID 0437ecd8-5ce2-4f32-8717-1c8c39af1054:
+- `RearrangedS060Probe-report-20261020-235542.txt:1479,1588`: 0-4-0,
+  poweredAxles.NUM=2 and two registered powered wheels.
+- `...-235604.txt:1501,1610`: full-size 0-8-0, poweredAxles.NUM=4 and four
+  registered powered wheels.
+- `...-235639.txt:1501,1610,1878`: 0-8-0, four powered axles, mechanism scale
+  0.824038 (rolling diameter approximately 1.17 m).
+Player.log snapshot lines 7425–7516 corroborate conversion > restore >
+conversion > restore > resized conversion, without an S060 exception. The
+probe summary lists only three visual wheel positions on the 0-8-0 because
+GeometrySection.DriverExtents picks one renderer per stock wheel name and the
+clone reuses wheels_02's mesh/child name. Full hierarchy and PoweredWheelsManager
+confirm four; do not infer a missing middle driver from that summary.
+Static captures cannot validate rod synchronisation in motion or rail contact.
+
+Performance evidence: perfprobe.log:57792 records 4.1 FPS at 23:56:03 and
+:57833 records 30.7 FPS at 23:57:04. GUI/frame-rendering scopes dominate the slow
+windows; native physics is around 2–3 ms/frame. DVSeasons' separate whole-game
+sample in Player.log also reaches 2.4 FPS. This confirms the reported slowdown,
+but `timed_scripts=0` means no individual mod callback was profiled.
+
+Strong suspect from source: S060SpikeWindow.Target called
+Object.FindObjectsOfType<TrainCar> and sorted candidates on every IMGUI event.
+The read-only probe does that work only when capturing. The staged functional
+window had inherited the same scene-wide search; Codex corrected both call
+sites. S060Targeting now uses native CarSpawner.AllCars (verified against the
+installed B99 assembly), a single nearest-car pass, and a 0.25 s cache refreshed
+on GUI layout only. No extra service, hook, package or profiling DLL was added.
+
+The rebuilt 0.4.0 package passes 99 behavior and 29 metadata/package checks,
+including the car-registry/no-scene-search checks. Compilation is clean. This
+removes the identified avoidable work; improved real FPS remains unverified.
+Acceptance step 9 now compares the expanded S060 window, probe window and
+closed UMM for 20 seconds each. Installed 0.3.0 and the probe remain untouched.
+
+James authorized the separate S060 radio and UMM implementation while testing
+0.3.0. Priority is the functional S060 version first, then 0-6-2, then the
+separate Meyer. No 0-6-2 or Meyer implementation has started.
+
+**0.4.0 is staged, not installed.** Build with `Build.Functional.ps1`, validate
+with `Validate.Functional.ps1`. Package and receipt:
+`build/functional/RearrangedS060-0.4.0.zip` and `build-receipt.json`.
+The game's installed DLL remains 0.3.0, SHA-256
+`47F12FE2CD489FF30363241ACE972BF25106D915152595F3D9BE5E0C2693309F`.
+
+The functional build uses Stage=4/B99_S060_FUNCTIONAL and excludes inherited
+S282 entry/radio/catalogue/save implementations entirely. New S060 files:
+`S060Main`, `S060Radio`, `S060OptionsWindow`, `S060Settings`, `S060Selection`,
+`S060SavedState` and `S060Lifecycle`. Existing 0-4-0/0-6-0/0-8-0 conversion
+geometry is retained. Direct switching restores the prior gear before applying
+the next choice, and attempts recovery on failure. Cleanup now restores scale
+and axle positions during rollback and deactivates clones before destruction.
+
+Native precedents were checked before implementation: the current S282 fork's
+CommsRadioS282Rearranger and ConventionalSpawn/ConventionalArrangementState.
+Persistence uses native per-car simCarState with the independent key
+`RearrangedS060`, version 1, arrangement ID and driverScale. No global save map,
+new DLL/dependency or custom vehicle registration was introduced. Unknown save
+payloads are retained. Pending selections wait for initialized stationary gear
+and a closed regulator. Pool return restores stock; failed restoration discards
+the already-deleted instance rather than reusing modified gear.
+
+Radio choices: restore stock, 0-4-0, 0-6-0 and 0-8-0. Each non-restore choice
+uses the UMM size captured when selecting the car. Only S060s can be targeted;
+each controller owns its S060 mode/highlight. UMM offers size, apply/restore,
+random spawning and individual pool toggles. Random spawning defaults off,
+0-8-0 defaults out of the pool, and old saved cars remain stock unless they
+already carry a saved mod choice.
+
+Validation: real B99 assembly compile, zero warnings/errors; 99 offline behavior
+checks including save round trips, pending intent, malformed/future payloads,
+identity reuse, all spawn-pool combinations, and actual UMM XML serialization;
+27 metadata/package checks verify native patch signatures, radio interface,
+excluded S282 implementation and output hashes. The installed Harmony lacks
+UnpatchSelf; failure cleanup uses its supported UnpatchAll(mod ID).
+
+**Not runtime verified:** radio input/display, save/load/streaming/pool behaviour
+and S282 coexistence. James still needs to test these with 0.4.0 after an
+explicitly authorized install. Use `docs/FUNCTIONAL-TESTING.md`. Original rod-sync,
+resizing/rail-contact and cylinder-placement questions remain open. Build/metadata
+checks do not prove those behaviours. No game launch or install was performed.
 
 A Derail Valley mod that changes the wheel arrangement of the **S060**, the B99
 0-6-0 tank engine, at runtime — the Rearranged S282 idea applied to the shunter.
@@ -102,6 +1422,38 @@ reports in its own folder). Game `99-build2702`.
 smaller wheels or the cylinders moved forward. 0.3.0 does the first.
 
 ## Next jobs, in the order they make sense
+
+### James's requested direction, 20 Oct 2026 (Codex handover follow-up)
+
+James wants a functional Rearranged S060 with its own comms-radio mode and UMM
+options similar to the S282 B99 fork. Requested scope includes finishing the
+0-8-0 and resizing, adding 0-6-2, and a separate Meyer compound tank locomotive
+with two swivelling powered bogies, reusing S060 assets/textures where supported.
+The Meyer wheel arrangement has not been specified; 0-4-4-0T is a proposed first
+layout, not an agreed requirement. Asset alias coverage remains unverified.
+
+Proposed delivery order: validate existing conversions in motion; adapt the
+S282 radio/settings/save lifecycle to S060 conversions; add the trailing truck;
+then build the separate Meyer vehicle. The radio must coexist with the S282
+mode and target only S060s. Save the arrangement and driver size per vehicle;
+verify reload, streaming, restore and coexistence before calling it functional.
+Current stage-1 build still has no radio, persistence or random-spawn hooks.
+
+Important source finding: the current S282 fork's
+`RearrangedS282/ArticulatedSimulation.cs:147` explicitly excludes compound
+expansion. Its extra-engine graph is a reference, not proof of a working
+high-pressure/receiver/low-pressure compound steam circuit. Check native sim
+components and working compound examples before adding a custom component.
+
+Current test request: stock-size 0-8-0 forwards/reverse, slow/normal yard speed,
+coasting/braking, curves/points and coupled movement; observe both sides' added
+wheel/rod sync and rail contact. Separately resize stock 0-6-0, then 0-8-0, to
+about 0.90 and 0.80, restoring between conversions. Observe rail contact on both
+sides, rod alignment, cylinder placement and rotation versus travel. Non-stock
+size intentionally hides brake meshes; braking itself still needs validation.
+Whole-mechanism scaling includes lateral scale, so rail contact/gauge is a test
+question, not a confirmed success. Restore stock and check geometry and driving.
+No new code or installation has been performed during this planning discussion.
 
 1. **Cylinder shift.** Scaling drags the cylinders towards the car centre (~0.5 m
    at 0.80), and moving them back out independently is the obvious fix. The

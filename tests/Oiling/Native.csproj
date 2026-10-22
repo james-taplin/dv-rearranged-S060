@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><DefineConstants>B99_S060_FUNCTIONAL;B99_S060_ARTICULATED</DefineConstants><NuGetAudit>false</NuGetAudit><NoWarn>SYSLIB0050</NoWarn><ManagedPath>B:\SteamLibrary\steamapps\common\Derail Valley\DerailValley_Data\Managed</ManagedPath></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\RearrangedS060\S060Oiling.cs" />
+    <Compile Include="..\..\RearrangedS060\S060OilingTopology.cs" />
+    <Compile Include="..\..\RearrangedS060\S060OilCupPorts.cs" />
+    <Compile Include="..\..\RearrangedS060\S060OilCupInteractables.cs" />
+    <Compile Include="..\..\RearrangedS060\S060Selection.cs" />
+    <Compile Include="..\..\RearrangedS060\S060EightLayout.cs" />
+    <Reference Include="Assembly-CSharp"><HintPath>$(ManagedPath)\Assembly-CSharp.dll</HintPath></Reference>
+    <Reference Include="DV.Simulation"><HintPath>$(PublicizedSimulation)</HintPath></Reference>
+    <Reference Include="DV.Utils"><HintPath>$(ManagedPath)\DV.Utils.dll</HintPath></Reference>
+    <Reference Include="DV.ThingTypes"><HintPath>$(ManagedPath)\DV.ThingTypes.dll</HintPath></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(ManagedPath)\UnityEngine.CoreModule.dll</HintPath></Reference>
+    <Reference Include="0Harmony"><HintPath>$(ManagedPath)\UnityModManager\0Harmony.dll</HintPath></Reference>
+    <Reference Include="Newtonsoft.Json"><HintPath>$(ManagedPath)\Newtonsoft.Json.dll</HintPath></Reference>
+  </ItemGroup>
+</Project>

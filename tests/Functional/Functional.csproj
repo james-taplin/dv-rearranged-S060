@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <LangVersion>9.0</LangVersion>
+    <DefineConstants>$(DefineConstants);B99_S060_FUNCTIONAL</DefineConstants>
+    <DefineConstants Condition="'$(ArticulatedTest)' == 'true'">$(DefineConstants);B99_S060_ARTICULATED</DefineConstants>
+    <NuGetAudit>false</NuGetAudit>
+    <RestoreIgnoreFailedSources>true</RestoreIgnoreFailedSources>
+    <GamePath Condition="'$(GamePath)' == ''">B:\SteamLibrary\steamapps\common\Derail Valley</GamePath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\RearrangedS060\S060Selection.cs" Link="S060Selection.cs" />
+    <Compile Include="..\..\RearrangedS060\S060SavedState.cs" Link="S060SavedState.cs" />
+    <Compile Include="..\..\RearrangedS060\S060Settings.cs" Link="S060Settings.cs" />
+    <Compile Include="..\..\RearrangedS060\S060TrailingLayout.cs" Link="S060TrailingLayout.cs" />
+    <Compile Include="..\..\RearrangedS060\S060EightLayout.cs" Link="S060EightLayout.cs" />
+    <Compile Include="..\..\RearrangedS060\S060PipeGeometry.cs" Link="S060PipeGeometry.cs" />
+    <Compile Include="..\..\RearrangedS060\S060WheelSlots.cs" Link="S060WheelSlots.cs" />
+    <Compile Include="..\..\RearrangedS060\ConventionalPhysics.cs" Link="ConventionalPhysics.cs" />
+    <Reference Include="UnityModManager"><HintPath>$(GamePath)\DerailValley_Data\Managed\UnityModManager\UnityModManager.dll</HintPath></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(GamePath)\DerailValley_Data\Managed\UnityEngine.CoreModule.dll</HintPath></Reference>
+    <Reference Include="UnityEngine.IMGUIModule"><HintPath>$(GamePath)\DerailValley_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath></Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>$(GamePath)\DerailValley_Data\Managed\Newtonsoft.Json.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+</Project>

@@ -1,6 +1,7 @@
-param([string]$GamePath = 'B:\SteamLibrary\steamapps\common\Derail Valley', [ValidateSet(1,2,3)][int]$Stage = 1)
+param([string]$GamePath = 'B:\SteamLibrary\steamapps\common\Derail Valley', [ValidateSet(1,2,3,4,5,6,7)][int]$Stage = 7)
 $ErrorActionPreference = 'Stop'
-$sdk = 'C:\Program Files\dotnet\dotnet.exe'
+. (Join-Path $PSScriptRoot 'Build.Config.ps1')
+$sdk = (Get-S060BuildConfig).Dotnet
 $project = Join-Path $PSScriptRoot 'RearrangedS060\RearrangedS060.csproj'
 $output = Join-Path $PSScriptRoot "build\stage$Stage"
 New-Item -ItemType Directory -Path $output -Force | Out-Null

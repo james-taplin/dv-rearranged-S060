@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using UnityEngine;
 
 namespace RearrangedS060
@@ -13,7 +12,7 @@ namespace RearrangedS060
 
         internal static void Draw()
         {
-            var car = Target();
+            var car = S060Targeting.Target();
             var current = car == null ? null : S060Conversion.Current(car);
 
             GUILayout.Label("Rearranged S060 — spike builds (0-4-0, 0-8-0, driver resize)");
@@ -32,6 +31,7 @@ namespace RearrangedS060
                     driverScale = S060DriverScale.Stock;
             }
             GUILayout.Label("Scale is read when you convert. To try another size, restore and convert again.");
+            GUILayout.Label("Experimental layout scale: gauge stays stock; axle spacing and cylinder position also change.");
             GUILayout.Space(4);
 
             using (new GUILayout.HorizontalScope())
@@ -76,29 +76,5 @@ namespace RearrangedS060
             }
         }
 
-        // Same targeting rule the P0 probe used: what the player is looking at,
-        // else the nearest S060.
-        private static TrainCar Target()
-        {
-            Camera camera = null;
-            try { camera = PlayerManager.ActiveCamera; } catch { }
-            if (camera != null &&
-                Physics.Raycast(camera.transform.position, camera.transform.forward, out var hit, 200f,
-                                ~0, QueryTriggerInteraction.Ignore))
-            {
-                var looked = hit.transform != null ? hit.transform.GetComponentInParent<TrainCar>() : null;
-                if (looked != null && S060Parts.IsS060(looked)) return looked;
-            }
-
-            Transform player = null;
-            try { player = PlayerManager.PlayerTransform; } catch { }
-            Vector3 from = player != null ? player.position
-                : camera != null ? camera.transform.position : Vector3.zero;
-
-            return UnityEngine.Object.FindObjectsOfType<TrainCar>()
-                .Where(S060Parts.IsS060)
-                .OrderBy(c => Vector3.Distance(from, c.transform.position))
-                .FirstOrDefault();
-        }
     }
 }

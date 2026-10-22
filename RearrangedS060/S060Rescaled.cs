@@ -2,21 +2,18 @@ using System;
 
 namespace RearrangedS060
 {
-    // The stock 0-6-0 at a different driver size and nothing else: no wheels
-    // added or dropped, no rods cloned. It exists so the scale itself can be
-    // judged on its own, without an unfamiliar wheel arrangement confusing the
-    // picture, and because a small-wheeled 0-6-0 shunter is a perfectly
-    // reasonable thing to want.
+    // Fixed short-wheelbase 0-6-0: the same fitted wheels/pitch as the 0-8-0,
+    // three powered axles, full-size translated cylinders and joined pipes.
     internal sealed class S060Rescaled : S060Conversion
     {
         internal override string Name =>
-            "0-6-0 rescaled to " + (2f * Scale.DriverRadius).ToString("0.00") + " m drivers";
+            "0-6-0 Short Wheelbase (" + (2f * Scale.DriverRadius).ToString("0.00") + " m drivers)";
 
         protected override void Apply()
         {
             if (Math.Abs(Scale.Factor - S060DriverScale.Stock) < 0.001f)
                 throw new InvalidOperationException(
-                    "Move the driver size slider first — at stock size this changes nothing.");
+                    "The short-wheelbase arrangement requires its fitted driver geometry.");
 
             foreach (int driver in new[] { 1, 2, 3 })
                 AxlePairs.Add((Parts.AxleFor(driver), Parts.RightWheel(driver)));
@@ -29,8 +26,7 @@ namespace RearrangedS060
 
         protected override void Undo()
         {
-            try { Physics.Restore(); }
-            catch (Exception ex) { Main.Logger.LogException("Restoring S060 physics failed", ex); }
+            Physics.Restore();
         }
     }
 }

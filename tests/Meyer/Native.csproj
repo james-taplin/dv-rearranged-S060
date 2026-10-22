@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><LangVersion>9.0</LangVersion>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems><NuGetAudit>false</NuGetAudit><RestoreIgnoreFailedSources>true</RestoreIgnoreFailedSources><NoWarn>SYSLIB0050</NoWarn>
+    <ManagedPath>B:\SteamLibrary\steamapps\common\Derail Valley\DerailValley_Data\Managed</ManagedPath>
+    <OutputPath>bin\native\</OutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="NativeProbe.cs" /><Compile Include="..\..\RearrangedS060\MeyerNativeStage.cs" /><Compile Include="..\..\RearrangedS060\MeyerCompoundCycle.cs" />
+    <Compile Include="..\..\RearrangedS060\S060SteamCalibration.cs" />
+    <Reference Include="DV.Simulation"><HintPath>$(PublicizedSimulation)</HintPath></Reference>
+    <Reference Include="DV.Utils"><HintPath>$(ManagedPath)\DV.Utils.dll</HintPath></Reference>
+    <Reference Include="UnityEngine"><HintPath>$(ManagedPath)\UnityEngine.dll</HintPath></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(ManagedPath)\UnityEngine.CoreModule.dll</HintPath></Reference>
+    <Reference Include="Newtonsoft.Json"><HintPath>$(ManagedPath)\Newtonsoft.Json.dll</HintPath></Reference>
+  </ItemGroup>
+</Project>

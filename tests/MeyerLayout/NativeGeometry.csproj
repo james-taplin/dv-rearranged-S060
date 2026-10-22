@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><NuGetAudit>false</NuGetAudit><RestoreIgnoreFailedSources>true</RestoreIgnoreFailedSources><NoWarn>SYSLIB0050</NoWarn><ManagedPath Condition="'$(ManagedPath)' == ''">B:\SteamLibrary\steamapps\common\Derail Valley\DerailValley_Data\Managed</ManagedPath></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\RearrangedS060\S060LogicLength.cs" Link="S060LogicLength.cs" />
+    <Compile Include="..\..\RearrangedS060\S060AxleGeometry.cs" Link="S060AxleGeometry.cs" />
+    <Compile Include="..\..\Meyer\Authoring\MeyerPlan.cs" Link="MeyerPlan.cs" />
+    <Compile Include="..\..\RearrangedS060\S060SteamCalibration.cs" />
+    <Compile Include="..\..\RearrangedS060\S060PipeGeometry.cs;..\..\RearrangedS060\S060BodyPipes.cs;..\..\RearrangedS060\S060EightLayout.cs" />
+    <Reference Include="Assembly-CSharp"><HintPath>$(ManagedPath)\Assembly-CSharp.dll</HintPath></Reference>
+    <Reference Include="DV.ThingTypes"><HintPath>$(ManagedPath)\DV.ThingTypes.dll</HintPath></Reference>
+    <Reference Include="DV.Utils"><HintPath>$(ManagedPath)\DV.Utils.dll</HintPath></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(ManagedPath)\UnityEngine.CoreModule.dll</HintPath></Reference>
+    <Reference Include="Newtonsoft.Json"><HintPath>$(ManagedPath)\Newtonsoft.Json.dll</HintPath></Reference>
+  </ItemGroup>
+</Project>

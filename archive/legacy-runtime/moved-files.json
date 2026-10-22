@@ -1,0 +1,376 @@
+{
+  "utc": "2026-10-22T21:33:01.2625476Z",
+  "purpose": "M06 source navigation cleanup; historical files moved byte-for-byte, not deleted",
+  "files": [
+    {
+      "original": "RearrangedS060\\AnimationCurveManager.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\AnimationCurveManager.cs",
+      "sha256": "BF1C41C533F198EDF16E712B4F6E80929701DDA3656555DB58A4DAAA7F5700FF"
+    },
+    {
+      "original": "RearrangedS060\\ArrangementSaveManager.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\ArrangementSaveManager.cs",
+      "sha256": "7107A449557384E70031A1C006ABD81ED005A22B910A8052076FA0BA6EC36E09"
+    },
+    {
+      "original": "RearrangedS060\\ArticulatedEffects.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\ArticulatedEffects.cs",
+      "sha256": "08D1E15D621494CD66042052010CB2F82D6CA26B16744B78CBC193BCF69F691E"
+    },
+    {
+      "original": "RearrangedS060\\ArticulatedSimulation.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\ArticulatedSimulation.cs",
+      "sha256": "2416D5A89386647B7000D5E63F8CE3B1CBAD2298C1DEB28938CC725717B6E9E4"
+    },
+    {
+      "original": "RearrangedS060\\AssetBundleLoader.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\AssetBundleLoader.cs",
+      "sha256": "4B6EEF4C5043E9876A72B514E1758E9D5C8D609FA74B830CC32CADB7BE4E852C"
+    },
+    {
+      "original": "RearrangedS060\\B99ExplosionMaterials.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\B99ExplosionMaterials.cs",
+      "sha256": "76D0C6FBA26F2545B3EC1850A36AB405E02B389DB23BA42F36CDC310100CD5D7"
+    },
+    {
+      "original": "RearrangedS060\\B99Oilcups.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\B99Oilcups.cs",
+      "sha256": "540232EC80AFFDF0EADA2BB29A231B4ADE03D85A1F0A852E3BF5A99EAC38FCEA"
+    },
+    {
+      "original": "RearrangedS060\\CommsRadioS282Rearranger.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\CommsRadioS282Rearranger.cs",
+      "sha256": "CFCABFAFE79834066DFC997184BAB12BD7043277ABF00B27B6EF7FA6D40E1019"
+    },
+    {
+      "original": "RearrangedS060\\ConventionalArrangementState.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\ConventionalArrangementState.cs",
+      "sha256": "44F9648A095D9BBD3D02E06A199CDAF1D6F644FBE2FFF046E38739DEDF1DEEE2"
+    },
+    {
+      "original": "RearrangedS060\\ConventionalSpawn.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\ConventionalSpawn.cs",
+      "sha256": "6DF4011719E448B2F791CFFC5776A7A95933CF2A5CD060DAFE716DC5C2568D42"
+    },
+    {
+      "original": "RearrangedS060\\CurveDiagnostics.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\CurveDiagnostics.cs",
+      "sha256": "307485F565E7F163D81CAB0C7E3CA5AB422FB3DFB7550C1FAC4A69373523C3F4"
+    },
+    {
+      "original": "RearrangedS060\\CurveDragModel.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\CurveDragModel.cs",
+      "sha256": "C9180C264DF20DA1C6A8D6FD021326E2373F7AE01DB9DA909D6189AF375C0833"
+    },
+    {
+      "original": "RearrangedS060\\DeltaTrailingTruckCompatibility.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\DeltaTrailingTruckCompatibility.cs",
+      "sha256": "1FBB4DA3BCB213209FF51CF3F4FC252F4ED881847139E5FA1014E8F47439BDC0"
+    },
+    {
+      "original": "RearrangedS060\\DeltaTrailingTruckVisuals.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\DeltaTrailingTruckVisuals.cs",
+      "sha256": "77114A5A26508FE1F3B7DB81FE187ADA848F240A00C4A9A63F0221237A56A726"
+    },
+    {
+      "original": "RearrangedS060\\DriveRetarget.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\DriveRetarget.cs",
+      "sha256": "541DBC1E354A6F4964A36A8FACA42474136BD5963045FAD7F238776984B78052"
+    },
+    {
+      "original": "RearrangedS060\\Main.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\Main.cs",
+      "sha256": "2DA1C38ECE63C76C88A50C4CB25A059C1FC5B432B291530396CD7A58E5E517DD"
+    },
+    {
+      "original": "RearrangedS060\\MeshFinder.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\MeshFinder.cs",
+      "sha256": "DFB76AE949F4BF9F0A944BA449E2F8F7BD13D529CDF7DA3F2FDD14BEF1924164"
+    },
+    {
+      "original": "RearrangedS060\\PowerDiagnostics.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\PowerDiagnostics.cs",
+      "sha256": "75FA809AF183860051AD4E4ECA41F98E9685DB360E57EF1DC3413182D5E1F2EC"
+    },
+    {
+      "original": "RearrangedS060\\PoweredWheelRotater.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\PoweredWheelRotater.cs",
+      "sha256": "0B73A8ADDD9AB65FE2D82774DCD0AD44EEA644651ED2D3A6A7269454F9DF78D6"
+    },
+    {
+      "original": "RearrangedS060\\S060SpikeWindow.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\S060SpikeWindow.cs",
+      "sha256": "0517F46ED5AE499A75974127EEA0EDC566B7C5D6B01C3ACD246B4EE0EDFACAFD"
+    },
+    {
+      "original": "RearrangedS060\\Settings.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\Settings.cs",
+      "sha256": "981DDEDF5183B4CA9E7DADFF577788F327EAF86B5264777F6784EFF274D02514"
+    },
+    {
+      "original": "RearrangedS060\\Spawner.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\Spawner.cs",
+      "sha256": "17F676A22EBCE0CBE93B01B9C6822B96ACCED68C7D1CA3ADDCEF56445003255B"
+    },
+    {
+      "original": "RearrangedS060\\Stage2RuntimeChecks.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\Stage2RuntimeChecks.cs",
+      "sha256": "791EBD62D2DE69D10E2CC746664AA1635D4511983BD99E318F18AE6C4CD977F7"
+    },
+    {
+      "original": "RearrangedS060\\WheelArrangement.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\WheelArrangement.cs",
+      "sha256": "40D16FDC64239DF06CF5C66D6E135DDD9C5126F45F0A5FEDA77A57EF084181D3"
+    },
+    {
+      "original": "RearrangedS060\\WheelRearranger.Additional.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\WheelRearranger.Additional.cs",
+      "sha256": "FE2639FC3BC75FF5204AFAD0C260C7B967FD6B64C5590B4EA79162E9A41F58C3"
+    },
+    {
+      "original": "RearrangedS060\\WheelRearranger.Articulated.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\WheelRearranger.Articulated.cs",
+      "sha256": "174805D25BC0218533BE0772AD306DD4D816EC3F210C767683DDB302646F8214"
+    },
+    {
+      "original": "RearrangedS060\\WheelRearranger.Audio.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\WheelRearranger.Audio.cs",
+      "sha256": "9193E3315956CC27BC924F680F7723FD0F1D8C88A56D005A22D7497DF962F950"
+    },
+    {
+      "original": "RearrangedS060\\WheelRearranger.BigMallet.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\WheelRearranger.BigMallet.cs",
+      "sha256": "1195ADBD41F073FBE71874BEBF7870CBC1188EF3BF397E36869662BD59F1889D"
+    },
+    {
+      "original": "RearrangedS060\\WheelRearranger.Conventional.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\WheelRearranger.Conventional.cs",
+      "sha256": "E6FE76BE0A6DD14DE2E674CE2EAAF46C9A320C43AF1D57DB1986B387701DBAC8"
+    },
+    {
+      "original": "RearrangedS060\\WheelRearranger.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\WheelRearranger.cs",
+      "sha256": "3C58DD901CDEEE4BD9C0930A92EB57760F5187A5CA1F370372DB59140B235DA5"
+    },
+    {
+      "original": "RearrangedS060\\WheelRearranger.Curving.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\WheelRearranger.Curving.cs",
+      "sha256": "05C6442C9DD84C6ACE23068CE0C7A46578789A8CA93D9A43224773B743C347BD"
+    },
+    {
+      "original": "RearrangedS060\\WheelRearranger.FourteenCoupled.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\WheelRearranger.FourteenCoupled.cs",
+      "sha256": "3F587DEA22392FD1F1290D99D7BCE759443E9931925C9488ACB2137E36B33C32"
+    },
+    {
+      "original": "RearrangedS060\\WheelRearranger.Mallet.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\WheelRearranger.Mallet.cs",
+      "sha256": "45AF3DA1916313261BF077882FC5637E1CDBF1A56D5370463657DE4D0EC073B6"
+    },
+    {
+      "original": "RearrangedS060\\WheelRearranger.Stage2.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\WheelRearranger.Stage2.cs",
+      "sha256": "475261ABEFAF0818C155BF7D750314EEEBBBC39C576985A766DC623CB04252CD"
+    },
+    {
+      "original": "RearrangedS060\\WheelRearranger.TenderEngine.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\WheelRearranger.TenderEngine.cs",
+      "sha256": "8380A9BEBBCEB4E2AFC33F8C07876C011F81A7438875943349C29E248B733AD9"
+    },
+    {
+      "original": "RearrangedS060\\WheelRearranger.Triplex.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\WheelRearranger.Triplex.cs",
+      "sha256": "77826724BF9ABCFD7D035B4248FA75FFB0BFFDF50A0371567BA7C486DA96E6A9"
+    },
+    {
+      "original": "RearrangedS060\\WheelRearranger.Walschaerts.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\WheelRearranger.Walschaerts.cs",
+      "sha256": "99203DDEB068661C31F7435F42B6366788F8EB5FDCEA750EF975AF3010773025"
+    },
+    {
+      "original": "RearrangedS060\\Sim\\DuplexAdhesionController.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\Sim\\DuplexAdhesionController.cs",
+      "sha256": "5ECAEFA4323DA52EDB3FD9F3A642B1C266B789A2E96F20D3E29FB04262A07940"
+    },
+    {
+      "original": "RearrangedS060\\Sim\\DuplexDrivingForce.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\Sim\\DuplexDrivingForce.cs",
+      "sha256": "2C6A7FAB9ACFAC0A6DC9892D0965E9FBFA9D7531C024B36A5D96A64C702046DE"
+    },
+    {
+      "original": "RearrangedS060\\Sim\\DuplexReciprocatingSteamEngineDefinition.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\Sim\\DuplexReciprocatingSteamEngineDefinition.cs",
+      "sha256": "42F609D5F0BD43B25B18D8AA1EE6D5DF0A75EE672E0A79C3FEDAFF57F0DF2DA8"
+    },
+    {
+      "original": "RearrangedS060\\Sim\\DuplexSimController.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\Sim\\DuplexSimController.cs",
+      "sha256": "BA1766340B541481242EF11C3C52BD2F46955979C1E24F2A859938CC662E5120"
+    },
+    {
+      "original": "RearrangedS060\\Sim\\DuplexTractionDefinition.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\Sim\\DuplexTractionDefinition.cs",
+      "sha256": "848DBEC2E857D1CF2A00EB551FC3AC2A0B87C6A62259CAC8347EB2E0DBBA705A"
+    },
+    {
+      "original": "RearrangedS060\\Sim\\DuplexTractionPortsFeeder.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\Sim\\DuplexTractionPortsFeeder.cs",
+      "sha256": "FE3845F694384923B8250D2A9DA69AA75B28C7AFAEBE912B3B14AFCD79390477"
+    },
+    {
+      "original": "RearrangedS060\\OBJImport\\CharWordReader.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\OBJImport\\CharWordReader.cs",
+      "sha256": "7F0CDE07EC5AB507486FABED34118FE52CD98F4F63D451C2864747720CED5FF0"
+    },
+    {
+      "original": "RearrangedS060\\OBJImport\\MTLLoader.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\OBJImport\\MTLLoader.cs",
+      "sha256": "D8E04F560E9F129E87B9536DC7356C62DBB8FE9B2A00F0B526ABD42BBE041DBC"
+    },
+    {
+      "original": "RearrangedS060\\OBJImport\\OBJLoader.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\OBJImport\\OBJLoader.cs",
+      "sha256": "B420F458B9D3448F46FBA04D8660ED5EAC97ECF4043AEEE5E4F0FC4E687B0550"
+    },
+    {
+      "original": "RearrangedS060\\OBJImport\\OBJLoaderHelper.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\OBJImport\\OBJLoaderHelper.cs",
+      "sha256": "7C06A27D651F0B3FD985A422A3AC2EF2FA137053A90A4AFD9EBB777E520B58F0"
+    },
+    {
+      "original": "RearrangedS060\\OBJImport\\OBJObjectBuilder.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\OBJImport\\OBJObjectBuilder.cs",
+      "sha256": "985122D55D515C332BCC4F6AE789E8F7602E09722B5A4F63EDFFCC591A88A8D4"
+    },
+    {
+      "original": "RearrangedS060\\OBJImport\\README.HTML",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\OBJImport\\README.HTML",
+      "sha256": "9CE52442B0231DBE8D68B245C4068A390BD6FB67BC4BBDE42F03EED707DFDC0B"
+    },
+    {
+      "original": "RearrangedS060\\OBJImport\\StringExtensions.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\OBJImport\\StringExtensions.cs",
+      "sha256": "BAE3E728435571D78E31B57596BC0B181B9B1CCFD1D5FF03305F0DC83AC9FCF2"
+    },
+    {
+      "original": "RearrangedS060\\OBJImport\\TextureLoader\\BinaryExtensions.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\OBJImport\\TextureLoader\\BinaryExtensions.cs",
+      "sha256": "251D71E0BB2ECD24410ED37751CB2551E2204392A271B89AFBD0605550FFE2DB"
+    },
+    {
+      "original": "RearrangedS060\\OBJImport\\TextureLoader\\BMPLoader.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\OBJImport\\TextureLoader\\BMPLoader.cs",
+      "sha256": "FB918CDC3E092792FDD1AD88BB36E863D03690C9DD8B19E086A1E3EF83B776A5"
+    },
+    {
+      "original": "RearrangedS060\\OBJImport\\TextureLoader\\ColorExtensions.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\OBJImport\\TextureLoader\\ColorExtensions.cs",
+      "sha256": "AD73FA239FC977AA77AFF9ADE4A362EE7E63E683A50AC8C30D67FEA56613CCC8"
+    },
+    {
+      "original": "RearrangedS060\\OBJImport\\TextureLoader\\DDSLoader.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\OBJImport\\TextureLoader\\DDSLoader.cs",
+      "sha256": "04FC1D4CC47D0DE2DFCE64C8760770F3D95DFC03BC8A0710B646AB7E825BEC5B"
+    },
+    {
+      "original": "RearrangedS060\\OBJImport\\TextureLoader\\ImageLoader.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\OBJImport\\TextureLoader\\ImageLoader.cs",
+      "sha256": "DD25F75DC28BE547FC8B85700F859A9F0002AB101826DEAC4E4309CE43FF9686"
+    },
+    {
+      "original": "RearrangedS060\\OBJImport\\TextureLoader\\ImageLoaderHelper.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\OBJImport\\TextureLoader\\ImageLoaderHelper.cs",
+      "sha256": "2CE8908544D73F8424170D9E719172E6822AB2C972B50188B20F8CE730C47FD8"
+    },
+    {
+      "original": "RearrangedS060\\OBJImport\\TextureLoader\\ImageUtils.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\OBJImport\\TextureLoader\\ImageUtils.cs",
+      "sha256": "EC54E804AB1BFCEE4C9F1BFF70E7F735FC43F8379ED78A579846A9419143643C"
+    },
+    {
+      "original": "RearrangedS060\\OBJImport\\TextureLoader\\TGALoader.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\OBJImport\\TextureLoader\\TGALoader.cs",
+      "sha256": "FABB4F22BBB066D59214259149CF6C5B15F02AC90521BB4EC9A1CA83682E559F"
+    },
+    {
+      "original": "RearrangedS060\\Properties\\Resources.Designer.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\Properties\\Resources.Designer.cs",
+      "sha256": "7AE5756D2DFCA798A01C3CE4011F98340B11F81B571FAC7706A5387AB0E92510"
+    },
+    {
+      "original": "RearrangedS060\\Properties\\Resources.resx",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\Properties\\Resources.resx",
+      "sha256": "86FF051BC89B01C71274C48AC1BE4311A2D652209CA51467064C574A57E1BAD4"
+    },
+    {
+      "original": "RearrangedS060\\Patches\\AddTwoCylinders.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\Patches\\AddTwoCylinders.cs",
+      "sha256": "AB1A9BDD43ED21E0E8C18C93EB4CD6719C134E330637697BB72A82E59012FB8E"
+    },
+    {
+      "original": "RearrangedS060\\Patches\\ChangeDerailThreshold.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\Patches\\ChangeDerailThreshold.cs",
+      "sha256": "722DA4D89F9515F3149CD164634BE88F2A8997CA4EFA0FCFB12397FC48A7FDAA"
+    },
+    {
+      "original": "RearrangedS060\\Patches\\DuplexSimPatches.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\Patches\\DuplexSimPatches.cs",
+      "sha256": "F0DC50AB5B84DA558B938BB0D74349C3BB3FECDB5D4523E63C08A4027ECEAA5F"
+    },
+    {
+      "original": "RearrangedS060\\Patches\\FixS282Clipping.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\Patches\\FixS282Clipping.cs",
+      "sha256": "F7B31AABA1AFB8C071D0C3B6EFD247298E268B112B1BA5349049E5FFA5404A0D"
+    },
+    {
+      "original": "RearrangedS060\\Patches\\SavePatches.cs",
+      "archived": "archive\\legacy-runtime\\RearrangedS060\\Patches\\SavePatches.cs",
+      "sha256": "F9D1E675AA9E43A1BD68EB458CB9C7F99B26BC4916A01EF483E8631602FE0E11"
+    },
+    {
+      "original": "Build.Stage1.ps1",
+      "archived": "archive\\legacy-runtime\\Build.Stage1.ps1",
+      "sha256": "5A34BC39AFA9D2A2562A1BD6E205FA910915F7648DAF726E908D4ACAB3613F84"
+    },
+    {
+      "original": "Build.Stage2.ps1",
+      "archived": "archive\\legacy-runtime\\Build.Stage2.ps1",
+      "sha256": "77D75C28E89F9C767CF012407FFE637A952FA75D9E27B711E7519AB8FEC87A25"
+    },
+    {
+      "original": "Build.Functional.ps1",
+      "archived": "archive\\legacy-runtime\\Build.Functional.ps1",
+      "sha256": "77D75C28E89F9C767CF012407FFE637A952FA75D9E27B711E7519AB8FEC87A25"
+    },
+    {
+      "original": "Build.Meyer.ps1",
+      "archived": "archive\\legacy-runtime\\Build.Meyer.ps1",
+      "sha256": "77D75C28E89F9C767CF012407FFE637A952FA75D9E27B711E7519AB8FEC87A25"
+    },
+    {
+      "original": "Build.Dockside.ps1",
+      "archived": "archive\\legacy-runtime\\Build.Dockside.ps1",
+      "sha256": "77D75C28E89F9C767CF012407FFE637A952FA75D9E27B711E7519AB8FEC87A25"
+    },
+    {
+      "original": "Validate.Stage1.ps1",
+      "archived": "archive\\legacy-runtime\\Validate.Stage1.ps1",
+      "sha256": "710DB2D03760189783B6DF5688771251B11437533AE4E4D1E58E7DC360584A44"
+    },
+    {
+      "original": "Validate.Stage2.ps1",
+      "archived": "archive\\legacy-runtime\\Validate.Stage2.ps1",
+      "sha256": "F9F36F0CFE88D17722C0D25D375B4FF1767E1FB35533626A89303158DFB81A21"
+    },
+    {
+      "original": "Validate.Functional.ps1",
+      "archived": "archive\\legacy-runtime\\Validate.Functional.ps1",
+      "sha256": "93A355F0DD5B60D41D8718292F0AA29BCC659829A4589196C905A5A470AEA58D"
+    },
+    {
+      "original": "Validate.Meyer.ps1",
+      "archived": "archive\\legacy-runtime\\Validate.Meyer.ps1",
+      "sha256": "9F4AC403E39392576C179E4919C9D124A068108D46F423562A3F682327959322"
+    }
+  ]
+}

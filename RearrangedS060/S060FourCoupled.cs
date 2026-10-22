@@ -8,10 +8,11 @@ namespace RearrangedS060
     // 0-4-0: drop the middle driver, leaving drivers 1 and 3 coupled 3.10 m apart.
     //
     // Driver 2 is the one that goes, for two measured reasons: Axle_R owns only
-    // driver 1, so taking driver 1 would leave a bogie with no axles, and the main
-    // rod runs forward from driver 3, so driver 3 has to stay to keep the gear
-    // driven. The stock three-pin coupling rod still joins 1 and 3 correctly; its
-    // middle pin boss is left hanging in air, a known cosmetic flaw of this spike.
+    // driver 1, so taking driver 1 would leave a bogie with no axles, and the native
+    // main-rod crank is on driver 1 (probe pivot follows its measured pin),
+    // so driver 1 must remain to keep the gear driven. The native coupling-rod
+    // animation stays in place, with an owned two-boss
+    // mesh fitted to drivers 1 and 3; no unsupported middle boss remains.
     //
     // The bogie pivots are deliberately left where DV put them (+0.929, -1.396).
     // Proven in game on 20 Oct 2026: the car rides and curves as stock.
@@ -62,18 +63,19 @@ namespace RearrangedS060
         protected override void Undo()
         {
             try { Physics.Restore(); }
-            catch (Exception ex) { Main.Logger.LogException("Restoring S060 physics failed", ex); }
-
-            if (droppedAxle != null)
+            finally
             {
-                droppedAxle.gameObject.SetActive(true);
-                Parts.BogieFor(DroppedDriver).axles = null;
-                droppedAxle = null;
+                if (droppedAxle != null)
+                {
+                    droppedAxle.gameObject.SetActive(true);
+                    Parts.BogieFor(DroppedDriver).axles = null;
+                    droppedAxle = null;
+                }
+                foreach (var caliper in hiddenCalipers) if (caliper != null) caliper.enabled = true;
+                hiddenCalipers.Clear();
+                foreach (var wheel in hiddenWheels) if (wheel != null) wheel.gameObject.SetActive(true);
+                hiddenWheels.Clear();
             }
-            foreach (var caliper in hiddenCalipers) if (caliper != null) caliper.enabled = true;
-            hiddenCalipers.Clear();
-            foreach (var wheel in hiddenWheels) if (wheel != null) wheel.gameObject.SetActive(true);
-            hiddenWheels.Clear();
         }
     }
 }

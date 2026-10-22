@@ -20,7 +20,7 @@ namespace RearrangedS060
         // Visual driver Z centres, car-local, probe report lines 32-34.
         internal const float Driver1Z = -1.3978f;   // rearmost, cab end, owned by Axle_R
         internal const float Driver2Z = 0.1498f;    // middle, owned by Axle_F
-        internal const float Driver3Z = 1.7006f;    // front, owned by Axle_F, takes the main rod
+        internal const float Driver3Z = 1.7006f;    // front, owned by Axle_F; main-rod crank is driver1
         // Rolling radius read off the PoweredWheel axle height, probe line 1605.
         internal const float DriverRadius = 0.712128f;
 
@@ -57,6 +57,9 @@ namespace RearrangedS060
         internal static bool IsS060(TrainCar car)
         {
             if (car == null) return false;
+            // CCL vehicles may mention S060 in their IDs while using completely
+            // different running gear. Only the native body is rearrangeable.
+            if (car.transform.Find("LocoS060_Body") == null) return false;
             // Match on the type name rather than a hard-coded enum member so this
             // keeps working if the enum is renumbered; the livery is the fallback.
             if (car.carType.ToString().IndexOf("S060", StringComparison.OrdinalIgnoreCase) >= 0) return true;
@@ -105,7 +108,12 @@ namespace RearrangedS060
                 foreach (var axle in bogie.Axles)
                 {
                     if (axle.transform == null) continue;
-                    float z = car.transform.InverseTransformPoint(axle.transform.position).z;
+                    var position = car.transform.InverseTransformPoint(axle.transform.position);
+#if B99_S060_ARTICULATED
+                    var support = car.GetComponent<S060MeyerSupport>();
+                    if (support != null && support.Active) position = support.OriginalAxlePosition(bogie, axle.transform);
+#endif
+                    float z = position.z;
                     int index = NearestDriver(z);
                     if (index == 0)
                         throw new InvalidOperationException("An [axle] at car-local Z " +

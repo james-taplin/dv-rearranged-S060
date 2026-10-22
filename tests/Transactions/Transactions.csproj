@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework>
+    <DefineConstants>$(DefineConstants);B99_S060_ARTICULATED</DefineConstants>
+    <NuGetAudit>false</NuGetAudit><RestoreIgnoreFailedSources>true</RestoreIgnoreFailedSources>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../RearrangedS060/S060Conversion.cs" Link="S060Conversion.cs" />
+    <Compile Include="../../RearrangedS060/S060Selection.cs" Link="S060Selection.cs" />
+    <Compile Include="../../RearrangedS060/S060EightLayout.cs" Link="S060EightLayout.cs" />
+  </ItemGroup>
+</Project>

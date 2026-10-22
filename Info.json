@@ -1,7 +1,7 @@
 {
   "Id": "RearrangedS060",
-  "Version": "0.3.0",
-  "DisplayName": "Rearranged S060 - spikes: 0-4-0, 0-8-0, driver resize",
+  "Version": "0.15.0",
+  "DisplayName": "Rearranged S060",
   "Author": "james-taplin, forked from SatiricRug's Rearranged S282",
   "EntryMethod": "RearrangedS060.Main.Load",
   "ManagerVersion": "0.27.3",
