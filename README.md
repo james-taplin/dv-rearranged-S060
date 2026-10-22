@@ -4,16 +4,20 @@ Change the S060's running gear through a dedicated comms-radio mode in Derail
 Valley. This project forks the Rearranged S282 B99/Re:Arranged branch, based on
 Peter Schinske / SatiricRug's original Rearranged S282.
 
-## Current candidate: S060 0.15.0, Meyer/Dockside packs 0.6.0
+## Current candidate: S060 0.16.0, Meyer/Dockside packs 0.7.0
 
-This cleanup follows the 0.14.0 lifecycle fixes from the
-[22 October code audit](docs/AUDIT-2026-10-22.md). Oiling now separates geometric
-mounts from native interactable construction and circuit topology. Inactive
-prototype code/resources/scripts are archived away from the supported product.
-Engine-unit roles and calibration now have shared definitions. Failed-switch
-cleanup retains its owner for an explicit retry instead of losing resources.
-Existing saved IDs, engine-save schema and calibration precision are retained;
-this work adds no arrangements or resources.
+This candidate follows the 0.15.0 audit cleanup, using discordraconequus's Verde
+authoring pack as a reference for native effects and motion patterns. Cock
+steam/drip/sound holders now follow measured cylinder drain caps. Owned radio
+particle readers use their actual crank when flow or reverser events arrive,
+fixing a native callback-value phase hazard on stopped engines. Native activity
+curves, inlet masks and gains remain. Reverse travel, crank wrapping and
+independent unit clocks receive motion checks; no new Franklin cutoff actuator
+is claimed.
+
+The earlier responsibility separation, retryable cleanup and archived prototype
+source remain. Existing saved IDs, engine-save schema, compound simulation and
+calibration precision are retained; this work adds no arrangements or resources.
 
 Final candidate validation and installation are recorded in
 [the handover](docs/HANDOVER.md). Source changes and passing isolated checks do

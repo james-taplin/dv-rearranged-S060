@@ -72,6 +72,7 @@ public static class DocksideBundleAudit
             Require(!first && bounds.min.z >= -4.295f && bounds.max.z <= 4.004f && bounds.min.x >= -1.672f && bounds.max.x <= 1.672f, "Franklin fit extends outside the S060 body envelope: " + bounds);
             DocksideMotionAudit.Validate(root, Path.GetDirectoryName(report));
             SteamPipeAudit.Validate(root, Path.GetDirectoryName(report));
+            SteamEffectsAudit.Validate(root, Path.GetDirectoryName(report), false);
             Require(Hash(path) == bundleHash, "Bundle changed while its reopened content was being validated.");
             File.WriteAllText(report, "{\"passed\":true,\"reopenedBundle\":true,\"bundleSha256\":\"" + bundleHash + "\",\"nativeSimpleEngines\":2,\"poweredAxles\":4,\"driverDiameter\":1.0,\"wheelWidthScaled\":false,\"franklinAssemblies\":4,\"allGearUnderLoco\":true,\"bothBoilerIntakesSummed\":true,\"bothExhaustsSummed\":true,\"cockReaders\":2,\"cockSoundAliases\":4,\"customFranklinMeshes\":" + franklinMeshes.Length + ",\"sdkCouplerMeshes\":" + (meshes.Length - franklinMeshes.Length) + ",\"nativeBodyAndWheelMeshesBundled\":0,\"runtimeValidated\":false,\"franklinBoundsMin\":[" + Vec(bounds.min) + "],\"franklinBoundsMax\":[" + Vec(bounds.max) + "]}\n");
             File.WriteAllText(Path.Combine(Path.GetDirectoryName(report), "native-wiring.json"),

@@ -1,12 +1,48 @@
-# S060 radio 0.15.0 cleanup candidate test
+# S060 radio 0.16.0 effects and motion candidate test
 
-Required packs: Meyer **0.6.0**, Franklin Dockside **0.6.0**. See the installation
+Required packs: Meyer **0.7.0**, Franklin Dockside **0.7.0**. See the installation
 receipt for actual installed hashes and installation mode. Restart/reload after
 installation. The installer creates no backup, as requested; its receipt records
 that mode and prior file hashes.
-Pack versions remain 0.6.0. Fresh authoring exports and their exact bundle
+This build requires 0.7.0 packs. Fresh authoring exports and their exact bundle
 hashes must be validated before packaging this candidate; matching version
 numbers alone are insufficient.
+
+## Effects and motion focus
+
+This revision uses Verde's native effect ownership and motion patterns as a
+reference. No Verde meshes, textures or audio are copied. Compound simulation,
+tuning and save IDs/schema remain unchanged.
+
+- Inspect each cylinder's front and rear cock outlets, water drips and sound
+  position, on both sides of both engine units. They should sit on the measured
+  lower cylinder-cap locations and stay attached through articulation, reverse
+  travel and save/reload. Check Meyer's native front castings separately from
+  its custom rear set and both custom Dockside sets.
+- Stop a hot engine while residual steam is available. Keep its wheel pose
+  fixed, cycle the cocks and move the reverser. Changing flow must not make the
+  emitting end jump as if the wheels turned; changing direction should exchange
+  front/rear activity at that same physical pose. Not every outlet must emit at
+  every stopped crank position: the owning cylinder's inlet state still gates it.
+  Repeat while moving slowly forward and backward, then close the cocks.
+- Watch rods and Franklin shafts through a complete forward/reverse revolution
+  and across the crank wrap. Each unit must follow its own crank without a jump
+  or a free-running visual clock. These are timing/continuity checks; this build
+  does not add a Franklin cutoff actuator animation.
+
+The production radio path's owned readers now normalize event values to the
+reader's actual crank phase. The standalone CCL debug presentation is unchanged
+in this step. Native activity curves, inlet masks, gains and steam flow remain.
+Drips sit at the rear drain; each cylinder's shared hiss source sits between its
+front and rear drains.
+
+The reopened `steam-effects-validation.json` checks stage-coherent bindings,
+particle/audio aliases and measured outlet fit through ±15° bogie yaw and a
+73° body orientation. Motion reports include seek/order/wrap and unit-isolation
+assertions. Native timing tests first reproduce the callback-value bug, then
+exercise fixed-crank flow/reverser changes and both teardown orders. Their final
+candidate results/counts are recorded in the receipts/handover; source changes
+alone do not establish a passing integrated run or sound balance.
 
 ## Cleanup regression focus
 
@@ -17,7 +53,7 @@ remain unchanged. No new arrangement is introduced.
 - Repeat servicing after streaming and radio changes: native cup construction
   is now separate from mount geometry and synchronous circuit topology. Check
   lids, indicators, oil-can refill and sounds on both sides/rear units.
-- Load saves created by 0.14.0 and earlier supported versions. Switch among
+- Load saves created by 0.14.0/0.15.0 and earlier supported versions. Switch among
   Stock, Meyer and Dockside, then reload. Retained dormant oil/cylinder/receiver
   state must survive the cleanup.
 - If assets are unavailable, preflight should refuse the switch before removing
@@ -181,14 +217,14 @@ unchanged saved data/precision under the new unit-role mapping. Development
 Meyer tests pass **18 assertions** and the **25-assertion** physics suite now uses
 the production calibration. The final candidate receipt records the frozen
 source's integrated reruns and asset export validation.
-Conversion-boundary development tests pass **33 assertions across 13 scenarios**,
+Conversion-boundary development tests pass **35 assertions across 14 scenarios**,
 linking the production conversion/selection code with scene/native discovery
 test doubles. They cover preflight and retained retryable cleanup ownership;
 they do not prove arbitrary native physics or destruction recovery.
 These totals include repeated iterations; they are not independent game scenes.
 
 The final runtime/asset receipts and handover record the complete candidate's
-fresh runs and exact hashes. Previous 0.13.x/0.14.0 report totals are historical and
+fresh runs and exact hashes. Previous 0.13.x–0.15.0 report totals are historical and
 cannot establish the new candidate's status. Local native body/wheel/atlas
 previews are transient QA inputs and are not packaged. Gameplay, sound balance,
 oil-can/lid interaction, lamps, collision and coupled-save acceptance still need

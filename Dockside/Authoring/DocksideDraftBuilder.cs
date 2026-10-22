@@ -73,6 +73,7 @@ public static class DocksideDraftBuilder
                 manager.GetWheelsFromDefaultBogies = false; manager.poweredWheels = root.GetComponentsInChildren<PoweredWheelProxy>(true);
                 DocksideMotionAuthoring.Apply(root, front, rear, folder, material);
                 foreach (var unit in new[] { front, rear }) SteamBogieVisuals.PositionEffects(unit, DocksidePlan.DriverRadius, DocksidePlan.CylinderZ, .22f);
+                foreach (var unit in new[] { front, rear }) SteamEffectsAuthoring.Apply(unit);
                 SteamPipeAuthoring.Apply(front, rear, folder, DocksidePlan.DriverRadius, DocksidePlan.CylinderZ, .22f, .22f);
                 MeyerMechanicalAuthoring.Apply(root);
                 foreach (var collider in root.transform.Find("[colliders]/[bogies]").GetComponentsInChildren<CapsuleCollider>())
@@ -87,13 +88,13 @@ public static class DocksideDraftBuilder
             foreach (var engine in variant.prefab.GetComponentsInChildren<CCL.Types.Proxies.Simulation.Steam.ReciprocatingSteamEngineDefinitionProxy>(true))
                 File.WriteAllText(Path.Combine(output, engine.ID + "-calibration.json"), EditorJsonUtility.ToJson(engine, true));
             var pack = AssetDatabase.LoadAssetAtPath<CustomCarPack>(AssetDatabase.GUIDToAssetPath(AssetDatabase.FindAssets("t:CustomCarPack", new[] { folder }).Single()));
-            pack.Version = "0.6.0"; pack.ExporterVersion = ExporterConstants.ExporterVersion.ToString();
+            pack.Version = "0.7.0"; pack.ExporterVersion = ExporterConstants.ExporterVersion.ToString();
             type.ForceValidation(); EditorUtility.SetDirty(type); EditorUtility.SetDirty(pack); AssetDatabase.SaveAssets();
             string destination = Path.Combine(output, DocksidePlan.CarId); Directory.CreateDirectory(destination);
             var helper = AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType("CCL.Creator.Utility.AssetBundleHelper")).First(t => t != null);
             helper.GetMethod("CreateBundle", Flags).Invoke(null, new object[] { destination, new List<(Object, string)> { (pack, null) } });
             DocksideBundleAudit.Validate(Path.Combine(destination, "ccl_bundle"), Path.Combine(output, "bundle-validation.json"));
-            File.WriteAllText(Path.Combine(destination, "Info.json"), "{\"Id\":\"" + DocksidePlan.CarId + "\",\"DisplayName\":\"Franklin Dockside 0-4-4-0T prototype\",\"Version\":\"0.6.0\",\"Author\":\"james-taplin\",\"ManagerVersion\":\"0.27.3\",\"Requirements\":[\"DVCustomCarLoader\",\"RearrangedS060-0.13.0\"]}\n");
+            File.WriteAllText(Path.Combine(destination, "Info.json"), "{\"Id\":\"" + DocksidePlan.CarId + "\",\"DisplayName\":\"Franklin Dockside 0-4-4-0T prototype\",\"Version\":\"0.7.0\",\"Author\":\"james-taplin\",\"ManagerVersion\":\"0.27.3\",\"Requirements\":[\"DVCustomCarLoader\",\"RearrangedS060-0.16.0\"]}\n");
             File.WriteAllText(Path.Combine(output, "authoring-result.json"), "{\"bundleBuilt\":true,\"carId\":\"" + DocksidePlan.CarId + "\",\"arrangement\":\"0-4-4-0T articulated duplex\",\"simpleExpansion\":true,\"driverDiameter\":1.0,\"axlePitch\":1.2,\"bogieCentre\":1.4,\"wheelWidthScaled\":false,\"rearExtension\":false,\"rodAnimationImplemented\":true,\"installed\":false,\"runtimeValidated\":false}\n");
             EditorApplication.Exit(0);
         }

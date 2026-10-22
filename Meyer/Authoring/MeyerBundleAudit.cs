@@ -56,6 +56,7 @@ public static class MeyerBundleAudit
             Require(!bundle.LoadAllAssets<Mesh>().Any(m => m.name.StartsWith("s060", StringComparison.OrdinalIgnoreCase)), "Native S060 meshes must not be bundled.");
             MeyerMotionAudit.Validate(root, Path.GetDirectoryName(report));
             SteamPipeAudit.Validate(root, Path.GetDirectoryName(report));
+            SteamEffectsAudit.Validate(root, Path.GetDirectoryName(report), true);
             Require(Hash(path) == bundleHash, "Bundle changed while its reopened content was being validated.");
             File.WriteAllText(report, "{\"passed\":true,\"reopenedBundle\":true,\"bundleSha256\":\"" + bundleHash + "\",\"canonicalCars\":1,\"canonicalLiveries\":1,\"poweredAxles\":4,\"cockReaders\":2,\"waterDrips\":4,\"cockSoundAliases\":4,\"bundledGameMeshes\":0,\"bundledAudioClips\":0,\"runtimeValidated\":false}\n");
         }

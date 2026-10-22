@@ -43,6 +43,8 @@ namespace RearrangedS060
             donorRoot = donor.prefab.transform;
             var frames = donor.prefab.GetComponentsInChildren<Transform>(true).Where(t => t.name == "bogie_car").OrderBy(t => donor.prefab.transform.InverseTransformPoint(t.position).z).ToArray();
             if (frames.Length != 2) throw new InvalidOperationException("Articulated donor must have exactly two bogie frames.");
+            if (frames.Any(f => f.Find("[S060 fitted effects 0.7]") == null))
+                throw new InvalidOperationException("Update the Meyer/Dockside asset pack to 0.7.0 for fitted cylinder effects before selecting it.");
             if (frames.Any(f => f.GetComponent<Animator>() == null || f.Find("[Powered bogie frame]") == null || f.Find("[S060 fitted gear 0.6]") == null ||
                 (f.Find("[Round cylinders R]") == null && f.Find("[Native S060 cylinders]") == null)))
                 throw new InvalidOperationException("Update the " + (meyer ? "Meyer" : "Dockside") + " asset pack to 0.6.0 before selecting it.");

@@ -1,6 +1,63 @@
 # Rearranged S060 — handover
 
-## Current installed cleanup: 0.15.0 — 22 October 2026
+## Current installed effects update: 0.16.0 / packs 0.7.0 — 22 October 2026
+
+Installed and hash verified, game closed and checked again before copying.
+**No backup created**, per James's current instruction. Receipt:
+`build/articulated-0.16.0/install-receipt-latest.json`. Eleven installed package
+files and five protected files verified; native settings and other mods retained.
+Runtime SHA256: `845129C2B78F2CF27A38C317E5202AEC4CA05F826CA49C613A1E66D04DACC05A`.
+
+Verde reference: the supplied Verdpack Unity package was inspected read-only in
+memory. No Verde meshes, clips, textures or audio were imported. Native effect
+ownership, per-cylinder timing and native absolute animation patterns informed
+this work; discordraconequus is credited in the installed CREDITS.md.
+
+Steam holders now meet the actual drain-valve cap centres. Meyer front uses
+measured local native body mesh data; custom cylinders use their actual cap
+bounds. Water drips sit on rear drains and hiss sources between the drain ends.
+Both frames carry an effects-0.7 marker; preflight rejects older packs before
+dismantling the previous selection. Existing fitted-gear-0.6 markers remain
+because wheel geometry has not changed.
+
+B99's CylinderCockParticlePortReader subscribes the same phase-valued callback
+to crank, reverser and flow. A flow/reverser-only update can therefore substitute
+that value for the real crank phase. S060CockTiming replaces those three delegates
+only on radio-owned articulated readers with wrappers reading the actual crank.
+Native curves, inlet gating, flow, reverser logic and sound gain remain native.
+Disposal restores native ownership before teardown; teardown-first disposal does
+not resurrect callbacks. The legacy standalone CCL debug presentation is outside
+this correction's scope; supported product operation is the native S060 radio.
+
+Verde's reversing clips target its own armature. Current Meyer rods and Franklin
+drive shafts have no modeled variable-cutoff actuator; no false neutral/reverse
+blend was added. Absolute own-unit crank motion is preserved. New motion checks
+cover negative/multi-turn seeking, arbitrary seek order, quartering, endpoint and
+seam continuity, and independent front/rear clocks.
+
+Full Build.Release passed with zero runtime compile warnings/errors:
+
+- `build/meyer/authoring-20261022-215949` and
+  `build/dockside/authoring-20261022-220008`: 177 drain-fit/binding assertions each,
+  including bogie/body yaw, maximum outlet gap 0.00000763m. Required new report:
+  `steam-effects-validation.json`, bound to each reopened bundle's hash.
+- Motion: Meyer 22,789 pose plus 5,761 seek/isolation assertions; Dockside 24,421
+  pose plus 8,447 seek/isolation assertions. Counts are repeated sweeps, not scenes.
+- `build/radio-0.16.0/runtime-audits-20261022-220025`: 611 exhaust/audio,
+  56 native cock (including reproduction-before-fix and both disposal orders),
+  117 cleanup and 6,942 collision assertions.
+- 173 functional, 241 native engine/save/ECS, 527 oiling, 100 repeated axle getter,
+  1,151 geometry, 35 conversion assertions over 14 injected scenarios, 25 compound,
+  18 Meyer and 17 Dockside native assertions; 24 installer fixture assertions.
+- Compound model, native engine graph, calibration and save-state sources are
+  unchanged from 0.15.0: `build/radio-0.16.0/simulation-save-contract.json`.
+
+Manual playback/driving acceptance remains: hot stationary flow/reverser cycling,
+sound location/balance, articulated drain placement while moving and streaming,
+and forward/reverse motion through the loop seam. No game was launched by Codex,
+no saves edited and nothing pushed or published.
+
+## Previous installed cleanup: 0.15.0 — 22 October 2026
 
 **Installed and hash verified: S060 0.15.0, Meyer/Dockside 0.6.0**, at 22:44 UK /
 21:44 UTC. Game closed and checked again immediately before copying. **No backup

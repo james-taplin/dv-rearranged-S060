@@ -95,12 +95,8 @@ public static class MeyerDraftBuilder
                 RearPlatform(rear, folder);
                 MeyerBogieDetail.Apply(rear, folder);
                 SteamBogieVisuals.Group(front, "[Native S060 cylinders]");
-                foreach (var part in front.GetComponentsInChildren<Transform>(true))
-                {
-                    if (part.name.StartsWith("Cock front ")) part.localPosition = new Vector3(part.localPosition.x < 0 ? -1.076f : 1.076f, .352f, 3.515f + MeyerPlan.CylinderZ - RearrangedS060.S060PipeGeometry.NativeCylinderCentreZ);
-                    if (part.name.StartsWith("Cock rear ")) part.localPosition = new Vector3(part.localPosition.x < 0 ? -1.076f : 1.076f, .352f, 2.817f + MeyerPlan.CylinderZ - RearrangedS060.S060PipeGeometry.NativeCylinderCentreZ);
-                    if (part.name.StartsWith("Water drip ") || part.name.StartsWith("Cock audio ")) part.localPosition = new Vector3(part.localPosition.x < 0 ? -1.076f : 1.076f, .342f, MeyerPlan.CylinderZ);
-                }
+                SteamEffectsAuthoring.Apply(front, nativeFront: true);
+                SteamEffectsAuthoring.Apply(rear);
                 SteamPipeAuthoring.Apply(front, rear, folder, (float)MeyerPlan.DriverRadius, MeyerPlan.CylinderZ, .255f, .337f, nativeFront: true);
                 MeyerBogieDetail.AliasAll(front, folder); MeyerBogieDetail.AliasAll(rear, folder);
                 // The radio copies the bogie-owned buffers. Suppress the SDK's
@@ -156,7 +152,7 @@ public static class MeyerDraftBuilder
         var packs = AssetDatabase.FindAssets("t:CustomCarPack", new[] { folder });
         if (packs.Length != 1) throw new InvalidOperationException("Expected one CCL pack.");
         var pack = AssetDatabase.LoadAssetAtPath<CustomCarPack>(AssetDatabase.GUIDToAssetPath(packs[0]));
-        pack.Version = "0.6.0"; pack.ExporterVersion = ExporterConstants.ExporterVersion.ToString();
+        pack.Version = "0.7.0"; pack.ExporterVersion = ExporterConstants.ExporterVersion.ToString();
         type.ForceValidation(); EditorUtility.SetDirty(type); EditorUtility.SetDirty(pack); AssetDatabase.SaveAssets();
         string destination = Path.Combine(output, "RS060_Meyer_0440"); Directory.CreateDirectory(destination);
         var helper = AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType("CCL.Creator.Utility.AssetBundleHelper")).First(t => t != null);
@@ -165,7 +161,7 @@ public static class MeyerDraftBuilder
         if (!File.Exists(bundle) || new FileInfo(bundle).Length == 0) throw new InvalidOperationException("CCL bundle build did not produce a bundle.");
         MeyerBundleAudit.Validate(bundle, Path.Combine(output, "bundle-validation.json"));
         MeyerLightsAudit.Validate(output);
-        File.WriteAllText(Path.Combine(destination, "Info.json"), "{\"Id\":\"RS060_Meyer_0440\",\"DisplayName\":\"S060 Meyer with attached pannier steam bogie\",\"Version\":\"0.6.0\",\"Author\":\"james-taplin\",\"ManagerVersion\":\"0.27.3\",\"Requirements\":[\"DVCustomCarLoader\",\"RearrangedS060-0.13.0\"]}\n");
+        File.WriteAllText(Path.Combine(destination, "Info.json"), "{\"Id\":\"RS060_Meyer_0440\",\"DisplayName\":\"S060 Meyer with attached pannier steam bogie\",\"Version\":\"0.7.0\",\"Author\":\"james-taplin\",\"ManagerVersion\":\"0.27.3\",\"Requirements\":[\"DVCustomCarLoader\",\"RearrangedS060-0.16.0\"]}\n");
     }
 
     private static Transform ConfigureBogie(Transform bogie, float z, Material material)

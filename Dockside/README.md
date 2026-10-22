@@ -1,6 +1,6 @@
-# Franklin Dockside 0-4-4-0T — 0.6.0 test pack
+# Franklin Dockside 0-4-4-0T — 0.7.0 test pack
 
-Requires RearrangedS060 0.13.0 and Custom Car Loader. Select **Franklin Dockside**
+Requires RearrangedS060 0.16.0 and Custom Car Loader. Select **Franklin Dockside**
 from the native S060's WHEEL REARRANGER radio or UMM arrangement chooser.
 Both engine units stay beneath one tank locomotive, with fixed 1 m drivers and
 no rear appendage or companion vehicle. The native ID, cab, resources, damage

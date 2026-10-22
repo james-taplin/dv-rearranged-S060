@@ -1,6 +1,6 @@
-# Rearranged S060 Meyer — 0.6.0 test pack
+# Rearranged S060 Meyer — 0.7.0 test pack
 
-Requires RearrangedS060 0.13.0 and Custom Car Loader. Select **Meyer Compound**
+Requires RearrangedS060 0.16.0 and Custom Car Loader. Select **Meyer Compound**
 from the native S060's WHEEL REARRANGER radio or UMM arrangement chooser.
 
 The arrangement keeps one S060 identity, cab, fuel, water, damage and save. Two

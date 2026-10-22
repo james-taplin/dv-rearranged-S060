@@ -84,6 +84,7 @@ public static class CockNativeAudit
             // reactivation reproduces the empty cached-array failure.
             update.Invoke(reader, new object[] { .25f }); update.Invoke(reader, new object[] { .25f });
             deinit.Invoke(reader, null);
+            checks += PhaseTimingRegression(root, gameAssembly, assembly);
             Check(systems.All(p => !p.gameObject.activeSelf), "native closed state disables leaves", ref checks);
             foreach (var ps in systems) ps.gameObject.SetActive(true);
             init.Invoke(reader, new[] { flow });
@@ -97,7 +98,7 @@ public static class CockNativeAudit
                 Check(systems.All(p => !p.isEmitting && !p.gameObject.activeSelf), "close cycle " + cycle, ref checks);
             }
             deinit.Invoke(reader, null);
-            File.WriteAllText(Path.Combine(output, "native-cock-validation.json"), "{\"passed\":true,\"checks\":" + checks + ",\"reader\":\"installed B99 CylinderCockParticlePortReader\",\"unityGameScene\":false}");
+            File.WriteAllText(Path.Combine(output, "native-cock-validation.json"), "{\"passed\":true,\"checks\":" + checks + ",\"reader\":\"installed B99 CylinderCockParticlePortReader\",\"ownedFixedCrankFlowAndReverser\":true,\"unityGameScene\":false}");
             Debug.Log("Actual native B99 cock lifecycle: " + checks + " checks passed.");
             UnityEngine.Object.DestroyImmediate(root);
             EditorApplication.Exit(0);
@@ -108,6 +109,77 @@ public static class CockNativeAudit
             Debug.LogException(ex); UnityEngine.Object.DestroyImmediate(root); EditorApplication.Exit(1);
         }
         finally { AppDomain.CurrentDomain.AssemblyResolve -= Resolve; }
+    }
+    private static int PhaseTimingRegression(GameObject parent, Assembly game, Assembly sim)
+    {
+        int checks = 0;
+        var root = new GameObject("Owned fixed-crank timing"); root.transform.SetParent(parent.transform, false);
+        var readerType = game.GetType("DV.Simulation.Controllers.CylinderCockParticlePortReader", true);
+        var reader = root.AddComponent(readerType);
+        var setupType = readerType.GetNestedType("CylinderSetup"); var setup = Activator.CreateInstance(setupType);
+        var systems = new ParticleSystem[2];
+        for (int i = 0; i < 2; i++)
+        {
+            var leaf = new GameObject(i == 0 ? "front" : "rear"); leaf.transform.SetParent(root.transform, false);
+            var ps = leaf.AddComponent<ParticleSystem>(); systems[i] = ps;
+            var main = ps.main; main.playOnAwake = false; main.startLifetime = .1f;
+            ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            setupType.GetField(i == 0 ? "frontParticlesParent" : "rearParticlesParent").SetValue(setup, leaf);
+            setupType.GetField(i == 0 ? "frontActivityCurve" : "rearActivityCurve").SetValue(setup, new AnimationCurve(
+                new Keyframe(0, i == 0 ? 1 : 0), new Keyframe(.49f, i == 0 ? 1 : 0), new Keyframe(.5f, i == 0 ? 0 : 1), new Keyframe(1, i == 0 ? 0 : 1)));
+        }
+        var setups = Array.CreateInstance(setupType, 1); setups.SetValue(setup, 0); readerType.GetField("cylinderSetups").SetValue(reader, setups);
+        foreach (var name in new[] { "startSpeedMultiplierMin", "startSpeedMultiplierMax", "startSizeMultiplierMin", "startSizeMultiplierMax", "emissionRateMultiplierMin", "emissionRateMultiplierMax" }) readerType.GetField(name).SetValue(reader, 1f);
+        var portType = sim.GetType("LocoSim.Implementations.Port", true);
+        var definition = sim.GetType("LocoSim.Definitions.PortDefinition", true);
+        var typeEnum = sim.GetType("LocoSim.Definitions.PortType", true); var valueEnum = sim.GetType("LocoSim.Definitions.PortValueType", true);
+        var ports = (IDictionary)Activator.CreateInstance(typeof(System.Collections.Generic.Dictionary<,>).MakeGenericType(typeof(string), portType));
+        foreach (string name in new[] { "crankRotation", "reverser", "cylindersInletValveOpen", "cylinderCockFlowNormalized", "forwardSpeed" })
+        {
+            var def = Activator.CreateInstance(definition, new[] { Enum.Parse(typeEnum, "READONLY_OUT"), Enum.Parse(valueEnum, "GENERIC"), (object)name });
+            ports.Add("timing." + name, Activator.CreateInstance(portType, new[] { "timing", def, (object)0f }));
+            readerType.GetField(name + "PortId").SetValue(reader, "timing." + name);
+        }
+        var flowType = sim.GetType("LocoSim.Implementations.SimulationFlow", true); var flow = FormatterServices.GetUninitializedObject(flowType);
+        flowType.GetField("fullPortIdToPort", Fields).SetValue(flow, Activator.CreateInstance(typeof(System.Collections.ObjectModel.ReadOnlyDictionary<,>).MakeGenericType(typeof(string), portType), ports));
+        Action<string, float> value = (name, v) => portType.GetProperty("Value").SetValue(ports["timing." + name], v, null);
+        value("reverser", 1); value("cylindersInletValveOpen", 1); value("cylinderCockFlowNormalized", 1);
+        readerType.GetMethod("Init").Invoke(reader, new[] { flow }); value("crankRotation", .125f);
+        Check(systems[0].isEmitting && !systems[1].isEmitting, "native crank event selects front outlet", ref checks);
+        value("cylinderCockFlowNormalized", .8f);
+        Check(!systems[0].isEmitting && systems[1].isEmitting, "unmodified B99 reproduces flow-value-as-phase defect", ref checks);
+        var mod = Assembly.LoadFrom(Environment.GetEnvironmentVariable("S060_EXHAUST_AUDIT_RUNTIME"));
+        var timing = mod.GetType("RearrangedS060.S060CockTiming", true).GetMethod("Bind", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, new[] { reader });
+        Check(systems[0].isEmitting && !systems[1].isEmitting, "owned timing enrollment immediately restores actual phase", ref checks);
+        value("cylinderCockFlowNormalized", .6f);
+        Check(systems[0].isEmitting && !systems[1].isEmitting, "flow-only update retains fixed crank outlet", ref checks);
+        value("reverser", .9f);
+        Check(systems[0].isEmitting && !systems[1].isEmitting, "positive reverser-only update retains actual crank", ref checks);
+        value("reverser", -.6f);
+        Check(!systems[0].isEmitting && systems[1].isEmitting, "reverse swaps native curves at actual fixed crank", ref checks);
+        value("cylinderCockFlowNormalized", .4f);
+        Check(!systems[0].isEmitting && systems[1].isEmitting, "reverse flow-only update stays on correct end", ref checks);
+        value("crankRotation", .75f);
+        Check(systems[0].isEmitting && !systems[1].isEmitting, "moving crank retains native reverse timing", ref checks);
+        ((IDisposable)timing).Dispose(); ((IDisposable)timing).Dispose();
+        readerType.GetMethod("Deinit").Invoke(reader, null);
+        foreach (string name in new[] { "crankRotation", "reverser", "cylinderCockFlowNormalized" })
+        {
+            var callback = (Delegate)portType.GetField("ValueUpdatedInternally", Fields).GetValue(ports["timing." + name]);
+            Check(callback == null, "owned disposal and native Deinit remove every callback: " + name, ref checks);
+        }
+        foreach (var ps in systems) ps.gameObject.SetActive(true);
+        readerType.GetMethod("Init").Invoke(reader, new[] { flow });
+        timing = mod.GetType("RearrangedS060.S060CockTiming", true).GetMethod("Bind", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, new[] { reader });
+        readerType.GetMethod("Deinit").Invoke(reader, null);
+        Check(readerType.GetField("crankRotationPort", Fields).GetValue(reader) == null, "actual B99 native Deinit clears cached crank port", ref checks);
+        ((IDisposable)timing).Dispose();
+        foreach (string name in new[] { "crankRotation", "reverser", "cylinderCockFlowNormalized" })
+        {
+            var callback = (Delegate)portType.GetField("ValueUpdatedInternally", Fields).GetValue(ports["timing." + name]);
+            Check(callback == null, "teardown-first disposal cannot resurrect native callback: " + name, ref checks);
+        }
+        return checks;
     }
     private static Assembly Resolve(object sender, ResolveEventArgs args)
     {

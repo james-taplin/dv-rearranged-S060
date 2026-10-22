@@ -27,6 +27,7 @@ foreach ($report in $nativeReport.reports) {
 }
 foreach ($name in @('exhaust','cocks','cleanup','collision')) { if (@($nativeReport.reports | Where-Object name -eq $name).Count -ne 1) { throw "Missing native audit: $name" } }
 $cockReport = ($nativeReport.reports | Where-Object name -eq 'cocks').path
+if (-not (Get-Content $cockReport -Raw | ConvertFrom-Json).ownedFixedCrankFlowAndReverser) { throw 'Owned cylinder-cock fixed-crank flow/reverser regression is required.' }
 $exhaustReport = Get-Content ($nativeReport.reports | Where-Object name -eq 'exhaust').path -Raw | ConvertFrom-Json
 if (-not $exhaustReport.smokeBeforeOwnerRegistration -or -not $exhaustReport.detachedPooledAudio) { throw 'Real startup and detached audio regressions are required.' }
 $simDll = Get-ChildItem (Join-Path $repo 'RearrangedS060\obj\Release\net48\PublicizedAssemblies') -Recurse -Filter DV.Simulation.dll | Select-Object -First 1 -ExpandProperty FullName
@@ -107,7 +108,7 @@ $receipt = [ordered]@{
     nativeEvidence = $NativeEvidence; nativeRuntimeChecks = $nativeReport
     identityILAudit = 'No spawn/reinitialize/car-identity writes in switching implementation'
     arrangementUIAudit = 'No driver-size slider calls; stock and short-wheelbase 0-6-0 are separate fixed choices'
-    requiredAssetPacks = @('RS060_Meyer_0440 0.6.0','RS060_Franklin_Dockside_0440 0.6.0')
+    requiredAssetPacks = @('RS060_Meyer_0440 0.7.0','RS060_Franklin_Dockside_0440 0.7.0')
     files = @(Get-ChildItem $stage -File | Get-FileHash | Select-Object Path,Hash)
     zip = Get-FileHash -LiteralPath $zip | Select-Object Path,Hash
 }

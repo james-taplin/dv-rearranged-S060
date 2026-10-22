@@ -7,7 +7,10 @@
 - **discordraconequus** — Verde compound locomotive, supplied as a compound template
   with the author's invitation. Its serialized native stage controls, LP chimney
   routing and lower-pressure chuff bands informed the S060 Meyer exhaust review.
-  Verde's meshes, textures and audio are not included in these packages.
+  The author's Verde authoring pack also provided a reference for native effect
+  ownership, per-cylinder timing and reverser/motion patterns. These patterns
+  were reviewed against the S060's own geometry and native readers; no Verde
+  meshes, textures, animation clips or audio are included in these packages.
 - **Niko Fox and Insprill** — Derail Valley modding template.
 - **Radu, Perfare and aelurum** — AssetStudio.
 - **Dummiesman** — Runtime OBJ Importer.

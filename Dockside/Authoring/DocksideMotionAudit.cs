@@ -92,9 +92,10 @@ public static class DocksideMotionAudit
                     Require(Vector3.Distance(all[i].localPosition, positions[i]) < .0001f && Quaternion.Angle(all[i].localRotation, rotations[i]) < .1f, "Animation loop/absolute seek drift: " + all[i].name); assertions++;
                 }
             }
+            int seekChecks = SteamMotionSeekAudit.Validate(clone, true, DocksideMotionAuthoring.Crosshead); assertions += seekChecks;
             SteamBogiePreview.Render(clone, output, "dockside", DocksidePlan.DriverRadius, "Small driver ");
             DocksideWheelComparison.Render(clone, output);
-            File.WriteAllText(Path.Combine(output, "motion-validation.json"), "{\"passed\":true,\"reopenedBundle\":true,\"poseAssertions\":" + assertions + ",\"sampledTurnsPerYaw\":129,\"yawDegrees\":[-12,0,12],\"maxEndpointErrorMetres\":" + Number(maxError) + ",\"sweptHalfWidthMetres\":" + Number(sweptX) + ",\"quarteringDegrees\":90,\"unitOffsetDegrees\":45,\"nativeCrankPortDriven\":true,\"allFiveFranklinShaftsMove\":true,\"loopAndReverseSeek\":true,\"gameRuntimeValidated\":false}\n");
+            File.WriteAllText(Path.Combine(output, "motion-validation.json"), "{\"passed\":true,\"reopenedBundle\":true,\"poseAssertions\":" + assertions + ",\"seekAndIsolationAssertions\":" + seekChecks + ",\"independentNativeUnitCranks\":true,\"wrappedReverseSeekAndLoopSeam\":true,\"additionalWheelPhaseOffset\":0,\"modeledVariableCutoffLinkage\":false,\"sampledTurnsPerYaw\":129,\"yawDegrees\":[-12,0,12],\"maxEndpointErrorMetres\":" + Number(maxError) + ",\"sweptHalfWidthMetres\":" + Number(sweptX) + ",\"quarteringDegrees\":90,\"unitOffsetDegrees\":45,\"nativeCrankPortDriven\":true,\"allFiveFranklinShaftsMove\":true,\"loopAndReverseSeek\":true,\"gameRuntimeValidated\":false}\n");
         }
         finally { Object.DestroyImmediate(clone); }
     }

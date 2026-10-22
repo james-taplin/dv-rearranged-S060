@@ -58,8 +58,9 @@ public static class MeyerMotionAudit
                     }
                 }
             }
+            int seekChecks = SteamMotionSeekAudit.Validate(clone, false, MeyerMotionAuthoring.Crosshead); checks += seekChecks;
             SteamBogiePreview.Render(clone, output, "meyer", (float)MeyerPlan.DriverRadius, "S060 driver ");
-            File.WriteAllText(Path.Combine(output, "motion-validation.json"), "{\"passed\":true,\"poseAssertions\":" + checks + ",\"visibleFrames\":2,\"roundCylinders\":4,\"nativeWheelPinChecked\":true,\"yawDegrees\":[-12,0,12],\"maxEndpointErrorMetres\":" + max.ToString("R", System.Globalization.CultureInfo.InvariantCulture) + ",\"gameRuntimeValidated\":false}");
+            File.WriteAllText(Path.Combine(output, "motion-validation.json"), "{\"passed\":true,\"poseAssertions\":" + checks + ",\"seekAndIsolationAssertions\":" + seekChecks + ",\"independentNativeUnitCranks\":true,\"wrappedReverseSeekAndLoopSeam\":true,\"additionalWheelPhaseOffset\":0,\"modeledVariableCutoffLinkage\":false,\"visibleFrames\":2,\"roundCylinders\":4,\"nativeWheelPinChecked\":true,\"yawDegrees\":[-12,0,12],\"maxEndpointErrorMetres\":" + max.ToString("R", System.Globalization.CultureInfo.InvariantCulture) + ",\"gameRuntimeValidated\":false}");
         }
         finally { Object.DestroyImmediate(clone); }
     }

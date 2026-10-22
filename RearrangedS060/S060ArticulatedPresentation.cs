@@ -22,6 +22,7 @@ namespace RearrangedS060
         private readonly List<CylinderCockLayeredPortReader> audio = new List<CylinderCockLayeredPortReader>();
         private readonly List<ParticlesPortReadersController> particles = new List<ParticlesPortReadersController>();
         private readonly List<AnimatorPortReader> motion = new List<AnimatorPortReader>();
+        private readonly List<S060CockTiming> cockTiming = new List<S060CockTiming>();
         private S060CrankWheels wheels;
         private Port cockControl;
         private Coroutine pendingCockCheck;
@@ -72,6 +73,8 @@ namespace RearrangedS060
                     }
                 particles.Add(controller); controller.Init(flow);
                 MeyerRuntime.ValidateCockParticles(controller);
+                foreach (var reader in controller.entries.OfType<CylinderCockParticlePortReader>())
+                    cockTiming.Add(S060CockTiming.Bind(reader));
             }
             if (audio.Count != 1 || particles.Count != 1) throw new InvalidOperationException("Articulated bogie requires one native cock audio and particle controller.");
             flow.TryGetPort(audio[0].cylinderCockControlPortId, out cockControl);
@@ -111,6 +114,8 @@ namespace RearrangedS060
             foreach (var reader in audio)
                 if (reader != null) { reader.Deinit(); foreach (var source in reader.cylCockAudio) if (source != null) source.Set(0); }
             audio.Clear();
+            foreach (var timing in cockTiming) timing.Dispose();
+            cockTiming.Clear();
             foreach (var controller in particles)
                 if (controller != null && controller.simFlow != null) { controller.OnDestroy(); controller.simFlow = null; }
             particles.Clear();

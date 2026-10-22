@@ -2,7 +2,7 @@ param([Parameter(Mandatory)][string]$Evidence)
 $ErrorActionPreference = 'Stop'
 $root = [IO.Path]::GetFullPath($Evidence)
 $receipt = Get-Content (Join-Path $root 'bundle-evidence.json') -Raw | ConvertFrom-Json
-$requiredReports = @('bundle-validation.json','motion-validation.json','steam-pipe-validation.json','oilcup-geometry-validation.json','normal-rod-validation.json','native-pin-fit-validation.json')
+$requiredReports = @('bundle-validation.json','motion-validation.json','steam-pipe-validation.json','oilcup-geometry-validation.json','normal-rod-validation.json','native-pin-fit-validation.json','steam-effects-validation.json')
 $bundleEntries = @($receipt.files | Where-Object relative -Like '*\ccl_bundle')
 if ($bundleEntries.Count -ne 1) { throw 'Exactly one bundle must be validated.' }
 $pack = Split-Path $bundleEntries[0].relative -Parent
