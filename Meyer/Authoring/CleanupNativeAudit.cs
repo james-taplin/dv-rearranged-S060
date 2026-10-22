@@ -84,7 +84,8 @@ public static class CleanupNativeAudit
             var hooks = assembly.GetType("RearrangedS060.S060Lifecycle", true).GetNestedTypes(BindingFlags.NonPublic);
             Check(hooks.Any(t => t.Name == "PreparingForDestroy"), "native pre-destruction hook present", ref checks);
             TransactionsNativeAudit.Validate(game, assembly, managed, ref checks);
-            File.WriteAllText(Path.Combine(output, "native-cleanup-validation.json"), "{\"passed\":true,\"checks\":" + checks + ",\"directDeletionCycles\":24,\"nativeMeshLifetime\":true,\"articulatedDisposalFailureRetry\":true,\"nativeAttachmentRestoredBeforeFrameDeletion\":true,\"transactionFixturePhysicsSkipped\":true,\"gameScene\":false}");
+            ValidateExhaustReturnLifetime(assembly, ref checks);
+            File.WriteAllText(Path.Combine(output, "native-cleanup-validation.json"), "{\"passed\":true,\"checks\":" + checks + ",\"directDeletionCycles\":24,\"nativeMeshLifetime\":true,\"articulatedDisposalFailureRetry\":true,\"nativeAttachmentRestoredBeforeFrameDeletion\":true,\"transactionFixturePhysicsSkipped\":true,\"lpReturnCandidateLifetime\":true,\"gameScene\":false}");
             EditorApplication.Exit(0);
         }
         catch (Exception ex)
@@ -93,6 +94,63 @@ public static class CleanupNativeAudit
             Debug.LogException(ex); EditorApplication.Exit(1);
         }
         finally { AppDomain.CurrentDomain.AssemblyResolve -= resolver; }
+    }
+    private static void ValidateExhaustReturnLifetime(Assembly assembly, ref int checks)
+    {
+        var type = assembly.GetType("RearrangedS060.S060MeyerExhaustPipe", true);
+        var bind = type.GetMethod("Bind", BindingFlags.Static | BindingFlags.NonPublic);
+        var update = type.GetMethod("UpdateGeometry", Instance);
+        var dispose = type.GetMethod("Dispose");
+        for (int cycle = 0; cycle < 4; cycle++)
+        {
+            var root = new GameObject("LP return candidate lifetime");
+            var rear = new GameObject("rear"); rear.transform.SetParent(root.transform, false); rear.transform.localPosition = new Vector3(0, 0, -6.1f);
+            var source = GameObject.CreatePrimitive(PrimitiveType.Cube); source.name = "s060_body"; source.transform.SetParent(root.transform, false);
+            var original = source.GetComponent<MeshFilter>().sharedMesh;
+            var material = new Material(Shader.Find("Standard")); var replacement = new Material(material);
+            source.GetComponent<MeshRenderer>().sharedMaterial = material;
+            foreach (int side in new[] { -1, 1 })
+            {
+                var group = new GameObject("[Round cylinders " + (side < 0 ? "L" : "R") + "]"); group.transform.SetParent(rear.transform, false);
+                var chest = GameObject.CreatePrimitive(PrimitiveType.Cylinder); chest.name = "Valve chest"; chest.transform.SetParent(group.transform, false);
+                chest.transform.localPosition = new Vector3(side * 1.03f, 1.2f, 1.38f); chest.transform.localRotation = Quaternion.Euler(90, 0, 0);
+                chest.transform.localScale = new Vector3(.24f, .245f, .24f);
+            }
+            object owner = null;
+            try
+            {
+                var sources = root.GetComponentsInChildren<MeshFilter>(true).Select(f => f.sharedMesh).Distinct().ToArray();
+                int nativeParts = root.GetComponentsInChildren<Transform>(true).Length;
+                owner = bind.Invoke(null, new object[] { root.transform, rear.transform, root.transform });
+                var generated = root.GetComponentsInChildren<MeshFilter>(true).Select(f => f.sharedMesh).Except(sources).ToArray();
+                Check(generated.Length > 10, "candidate creates owned return/joint meshes", ref checks);
+                Check(root.GetComponentsInChildren<MeshRenderer>(true).Where(r => r.name.StartsWith("LP ") || r.name.StartsWith("[LP ")).All(r => r.sharedMaterial == material), "candidate aliases live native material", ref checks);
+                source.GetComponent<MeshRenderer>().sharedMaterial = replacement; update.Invoke(owner, null);
+                Check(root.GetComponentsInChildren<MeshRenderer>(true).Where(r => r.name.StartsWith("LP ") || r.name.StartsWith("[LP ")).All(r => r.sharedMaterial == replacement), "candidate tracks native material replacement", ref checks);
+                rear.transform.localPosition = new Vector3(0, 2, -20); update.Invoke(owner, null);
+                Check(generated.All(m => m != null), "transient derailment overtravel returns without throwing or releasing meshes", ref checks);
+                rear.transform.localPosition = new Vector3(0, 0, -6.1f); update.Invoke(owner, null);
+                if ((cycle & 1) != 0) UnityEngine.Object.DestroyImmediate(root);
+                dispose.Invoke(owner, null); dispose.Invoke(owner, null);
+                Check(generated.All(m => m == null), "candidate releases meshes with live or already destroyed parents", ref checks);
+                Check(sources.All(m => m != null) && original != null && material != null && replacement != null, "candidate retains shared native meshes and materials", ref checks);
+                if (root != null)
+                {
+                    Check(root.GetComponentsInChildren<Transform>(true).Length == nativeParts, "candidate leaves no geometry after stock restore", ref checks);
+                    var missing = rear.transform.Find("[Round cylinders R]/Valve chest"); missing.name = "missing casting";
+                    bool rejected = false;
+                    try { bind.Invoke(null, new object[] { root.transform, rear.transform, root.transform }); }
+                    catch (TargetInvocationException ex) when (ex.InnerException is InvalidOperationException) { rejected = true; }
+                    Check(rejected && root.GetComponentsInChildren<Transform>(true).Length == nativeParts, "failed partial bind removes collector and body geometry", ref checks);
+                }
+            }
+            finally
+            {
+                if (owner != null) dispose.Invoke(owner, null);
+                if (root != null) UnityEngine.Object.DestroyImmediate(root);
+                UnityEngine.Object.DestroyImmediate(material); UnityEngine.Object.DestroyImmediate(replacement);
+            }
+        }
     }
     private static Mesh Triangle()
     {

@@ -63,16 +63,18 @@ public static class SteamBogiePreview
             camera.clearFlags = CameraClearFlags.SolidColor; camera.backgroundColor = new Color(.87f, .90f, .93f);
             var light = lightObject.AddComponent<Light>(); light.type = LightType.Directional; light.intensity = 1.3f; light.transform.rotation = Quaternion.Euler(45, -25, 0);
             RenderSettings.ambientLight = new Color(.57f, .57f, .57f);
-            for (int frame = 0; frame < 3; frame++)
+            for (int frame = 0; frame < (extended ? 5 : 3); frame++)
             {
                 foreach (var reader in clone.GetComponentsInChildren<AnimatorPortReaderProxy>(true))
                 {
-                    bool front = reader.portId.StartsWith(MeyerSteamAuthoring.Lp); reader.transform.localRotation = Quaternion.Euler(0, frame == 2 ? (front ? 12 : -12) : 0, 0);
+                    bool front = reader.portId.StartsWith(MeyerSteamAuthoring.Lp);
+                    float yaw = frame == 2 ? 12 : frame == 3 ? 15 : frame == 4 ? -15 : 0;
+                    reader.transform.localRotation = Quaternion.Euler(0, front ? yaw : -yaw, 0);
                     reader.GetComponent<Animator>().runtimeAnimatorController.animationClips.Single().SampleAnimation(reader.gameObject, frame * .125f + (front ? .125f : 0));
                 }
                 updateOilCups();
                 pipes.UpdateGeometry();
-                camera.transform.position = offset + focus + (frame == 0 ? new Vector3(8, 1.25f, .1f) : new Vector3(7, 2.4f, 5));
+                camera.transform.position = offset + focus + (frame >= 3 ? new Vector3(-8, 2.1f, 4) : frame == 0 ? new Vector3(8, 1.25f, .1f) : new Vector3(7, 2.4f, 5));
                 camera.transform.LookAt(offset + focus);
                 var target = new RenderTexture(1600, 900, 24); camera.targetTexture = target; camera.Render();
                 var old = RenderTexture.active; RenderTexture.active = target;

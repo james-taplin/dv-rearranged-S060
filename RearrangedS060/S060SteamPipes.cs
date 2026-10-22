@@ -30,6 +30,8 @@ namespace RearrangedS060
         private readonly List<Manifold> fronts = new List<Manifold>();
         private readonly List<Span> spans = new List<Span>();
         private S060BodyPipes oldBranches;
+        private S060MeyerExhaustPipe meyerExhaust;
+        internal S060MeyerExhaustPipe ExhaustReturn => meyerExhaust;
         private bool disposed, destroying;
         internal static S060SteamPipes Bind(Transform body, Transform front, Transform rear, Transform nativeShell)
         {
@@ -77,6 +79,8 @@ namespace RearrangedS060
                         foreach (var renderer in front.GetComponentsInChildren<MeshRenderer>(true).Concat(rear.GetComponentsInChildren<MeshRenderer>(true)))
                             if (renderer.sharedMaterial != null && renderer.sharedMaterial.name.StartsWith("LocoS060", StringComparison.Ordinal)) renderer.sharedMaterial = live;
                 }
+                if (front.Find("[Native S060 cylinders]") != null)
+                    owner.meyerExhaust = S060MeyerExhaustPipe.Bind(body, rear, nativeShell);
                 owner.UpdateGeometry(); return owner;
             }
             catch { owner.Dispose(); throw; }
@@ -84,6 +88,7 @@ namespace RearrangedS060
         internal void UpdateGeometry()
         {
             if (disposed || body == null) return;
+            meyerExhaust?.UpdateGeometry();
             foreach (var m in fronts)
             {
                 Vector3 delta = m.Part.InverseTransformPoint(body.TransformPoint(m.Mount)) - m.Upper.localPosition;
@@ -114,6 +119,7 @@ namespace RearrangedS060
 #if !UNITY_EDITOR
             enabled = false;
 #endif
+            meyerExhaust?.Dispose(); meyerExhaust = null;
             foreach (var m in fronts) { if (m.Filter != null) m.Filter.sharedMesh = m.Original; if (m.Owned != null) Release(m.Owned); }
             foreach (var s in spans)
             {

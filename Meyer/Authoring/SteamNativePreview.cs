@@ -117,6 +117,8 @@ public static class SteamNativePreview
         var mesh = new Mesh { name = "Native boiler pipe fixture (local QA only)", indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
         mesh.vertices = entry.vertices; mesh.uv = entry.uv; mesh.triangles = entry.triangles; mesh.RecalculateBounds(); owned.Add(mesh);
         var go = new GameObject("s060_body"); go.transform.SetParent(parent, false); go.AddComponent<MeshFilter>().sharedMesh = mesh;
+        var surface = new Material(Shader.Find("Standard")); owned.Add(surface);
+        go.AddComponent<MeshRenderer>().sharedMaterial = surface;
         return go.transform;
     }
 }

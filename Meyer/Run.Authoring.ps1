@@ -19,7 +19,7 @@ Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'Authoring') -Filter '*.cs' 
     Copy-Item -Destination (Join-Path $project 'Assets\Editor')
 Copy-Item -LiteralPath (Join-Path $repo 'RearrangedS060\S060PipeGeometry.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
 Copy-Item -LiteralPath (Join-Path $repo 'RearrangedS060\S060SteamCalibration.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
-foreach ($file in @('S060SteamPipes.cs','S060BodyPipes.cs','S060MeyerLights.cs')) { Copy-Item -LiteralPath (Join-Path $repo "RearrangedS060\$file") -Destination (Join-Path $project 'Assets\Editor') -Force }
+foreach ($file in @('S060SteamPipes.cs','S060BodyPipes.cs','S060MeyerLights.cs','S060MeyerExhaustPipe.cs')) { Copy-Item -LiteralPath (Join-Path $repo "RearrangedS060\$file") -Destination (Join-Path $project 'Assets\Editor') -Force }
 Copy-Item -LiteralPath (Join-Path $repo 'RearrangedS060\S060OilCupGeometry.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
 Copy-Item -LiteralPath (Join-Path $repo 'RearrangedS060\S060RodMesh.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
 Copy-Item -LiteralPath (Join-Path $repo 'RearrangedS060\S060MeyerCollision.cs') -Destination (Join-Path $project 'Assets\Editor') -Force

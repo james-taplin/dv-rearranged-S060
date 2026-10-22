@@ -28,6 +28,8 @@ foreach ($report in $nativeReport.reports) {
 foreach ($name in @('exhaust','cocks','cleanup','collision')) { if (@($nativeReport.reports | Where-Object name -eq $name).Count -ne 1) { throw "Missing native audit: $name" } }
 $cockReport = ($nativeReport.reports | Where-Object name -eq 'cocks').path
 if (-not (Get-Content $cockReport -Raw | ConvertFrom-Json).ownedFixedCrankFlowAndReverser) { throw 'Owned cylinder-cock fixed-crank flow/reverser regression is required.' }
+$cleanupReport = ($nativeReport.reports | Where-Object name -eq 'cleanup').path
+if (-not (Get-Content $cleanupReport -Raw | ConvertFrom-Json).lpReturnCandidateLifetime) { throw 'Compiled LP exhaust-return lifetime regression is required.' }
 $exhaustReport = Get-Content ($nativeReport.reports | Where-Object name -eq 'exhaust').path -Raw | ConvertFrom-Json
 if (-not $exhaustReport.smokeBeforeOwnerRegistration -or -not $exhaustReport.detachedPooledAudio) { throw 'Real startup and detached audio regressions are required.' }
 $simDll = Get-ChildItem (Join-Path $repo 'RearrangedS060\obj\Release\net48\PublicizedAssemblies') -Recurse -Filter DV.Simulation.dll | Select-Object -First 1 -ExpandProperty FullName
@@ -71,7 +73,7 @@ try {
     }
     if (@($allCalls | Where-Object { $_ -match 'CarRollingAudioModule::ResetJointSoundValues' }).Count -ne 1) { throw 'Rolling audio must rebuild its native axle cache.' }
     if (@($allCalls | Where-Object { $_ -match 'UnityEngine.GUILayout::HorizontalSlider' }).Count) { throw 'Release arrangement controls must not expose driver-size sliders.' }
-    foreach ($name in @('S060Meyer','S060Dockside','S060EngineBank','S060EngineSlot','S060ArticulatedSimulation','S060ArticulatedPresentation','S060ExhaustPresentation','S060StockCocks','S060EightLayout','S060MeyerSupport','S060LogicLength','S060CylinderFittings','S060BodyPipes','S060SteamPipes','S060NativeCylinders','S060MeyerLights','S060OilCups','S060Oiling')) {
+    foreach ($name in @('S060Meyer','S060Dockside','S060EngineBank','S060EngineSlot','S060ArticulatedSimulation','S060ArticulatedPresentation','S060ExhaustPresentation','S060StockCocks','S060EightLayout','S060MeyerSupport','S060LogicLength','S060CylinderFittings','S060BodyPipes','S060SteamPipes','S060MeyerExhaustPipe','S060NativeCylinders','S060MeyerLights','S060OilCups','S060Oiling')) {
         if (@($types | Where-Object Name -eq $name).Count -ne 1) { throw "Missing runtime component: $name" }
     }
     if (@($module.AssemblyReferences | Where-Object Name -Match 'CCL|AssetStudio|RearrangedS282').Count) { throw 'Unexpected runtime dependency.' }

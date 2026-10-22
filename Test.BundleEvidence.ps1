@@ -16,6 +16,10 @@ foreach ($file in $receipt.files) {
     if ((Get-FileHash -LiteralPath $path).Hash -ne $file.hash) { throw "Bundle evidence changed: $($file.relative)" }
 }
 foreach ($report in $requiredReports) { if (-not (Get-Content (Join-Path $root $report) -Raw | ConvertFrom-Json).passed) { throw "Failed evidence: $report" } }
+if ($pack -eq 'RS060_Meyer_0440') {
+    $return = (Get-Content (Join-Path $root 'steam-pipe-validation.json') -Raw | ConvertFrom-Json).meyerLpExhaustReturn
+    if (-not $return.passed -or -not $return.actualDrawnCapsAndSleeves -or -not $return.ownedMeshesReleased) { throw 'Meyer requires the LP exhaust-return fit and cleanup audit.' }
+}
 $validatedHash = (Get-Content (Join-Path $root 'bundle-validation.json') -Raw | ConvertFrom-Json).bundleSha256
 if (-not $validatedHash -or $validatedHash -ne (Get-FileHash (Join-Path $root $bundleEntries[0].relative)).Hash) { throw 'Bundle differs from the binary reopened by the Unity audit.' }
 if (@($receipt.files | Where-Object relative -Like '*\ccl_bundle').Count -ne 1 -or

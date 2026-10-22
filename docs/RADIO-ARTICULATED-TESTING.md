@@ -1,12 +1,44 @@
-# S060 radio 0.16.0 effects and motion candidate test
+# S060 radio 0.17.0 Meyer exhaust-return candidate test
 
 Required packs: Meyer **0.7.0**, Franklin Dockside **0.7.0**. See the installation
 receipt for actual installed hashes and installation mode. Restart/reload after
 installation. The installer creates no backup, as requested; its receipt records
 that mode and prior file hashes.
-This build requires 0.7.0 packs. Fresh authoring exports and their exact bundle
-hashes must be validated before packaging this candidate; matching version
+This build requires 0.7.0 packs. Their hash-bound validation receipts must match
+the packaged bundle bytes; unchanged packs can reuse matching evidence. Version
 numbers alone are insufficient.
+
+## Meyer LP exhaust-return focus
+
+Meyer now has a dedicated visible pipe from the rear LP cylinder collector back
+to the smokebox. This is exhaust return, separate from the existing admission/
+interstage pipework. Period-style ball/slip joints and support brackets allow the
+rear section to move relative to the body. It is a fictional engineering layout,
+not a reconstruction of a specific historical locomotive.
+
+- Select Meyer while stopped, uncoupled at the rear and clear of the vehicle
+  behind. Inspect both LP cylinder connections and the collector, the moving
+  joint/span, supported body run and smokebox entry. The designed cylinder/
+  valve-chest exhaust takeoffs and smokebox entries should meet their fittings;
+  other parts must not float or pass accidentally through the cab/firebox,
+  tank, existing admission pipe or running gear.
+- Drive slowly through left and right curves, then reverse over the same route.
+  Check joint collars remain connected, the sliding part stays engaged and the
+  return clears rods, oil cups, steps, deck and track. Inspect from both sides;
+  a straight-track view alone does not establish articulated clearance.
+- Confirm exhaust still emerges only from the locomotive's **single chimney**,
+  with Meyer LP timing. There must be no added rear stack or exhaust plume.
+  Both units' cylinder cocks remain independent outlets controlled from the cab.
+- Save/reload Meyer and check the return remains attached. Restore Stock or
+  another layout while stopped/uncoupled: the return, collector, joints and
+  brackets must disappear with the rear section. Repeat several times and check
+  Player.log for cleanup, material or mesh errors.
+
+The new return is visual geometry. Compound stages, receiver conservation,
+boiler draw, blast/chuff routing, fuel/water, damage and save schema remain
+unchanged. It uses live S060 materials. Exact route/clearance and mesh-lifetime
+results belong to the frozen candidate's receipts; the preceding fit tests do
+not prove this new geometry.
 
 ## Effects and motion focus
 

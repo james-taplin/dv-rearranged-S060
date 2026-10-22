@@ -92,7 +92,10 @@ public static class SteamPipeAudit
                 }
             owner.Dispose();
             Require(sources.All(p => p.f == null || p.f.sharedMesh == p.sharedMesh), "Disposal must restore every original source mesh."); checks++;
-            File.WriteAllText(Path.Combine(output, "steam-pipe-validation.json"), "{\"passed\":true,\"productionPipeChecks\":" + checks + ",\"source\":\"S282 branch_pipe: front/rear manifolds and dry_pipe_new\",\"yawDegrees\":[-15,-8,0,8,15],\"maxEndpointErrorMetres\":" + max.ToString("R", System.Globalization.CultureInfo.InvariantCulture) + ",\"liveS060MaterialAliases\":true,\"gameRuntimeValidated\":false}");
+            string returnReport = "null";
+            if (rear.Find("[Attached rear platform]") != null)
+            { var exhaustReturn = MeyerExhaustPipeAudit.Validate(prefab); checks += exhaustReturn.checks; returnReport = JsonUtility.ToJson(exhaustReturn); }
+            File.WriteAllText(Path.Combine(output, "steam-pipe-validation.json"), "{\"passed\":true,\"productionPipeChecks\":" + checks + ",\"meyerLpExhaustReturn\":" + returnReport + ",\"source\":\"S282 branch_pipe: front/rear manifolds and dry_pipe_new\",\"yawDegrees\":[-15,-8,0,8,15],\"maxEndpointErrorMetres\":" + max.ToString("R", System.Globalization.CultureInfo.InvariantCulture) + ",\"liveS060MaterialAliases\":true,\"gameRuntimeValidated\":false}");
         }
         finally { owner?.Dispose(); Object.DestroyImmediate(clone); foreach (var value in owned) Object.DestroyImmediate(value); }
     }

@@ -4,16 +4,21 @@ Change the S060's running gear through a dedicated comms-radio mode in Derail
 Valley. This project forks the Rearranged S282 B99/Re:Arranged branch, based on
 Peter Schinske / SatiricRug's original Rearranged S282.
 
-## Current candidate: S060 0.16.0, Meyer/Dockside packs 0.7.0
+## Current candidate: S060 0.17.0, Meyer/Dockside packs 0.7.0
 
-This candidate follows the 0.15.0 audit cleanup, using discordraconequus's Verde
-authoring pack as a reference for native effects and motion patterns. Cock
-steam/drip/sound holders now follow measured cylinder drain caps. Owned radio
-particle readers use their actual crank when flow or reverser events arrive,
-fixing a native callback-value phase hazard on stopped engines. Native activity
-curves, inlet masks and gains remain. Reverse travel, crank wrapping and
-independent unit clocks receive motion checks; no new Franklin cutoff actuator
-is claimed.
+This candidate adds a dedicated visible return from the Meyer rear LP cylinder
+collector to the smokebox, with period-style ball/slip joints and support
+brackets. The locomotive retains **one chimney**; the rear unit has no separate
+exhaust stack. The fictional pipe arrangement is not an exact historical replica.
+Final articulation/clearance evidence and gameplay acceptance are recorded in
+the handover rather than inferred from its straight-track appearance.
+
+The preceding effects update used discordraconequus's Verde authoring pack as a
+reference. Cock steam/drip/sound holders follow measured cylinder drain caps;
+owned radio particle readers use their actual crank for flow/reverser callbacks.
+Native activity curves, inlet masks and gains remain. Motion checks cover reverse
+travel, crank wrapping and independent unit clocks; no Franklin cutoff actuator
+animation is added.
 
 The earlier responsibility separation, retryable cleanup and archived prototype
 source remain. Existing saved IDs, engine-save schema, compound simulation and
@@ -46,9 +51,10 @@ cab control. Each driven axle has two functional big-end oil cups alongside the
 four original guide/crosshead lubricators.
 
 Meyer exhaust presentation follows its LP stage, with lower-pressure chuff bands
-informed by discordraconequus's Verde compound. Both Dockside units contribute
+informed by discordraconequus's Verde compound. Its new return is separate from
+the existing admission/interstage pipework. Both Dockside units contribute
 exhaust events to its single chimney. Native readers still control particles and
-sound; the mod changes their per-car sources.
+sound; the visible Meyer return does not change compound simulation or resources.
 
 ## Requirements and installation
 

@@ -16,6 +16,7 @@
     <Compile Include="..\..\RearrangedS060\S060OilCupGeometry.cs" />
     <Compile Include="..\..\RearrangedS060\S060RodMesh.cs" />
     <Compile Include="..\..\RearrangedS060\S060MeyerCollision.cs" />
+    <Compile Include="..\..\RearrangedS060\S060MeyerExhaustPipe.cs" />
     <Compile Include="..\..\RearrangedS060\S060MeyerLights.cs" />
     <Compile Include="..\..\RearrangedS060\S060SteamPipes.cs;..\..\RearrangedS060\S060BodyPipes.cs" />
     <Compile Include="..\..\Dockside\Authoring\*.cs" />

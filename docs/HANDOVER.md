@@ -1,5 +1,69 @@
 # Rearranged S060 — handover
 
+## Current installed LP exhaust return: 0.17.0 / packs 0.7.0 — 22 October 2026
+
+Installed and hash verified at 23:38 UK / 22:38 UTC, with the game closed and
+checked again immediately before copying. **No backup created**, as requested.
+Eleven installed files and five protected files verified. Receipt:
+`build/articulated-0.17.0/install-receipt-latest.json`. Runtime SHA256:
+`93DC8ABB5A87E06E3A80BBC6251ECBBA71EA26F76CB4532F43A6078B546476EB`.
+
+Meyer keeps one chimney. New runtime-only `S060MeyerExhaustPipe` connects both
+actual rear LP valve-chest rear caps to a collector, then a dedicated large
+return to the native smokebox. It uses the live S060 material and follows material
+replacement. Two ball joints and fixed 1.55m sleeve halves articulate with variable
+overlap; no radial scaling. The body run is at Y2.0, supported from the actual
+native plate underside at Z-1/0/+2.75; rear collector stays at Y1.68. The inlet
+seats at X-.656/Y2.25/Z3.70. Existing packs remain 0.7.0 because no authored
+vehicle assets changed. Existing admission/interstage pipework remains separate.
+
+Ownership belongs to the existing `S060SteamPipes` update/dispose/OnDestroy path,
+only for Meyer. No new component tick, collider, Rigidbody, steam port, sound or
+particle reader. Failed partial binding and both live/destroyed-parent cleanup
+release owned geometry without destroying native meshes/materials. Extreme
+derailment can exceed physical sleeve travel; the rigid pieces remain at their
+ends without stretching or throwing each LateUpdate. Normal articulation is
+validated below; arbitrary derailment connectivity is not claimed.
+
+Compound model, engine graph, calibration and save-contract sources match
+`15b2a92` exactly: `build/radio-0.17.0/simulation-save-contract.json`. Fuel/water,
+damage, native identity, save schema and LP chimney/chuff routing are unchanged.
+
+Complete `Build.Release.ps1` passed with zero runtime warnings/errors:
+
+- Meyer `build/meyer/authoring-20261022-223620`: integrated pipe report includes
+  86,761 LP-return assertions across 18 body/bogie/yaw/rerail poses and 72 crank
+  samples. Actual cap centres, native smokebox surface, sleeve engagement,
+  body/step/deck clearance for moving sleeves, all exhaust-vs-admission contacts,
+  running wheels/rods, supports, materials and disposal passed. Max endpoint gap
+  0.0393mm; minimum sleeve overlap 366.2mm. These are repeated comparisons,
+  not that many scenes. Left-view ±15° assembled previews were inspected.
+- Dockside `build/dockside/authoring-20261022-223705`: existing 423 pipe checks
+  passed, no Meyer return created. Both reopened bundles passed existing effects,
+  motion, pin/rod, oil-cup geometry and lamp (Meyer) audits.
+- `build/radio-0.17.0/runtime-audits-20261022-223721`: exhaust611, cocks56,
+  cleanup145 (including new candidate-DLL return lifetimes/material replacement,
+  failed binding and overtravel), collision6942. Functional173, native engine/
+  save/ECS241, oiling527, repeated axle getter100, geometry1151, conversion35 over
+  14 injected scenarios, compound25, standalone Meyer18/Dockside17 and installer24.
+- Packaging now requires the new hash-bound return-fit report and candidate-DLL
+  lifetime result; old passing evidence cannot qualify this runtime.
+
+Investigation lesson: first strict sweep found a rear support/intake contact and
+the bracket moved forward. A later whole-mesh error was incorrectly inferred to
+mean the smokebox bend; shifting the inlet did not fix it. Exact intersecting
+triangle coordinates proved the straight lower run touched the swung front
+manifold near Z2.1. Raising that run and routing supports resolved it without
+extra width or relaxed checks. The Z3.70 inlet was retained for its separately
+verified cleaner native skin connection, not as the collision fix. Future mesh
+contact investigation should localize actual faces before changing the route.
+
+Manual game acceptance remains: hot operation and left/right curves, save/reload,
+radio switching/removal, streaming and visual clearance in actual gameplay.
+The new audit does not claim continuous sweeps or oil-cup interaction coverage.
+No game launched, no save edited, no push or publication. Source checkpoint is
+local; canonical packages/build evidence retained, no rollback copies created.
+
 ## Current installed effects update: 0.16.0 / packs 0.7.0 — 22 October 2026
 
 Installed and hash verified, game closed and checked again before copying.
