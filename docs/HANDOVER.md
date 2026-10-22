@@ -1,6 +1,12 @@
 # Rearranged S060 — handover
 
-## 0.15.0 cleanup candidate — 22 October 2026
+## Current installed cleanup: 0.15.0 — 22 October 2026
+
+**Installed and hash verified: S060 0.15.0, Meyer/Dockside 0.6.0**, at 22:44 UK /
+21:44 UTC. Game closed and checked again immediately before copying. **No backup
+created.** All 11 installed package files and five protected files match their
+receipts; settings, S282 DLL/bundle, LocoMeshSplitter and probe are retained.
+Receipt: `build/articulated-0.15.0/install-receipt-latest.json`.
 
 User authorized remaining audit cleanup, save compatibility, full testing and
 installation only with the game closed, **without a new backup**. The old backup
@@ -46,11 +52,25 @@ Fresh complete Build.Release run passed:
   native aliases and Meyer lamps pass all required hash-bound reports.
 - Complete package: `build/articulated-0.15.0`, packs retain version 0.6.0.
 
-At this checkpoint 0.14.0 remains the installed test build. The 0.15.0 source
-checkpoint, clean-source build proof and installation record are finalized below
-after those operations. Gameplay acceptance remains pending; no push/publication.
+Local source checkpoint: `2d3baf5e02c7b296803a6b97f2708eb573009309` on the existing
+`rearranged-s060` branch. This present-day checkpoint includes the previously
+uncommitted S060 implementation as well as this maintenance pass. Existing Git
+history/preservation refs were retained. Nothing pushed or published.
 
-## Current installed audit fixes — 22 October 2026
+Clean Git source export of runtime/build-helper dependencies compiled with zero
+warnings/errors using the documented local SDK/game inputs. All executable IL,
+type and field definitions match the tested candidate; binary SHA differs with
+build/debug provenance. Proof:
+`build/cleanup-0.15.0/clean-source/clean-source-validation.json`.
+The temporary source copy/ZIP was removed; its build DLL/log/receipt remain.
+The complete authoring/release pipeline was tested in the main checkout, not
+repeated in a wholly fresh clone with a newly imported CarCreator project.
+Save/selection/engine-state/oiling/wheel-condition source files are identical to
+the 0.14.0 preservation checkpoint; the 241 native tests also cover legacy JSON
+compatibility and unchanged semantic mapping/calibration. Gameplay acceptance
+remains pending.
+
+## Previous installed audit fixes: 0.14.0 — 22 October 2026
 
 **Installed and hash verified: S060 0.14.0, Meyer/Dockside packs 0.6.0.**
 Installed at 20:54 UK / 19:54 UTC with the game closed, checked before backup and

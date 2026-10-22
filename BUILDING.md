@@ -145,9 +145,12 @@ prototype validators. They are excluded from the current project. Root
 `Build.Runtime.ps1` contains the actual builder; it no longer calls an old-stage
 wrapper. Old scripts are reference material, not a supported release workflow.
 
-A genuinely clean-checkout reproduction requires all current source in the local
-checkpoint plus the documented game/tool/SDK inputs. A local checkpoint and a
-separate clean-source export build are planned after source freeze; no push is
-part of this cleanup. Until their results are recorded in the handover, a
-successful populated-checkout run is not proof that a clean clone contains
-everything. Native fixtures and the CarCreator project remain local inputs.
+Local source checkpoint `2d3baf5` contains the reviewed runtime, authoring, tests
+and build scripts. A clean Git export of runtime/build-helper dependencies
+compiled with zero warnings/errors and matched the tested candidate's executable
+IL/type/field definitions; see the handover and
+`build/cleanup-0.15.0/clean-source/clean-source-validation.json`.
+The complete authoring/release pipeline passed in the main checkout. It was not
+repeated in a wholly fresh clone with a newly imported CarCreator project.
+Documented game/tool/SDK inputs are still required; native fixtures and that
+authoring project remain local/generated inputs. Nothing was pushed.
