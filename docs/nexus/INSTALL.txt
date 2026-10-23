@@ -1,0 +1,45 @@
+REARRANGED S060 - INITIAL PUBLIC BETA 0.18.0
+
+ONE DOWNLOAD, THREE UNITY MOD MANAGER PACKAGES
+
+This download contains:
+  01-RearrangedS060-0.18.0.zip
+  02-RS060_Meyer_0440-0.7.0.zip
+  03-RS060_Franklin_Dockside_0440-0.7.0.zip
+
+1. Close Derail Valley.
+2. Install Unity Mod Manager, Loco Mesh Splitter, Custom Car Loader and CCL's
+   own requirements first (including DV Language Helper for CCL 3.1.11).
+3. Extract this outer download ZIP to a temporary folder.
+4. Open UMM, select Derail Valley and open the Mods tab.
+5. Drag the THREE inner ZIP files into UMM together, or install each in order.
+6. Check all three entries are installed and enabled, then launch the game.
+
+Do not drag the outer download ZIP into UMM. Each inner ZIP is one normal UMM
+mod package. UMM's update path handles one mod identity per archive; keeping
+the three archives separate avoids merging their folders during updates.
+UMM: https://github.com/newman55/unity-mod-manager/blob/master/UnityModManagerApp/Mods.cs
+
+Required: Derail Valley B99, UMM 0.27.3 or newer, Loco Mesh Splitter and Custom
+Car Loader. Rearranged S282 is not required. These dependencies are not bundled.
+The runtime is version 0.18.0; both asset packs are version 0.7.0.
+
+CHOOSING AN ARRANGEMENT
+
+Use WHEEL REARRANGER on the comms radio and point at a native S060. Arrangement
+selection is also available in Rearranged S060's UMM panel. The included CCL
+entries are asset donors/debug prototypes; select the normal S060 radio mode
+for the supported locomotive arrangements.
+
+Stop and close the regulator before switching. Before entering or leaving
+Meyer, uncouple the rear, disconnect its hose and leave clear track behind.
+
+INITIAL BETA STATUS
+
+Automatic native, geometry, save/engine and contact tests pass. The latest
+Meyer-to-Dockside window-damage and stationary-bob reports still need gameplay
+confirmation after the collision correction. Report the exact transition,
+Player.log and the mod's automatic diagnostics if either recurs. Existing
+damage is retained; changing arrangements does not repair the locomotive.
+
+See each mod's README and CREDITS.md for features, use and attribution.

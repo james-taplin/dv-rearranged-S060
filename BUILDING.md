@@ -120,6 +120,15 @@ Use [the gameplay guide](docs/RADIO-ARTICULATED-TESTING.md) for acceptance.
 
 ## Outputs and installation
 
+For the initial Nexus download, `Package.Nexus.ps1` repackages the tested complete
+receipt without rebuilding its DLL/bundles. It adds the public copy under
+`docs/nexus/` and produces three individual UMM ZIPs inside one outer download.
+Users extract that download before dragging the inner ZIPs into UMM. Run
+`tests/Nexus/NativeInstaller.ps1` with Windows PowerShell to check the downloaded
+bytes against actual UMM install/update methods in scratch folders. The old
+three-folder archive remains suitable for the repository installer/manual
+extraction, but UMM's folder rename makes its update path unsafe for that layout.
+
 Runtime staging is under `build/radio-VERSION`; the complete package and receipt
 are under `build/articulated-VERSION`. The complete archive contains the runtime
 and two asset-pack folders. Each receipt identifies the actual files tested.

@@ -1,5 +1,43 @@
 # Rearranged S060 — handover
 
+## Prepared initial Nexus release draft — 23 October 2026
+
+Requested release copy and download prepared as **0.18.0 initial public beta**,
+with both 0.7.0 asset packs. Runtime DLL and both bundles remain byte-for-byte
+identical to the tested 0.18.0 package below. No game installation changed and
+nothing was uploaded, pushed or published. Outstanding gameplay confirmation of
+the transition-damage/stationary-bob issue is explicit in the draft beta notes.
+
+`Package.Nexus.ps1` validates the tested package/native receipts, then creates
+`build/nexus-0.18.0/RearrangedS060-0.18.0-Initial-Beta-UMM-Bundle.zip`. This outer
+download contains INSTALL.txt and three individually UMM-installable ZIPs. Each
+inner ZIP has one canonical mod folder/Info.json, original payload bytes, a
+public README, retained LICENSE and updated CREDITS.md. No Settings.xml, game
+DLLs, third-party dependency binaries, diagnostics or editor/source fixtures ship.
+Public text lives in `docs/nexus/`; the full Nexus copy includes description,
+initial feature changelog, main/inner file descriptions, credits and permissions.
+
+Native-first packaging finding: UMM reads one mod identity per archive. Its
+installed-mod folder rename in InstallMod collapses all sibling folders of the
+old three-folder archive into the first mod on an update. Do not advertise the
+old articulated-test.zip as a safe one-drop UMM updater. Users extract the new
+outer download and drag all three inner ZIPs into UMM together. No custom
+installer, hook or combined mod identity was added.
+
+`tests/Nexus/NativeInstaller.ps1` runs the actual installed UMM 0.32.4 native
+ReadModInfoFromZip/InstallMod methods in .NET Framework against isolated scratch
+folders, without constructing/showing its form or targeting the real game.
+`build/nexus-0.18.0/umm-proof-20261023-122920/native-umm-validation.json` passes
+46 assertions: outer contents and extracted inner hashes, fresh install, repeated
+update, all 15 payload/document files, settings/other-mod preservation and the
+old-layout update negative control. Native UMM copies stay in ignored evidence.
+
+Current credit spelling follows James's latest request and his S282 Nexus copy:
+**discorddraconequus**. Credit is for Verde-derived stage-specific chuff/sound
+tuning and reference patterns, not redistributed recordings or artwork. The MIT
+fork lineage is Peter Schinske / pjschinske / SatiricRug -> JimTaplin's S282 B99 /
+Re:Arranged fork -> Rearranged S060. Original licence bytes remain unchanged.
+
 ## Current installed transition/effects correction: 0.18.0 / packs 0.7.0 — 23 October 2026
 
 Installed and hash verified at 10:53 UK / 09:53 UTC, game closed and checked again

@@ -1,0 +1,23 @@
+REARRANGED S060 MEYER ASSET PACK - 0.7.0
+
+Required component of the Rearranged S060 complete package. Install with
+RearrangedS060 0.18.0 and the Franklin Dockside 0.7.0 pack. Custom Car Loader
+loads this pack; normal play selects Meyer through the native S060's
+WHEEL REARRANGER radio or the Rearranged S060 UMM panel.
+
+Meyer-style 0-4+4-0T: two driven axles beneath the S060 and two beneath an
+attached pannier steam bogie. It remains one locomotive identity and save,
+with shared cab controls, a compound HP -> receiver -> LP steam circuit and
+one chimney. Panniers are visual, without extra water capacity. Rear lamps,
+fittings and jointed exhaust return follow the attached section.
+
+Stop and close the regulator before switching. Before adding/removing Meyer,
+uncouple its rear, disconnect the hose and leave clear track behind. Native
+identity, fuel, water, damage and saved state are retained.
+
+The CCL standalone entry is a debug asset donor, not a second supported play
+mode or a separate powered B vehicle. Use the native S060 radio arrangement.
+
+This pack uses live S060 materials and native references from your installed
+game. See the core README for the initial beta's known issues and diagnostics.
+Retained MIT notices and complete attribution are in LICENSE and CREDITS.md.
