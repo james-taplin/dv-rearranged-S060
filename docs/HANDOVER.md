@@ -1,5 +1,31 @@
 # Rearranged S060 — handover
 
+## Queued for next version: one ZIP dragged directly into UMM
+
+James requested this on 23 October 2026 and explicitly deferred implementation
+to the next version. Leave the current 0.18.0 Nexus download unchanged.
+
+Confirmed native solution: installed CCL 3.1.11 CarManager.LoadCarDefinitions
+enumerates `ccl_bundle` with SearchOption.AllDirectories under each active UMM
+mod's path. Its current upstream source does the same. S060 ResolveFrames resolves
+the donor liveries by their IDs, without depending on the two asset mod folders.
+Therefore package the runtime and both existing bundles under one canonical
+`RearrangedS060/` folder/Info.json, with separate nested Meyer/Dockside asset
+directories. UMM installs one entry containing all three components; no custom
+installer or new asset-loading DLL is needed, nor a merged bundle merely to
+satisfy installation. Add the normal CCL dependency to the combined metadata.
+
+Before delivering that next version, verify CCL discovery/load ordering, both
+radio arrangements, retained car/livery IDs and saves, and native UMM fresh
+install/repeated update/uninstall. Specifically test upgrading the existing
+three-folder installation: old enabled asset packs must not load duplicate IDs
+alongside the nested copies. Determine and document the smallest supported
+migration based on native behaviour; do not assume UMM removes sibling mods or
+silently delete them. This is a confirmed feasible packaging direction, not a
+claim that combined-package migration or in-game acceptance has been tested.
+
+Source: https://github.com/derail-valley-modding/custom-car-loader/blob/master/CCL.Importer/CarManager.cs
+
 ## Prepared initial Nexus release draft — 23 October 2026
 
 Requested release copy and download prepared as **0.18.0 initial public beta**,
