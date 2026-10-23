@@ -48,9 +48,11 @@ the rear assembly and restores the stock rear supports and coupling position.
 INSTALLATION
 
 Requires Derail Valley B99, UMM 0.27.3+, Loco Mesh Splitter and Custom Car Loader.
-Install all three inner archives from the complete download through UMM:
-RearrangedS060 0.18.0, RS060_Meyer_0440 0.7.0 and
-RS060_Franklin_Dockside_0440 0.7.0. Rearranged S282 is not a runtime dependency.
+Drag RearrangedS060-0.18.0-UMM.zip directly into UMM. One mod folder contains
+the runtime and both 0.7.0 asset bundles; there are no nested ZIPs. Earlier
+three-part test installs must first uninstall the two old standalone asset
+packs in UMM, keeping RearrangedS060 and Settings.xml. See INSTALL.txt.
+Rearranged S282 is not a runtime dependency.
 Close the game before installation or updates. No Settings.xml is supplied.
 
 This is an initial public beta. The latest Meyer-to-Dockside damage and stopped

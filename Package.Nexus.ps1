@@ -17,46 +17,55 @@ foreach ($report in $native.nativeRuntimeChecks.reports) {
 }
 $runtimeEntry = @($receipt.files | Where-Object { [IO.Path]::GetFileName($_.Path) -eq 'RearrangedS060.dll' })
 if ($runtimeEntry.Count -ne 1 -or $runtimeEntry[0].Hash -ne $native.nativeRuntimeChecks.runtimeSha256) { throw 'Runtime/native evidence mismatch.' }
-$out = Join-Path $repo "build\nexus-$Version"
-$stage = Join-Path $out 'mods'
-$download = Join-Path $out 'download'
-New-Item -ItemType Directory -Path $download -Force | Out-Null
-$entries = @(
-    @{ id='RearrangedS060'; version=$Version; prefix='01'; readme='CORE_README.txt'; payload=@('RearrangedS060.dll','Info.json') },
-    @{ id='RS060_Meyer_0440'; version='0.7.0'; prefix='02'; readme='MEYER_README.txt'; payload=@('ccl_bundle','Info.json') },
-    @{ id='RS060_Franklin_Dockside_0440'; version='0.7.0'; prefix='03'; readme='DOCKSIDE_README.txt'; payload=@('ccl_bundle','Info.json') }
+$out = Join-Path $repo "build\nexus-$Version-single"
+$package = Join-Path $out 'package'
+$stage = Join-Path $package 'RearrangedS060'
+New-Item -ItemType Directory -Path $stage -Force | Out-Null
+$info = Get-Content (Join-Path $repo 'Info.json') -Raw | ConvertFrom-Json
+$oldInfo = Get-Content (Join-Path $tested 'package\RearrangedS060\Info.json') -Raw | ConvertFrom-Json
+if ($info.Id -ne 'RearrangedS060' -or $info.Version -ne $Version -or $info.EntryMethod -ne $oldInfo.EntryMethod -or
+    $info.Requirements -notcontains 'DVCustomCarLoader' -or $info.Requirements -notcontains 'LocoMeshSplitter') { throw 'Invalid combined-mod metadata.' }
+Copy-Item -LiteralPath $runtimeEntry[0].Path -Destination $stage -Force
+foreach ($name in @('Info.json','LICENSE','CREDITS.md')) { Copy-Item -LiteralPath (Join-Path $repo $name) -Destination $stage -Force }
+Copy-Item -LiteralPath (Join-Path $repo 'docs\nexus\CORE_README.txt') -Destination (Join-Path $stage 'README.md') -Force
+Copy-Item -LiteralPath (Join-Path $repo 'docs\nexus\INSTALL.txt') -Destination $stage -Force
+$assets = @(
+    @{ id='RS060_Meyer_0440'; directory='Meyer'; version='0.7.0'; readme='MEYER_README.txt' },
+    @{ id='RS060_Franklin_Dockside_0440'; directory='Dockside'; version='0.7.0'; readme='DOCKSIDE_README.txt' }
 )
-$inner = @()
-foreach ($entry in $entries) {
-    $source = Join-Path $tested "package\$($entry.id)"
-    $info = Get-Content (Join-Path $source 'Info.json') -Raw | ConvertFrom-Json
-    if ($info.Id -ne $entry.id -or $info.Version -ne $entry.version) { throw 'Wrong mod identity/version.' }
-    $target = Join-Path $stage $entry.id
+$payload = @([ordered]@{ relative='RearrangedS060.dll'; hash=$runtimeEntry[0].Hash; kind='runtime' })
+foreach ($asset in $assets) {
+    $source = Join-Path $tested "package\$($asset.id)"
+    $assetInfo = Get-Content (Join-Path $source 'Info.json') -Raw | ConvertFrom-Json
+    if ($assetInfo.Id -ne $asset.id -or $assetInfo.Version -ne $asset.version) { throw 'Wrong asset identity/version.' }
+    $target = Join-Path $stage "assets\$($asset.directory)"
     New-Item -ItemType Directory -Path $target -Force | Out-Null
-    foreach ($name in $entry.payload) { Copy-Item -LiteralPath (Join-Path $source $name) -Destination $target -Force }
-    Copy-Item -LiteralPath (Join-Path $repo "docs\nexus\$($entry.readme)") -Destination (Join-Path $target 'README.md') -Force
-    foreach ($name in @('LICENSE','CREDITS.md')) { Copy-Item -LiteralPath (Join-Path $repo $name) -Destination $target -Force }
-    $expected = @($entry.payload) + @('README.md','LICENSE','CREDITS.md')
-    $actual = @(Get-ChildItem -LiteralPath $target -Recurse -File | ForEach-Object { $_.FullName.Substring($target.Length + 1) })
-    if (@(Compare-Object $expected $actual).Count) { throw "Unexpected Nexus files for $($entry.id)" }
-    $archive = Join-Path $download "$($entry.prefix)-$($entry.id)-$($entry.version).zip"
-    Compress-Archive -LiteralPath $target -DestinationPath $archive -Force
-    $inner += Get-FileHash -LiteralPath $archive | Select-Object Path,Hash
+    Copy-Item -LiteralPath (Join-Path $source 'ccl_bundle') -Destination $target -Force
+    Copy-Item -LiteralPath (Join-Path $repo "docs\nexus\$($asset.readme)") -Destination (Join-Path $target 'README.md') -Force
+    $payload += [ordered]@{ relative="assets\$($asset.directory)\ccl_bundle"; hash=(Get-FileHash (Join-Path $source 'ccl_bundle')).Hash; kind=$asset.id }
 }
-Copy-Item -LiteralPath (Join-Path $repo 'docs\nexus\INSTALL.txt') -Destination $download -Force
-$downloadNames = @($inner | ForEach-Object { [IO.Path]::GetFileName($_.Path) }) + @('INSTALL.txt')
-if (@(Compare-Object $downloadNames @(Get-ChildItem -LiteralPath $download -Force | ForEach-Object Name)).Count) { throw 'Unexpected download entries.' }
-$archive = Join-Path $out "RearrangedS060-$Version-Initial-Beta-UMM-Bundle.zip"
-Compress-Archive -LiteralPath @(Get-ChildItem -LiteralPath $download -File | ForEach-Object FullName) -DestinationPath $archive -Force
+foreach ($file in $payload) { if ((Get-FileHash (Join-Path $stage $file.relative)).Hash -ne $file.hash) { throw 'Runtime/asset payload changed.' } }
+$expected = @('RearrangedS060.dll','Info.json','LICENSE','CREDITS.md','README.md','INSTALL.txt','assets\Meyer\ccl_bundle','assets\Meyer\README.md','assets\Dockside\ccl_bundle','assets\Dockside\README.md')
+$actual = @(Get-ChildItem -LiteralPath $stage -Recurse -File | ForEach-Object { $_.FullName.Substring($stage.Length + 1) })
+if (@(Compare-Object $expected $actual).Count -or @(Get-ChildItem $package -Force).Count -ne 1) { throw 'Unexpected files in the combined package.' }
+$archive = Join-Path $out "RearrangedS060-$Version-UMM.zip"
+Compress-Archive -LiteralPath $stage -DestinationPath $archive -Force
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$zip = [IO.Compression.ZipFile]::OpenRead($archive)
+try {
+    if (@($zip.Entries | Where-Object { $_.FullName -match '(?i)\.(zip|7z|rar)$' -or -not $_.FullName.StartsWith('RearrangedS060/') }).Count -or
+        @($zip.Entries | Where-Object { $_.Name -eq 'Info.json' }).Count -ne 1) { throw 'Archive must have one mod root/identity and no nested archives.' }
+} finally { $zip.Dispose() }
 Copy-Item -LiteralPath (Join-Path $repo 'docs\nexus\NEXUS_RELEASE_COPY.txt') -Destination $out -Force
 [ordered]@{
-    utc=[DateTime]::UtcNow.ToString('o'); version=$Version; status='Draft initial public beta; not published'
+    utc=[DateTime]::UtcNow.ToString('o'); version=$Version; status='Initial public beta package; not published'
     testedPackageReceipt=$receiptPath; testedPackageReceiptSha256=(Get-FileHash $receiptPath).Hash
-    runtimeSha256=$runtimeEntry[0].Hash; binaryPayloadUnchanged=$true
-    packaging='Outer download contains three individually UMM-installable archives; extract before using UMM'
+    runtimeSha256=$runtimeEntry[0].Hash; binaryPayloadUnchanged=$true; payload=$payload
+    packaging='One UMM ZIP, one RearrangedS060 folder/Info.json, two recursively discovered native CCL bundles; no nested ZIPs'
+    migration='Existing three-part installs: uninstall the two old standalone asset packs in UMM before installing; keep RearrangedS060 and its settings'
     sourceDocumentHashes=@(Get-ChildItem (Join-Path $repo 'docs\nexus') -File | Get-FileHash | Select-Object Path,Hash)
-    innerArchives=$inner; files=@(Get-ChildItem $stage -Recurse -File | Get-FileHash | Select-Object Path,Hash)
+    files=@(Get-ChildItem $stage -Recurse -File | Get-FileHash | Select-Object Path,Hash)
     zip=Get-FileHash -LiteralPath $archive | Select-Object Path,Hash
     installed=$false; published=$false; installerValidationCommand='Windows PowerShell: tests/Nexus/NativeInstaller.ps1'
 } | ConvertTo-Json -Depth 7 | Set-Content (Join-Path $out 'nexus-package-receipt.json') -Encoding UTF8
-Write-Output "Draft Nexus archive staged: $archive"
+Write-Output "Single UMM release ZIP staged: $archive"

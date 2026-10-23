@@ -122,12 +122,17 @@ Use [the gameplay guide](docs/RADIO-ARTICULATED-TESTING.md) for acceptance.
 
 For the initial Nexus download, `Package.Nexus.ps1` repackages the tested complete
 receipt without rebuilding its DLL/bundles. It adds the public copy under
-`docs/nexus/` and produces three individual UMM ZIPs inside one outer download.
-Users extract that download before dragging the inner ZIPs into UMM. Run
+`docs/nexus/` and produces one directly installable UMM ZIP containing a single
+`RearrangedS060/` folder, one Info.json and both nested CCL bundles. No nested
+ZIPs are permitted. CCL discovers the bundles recursively. Run
 `tests/Nexus/NativeInstaller.ps1` with Windows PowerShell to check the downloaded
-bytes against actual UMM install/update methods in scratch folders. The old
+bytes against actual UMM install/update/uninstall and old-pack migration in scratch folders. The old
 three-folder archive remains suitable for the repository installer/manual
 extraction, but UMM's folder rename makes its update path unsafe for that layout.
+`CombinedPackageAudit.RunBatch` in the authoring Editor reopens both nested
+bundles from that fixture, using `S060_COMBINED_PACKAGE` for its installed mod
+folder and `S060_COMBINED_REPORT` for its output JSON. It checks the unchanged
+radio donor IDs/frames; it does not claim full CCL world import or driving.
 
 Runtime staging is under `build/radio-VERSION`; the complete package and receipt
 are under `build/articulated-VERSION`. The complete archive contains the runtime

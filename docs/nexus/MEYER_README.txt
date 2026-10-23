@@ -1,8 +1,8 @@
 REARRANGED S060 MEYER ASSET PACK - 0.7.0
 
-Required component of the Rearranged S060 complete package. Install with
-RearrangedS060 0.18.0 and the Franklin Dockside 0.7.0 pack. Custom Car Loader
-loads this pack; normal play selects Meyer through the native S060's
+Included component of the single Rearranged S060 UMM package. Custom Car Loader
+discovers this bundle inside RearrangedS060/assets/Meyer. It has no separate
+UMM entry. Normal play selects Meyer through the native S060's
 WHEEL REARRANGER radio or the Rearranged S060 UMM panel.
 
 Meyer-style 0-4+4-0T: two driven axles beneath the S060 and two beneath an

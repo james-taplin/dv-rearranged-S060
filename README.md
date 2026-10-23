@@ -77,14 +77,20 @@ Developed against Derail Valley **B99 build2702**, Unity Mod Manager, Loco Mesh
 Splitter and Custom Car Loader. S282 is not a runtime dependency. The authoring
 workflow does need its custom Franklin source bundle; see [BUILDING.md](BUILDING.md).
 
-The complete package contains three mod folders:
+The Nexus download is one ZIP to drag directly into UMM. It installs one
+`RearrangedS060` mod folder, containing the runtime and the two native CCL bundles
+under `assets/Meyer` and `assets/Dockside`. There are no nested ZIPs. CCL is a
+normal dependency; Rearranged S282 is not required.
 
-- `RearrangedS060` — runtime, radio, simulation and persistence.
-- `RS060_Meyer_0440` — Meyer asset pack.
-- `RS060_Franklin_Dockside_0440` — Dockside asset pack.
+If upgrading a previous three-part test install, first uninstall the old
+`RS060_Meyer_0440` and `RS060_Franklin_Dockside_0440` entries through UMM. Keep
+`RearrangedS060` and its settings, then install the combined ZIP. This one-time
+step avoids duplicate asset IDs. See [installation instructions](docs/nexus/INSTALL.txt).
 
-Close the game before updating all three. The runtime and asset packs have
-independent version numbers. The repository's installer validates package hashes
+Close the game before updating. The runtime and asset bundles retain independent
+version numbers. Repository development packages/installer retain their older
+three-folder layout; use `Package.Nexus.ps1` for the public single-mod archive.
+The repository's installer validates package hashes
 and refuses a running game; it does not publish a release. The installer now
 creates no backup, as requested; it records prior hashes and verifies installed
 files. Old S060 backup copies have been removed. Exact cleanup and installed
@@ -98,7 +104,8 @@ streaming, curves and save/reload checks.
 ## Development
 
 Use `Build.Runtime.ps1` for the current DLL and `Build.Release.ps1` for a tested
-complete package. The project builds only the current product (Stage 7);
+complete development package, then `Package.Nexus.ps1` for the single UMM ZIP.
+The project builds only the current product (Stage 7);
 requesting historical stages fails explicitly.
 
 [BUILDING.md](BUILDING.md) describes local paths, SDK/Unity dependencies, native

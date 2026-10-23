@@ -70,11 +70,14 @@ Install CCL's own requirements too, including DV Language Helper for the tested
 CCL 3.1.11. These dependencies are separate downloads. Rearranged S282 is not
 required to play this mod.
 
-Close the game. Extract the main download, then drag its [b]three inner ZIPs[/b]
-into UMM's Mods tab together, or install them in numbered order. Check that
-RearrangedS060 0.18.0, RS060_Meyer_0440 0.7.0 and
-RS060_Franklin_Dockside_0440 0.7.0 are installed and enabled.
-The outer download is a container; install the inner ZIPs through UMM.
+Close the game, then drag [b]RearrangedS060-0.18.0-UMM.zip directly into UMM[/b].
+One Rearranged S060 entry includes the runtime and both Meyer/Dockside bundles.
+There are no ZIPs inside the download and no separate asset-pack installs.
+
+If you used an earlier three-part test build, first uninstall the old standalone
+RS060_Meyer_0440 and RS060_Franklin_Dockside_0440 entries through UMM. Keep
+RearrangedS060 itself and Settings.xml. This one-time step prevents duplicate
+asset IDs; future updates use the single ZIP normally. New users skip this step.
 
 Select WHEEL REARRANGER on the radio and point at a native S060. Stop and close
 the regulator before switching. Before entering or leaving Meyer, uncouple its
@@ -141,20 +144,20 @@ Initial public beta of Rearranged S060 for Derail Valley B99.
 MAIN FILE DESCRIPTION
 
 Complete initial public beta for B99. Includes RearrangedS060 0.18.0 and both
-required 0.7.0 asset packs. Extract this download and install the three inner
-ZIPs through UMM. Requires Loco Mesh Splitter and Custom Car Loader separately.
+required 0.7.0 asset bundles in one UMM mod folder. Drag this ZIP directly into
+UMM; no nested ZIPs or separate pack installs. Requires Loco Mesh Splitter and Custom Car Loader separately.
 Rearranged S282 is not required. See the description's beta notes before use.
 
-INNER FILE DESCRIPTIONS
+INCLUDED COMPONENTS - NOT SEPARATE DOWNLOADS
 
-01-RearrangedS060-0.18.0.zip
+RearrangedS060/RearrangedS060.dll
 Main runtime: S060 radio/UMM choices, arrangement switching, steam simulation,
-effects integration, oiling and persistence. Requires the two included packs.
+effects integration, oiling and persistence. The two bundles are already included.
 
-02-RS060_Meyer_0440-0.7.0.zip
+RearrangedS060/assets/Meyer/ccl_bundle
 Required Meyer geometry/asset pack for the radio-selected compound arrangement.
 
-03-RS060_Franklin_Dockside_0440-0.7.0.zip
+RearrangedS060/assets/Dockside/ccl_bundle
 Required Franklin Dockside geometry/asset pack for the radio-selected arrangement.
 
 EDITOR NOTE - DO NOT PASTE AS A FEATURE

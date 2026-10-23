@@ -6,7 +6,8 @@
   "EntryMethod": "RearrangedS060.Main.Load",
   "ManagerVersion": "0.27.3",
   "Requirements": [
-    "LocoMeshSplitter"
+    "LocoMeshSplitter",
+    "DVCustomCarLoader"
   ],
   "LoadAfter": [
     "Gauge"

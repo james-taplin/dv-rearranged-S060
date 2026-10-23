@@ -1,8 +1,8 @@
 REARRANGED S060 FRANKLIN DOCKSIDE ASSET PACK - 0.7.0
 
-Required component of the Rearranged S060 complete package. Install with
-RearrangedS060 0.18.0 and the Meyer 0.7.0 pack. Custom Car Loader loads this
-pack; normal play selects Franklin Dockside through the native S060's
+Included component of the single Rearranged S060 UMM package. Custom Car Loader
+discovers this bundle inside RearrangedS060/assets/Dockside. It has no separate
+UMM entry. Normal play selects Franklin Dockside through the native S060's
 WHEEL REARRANGER radio or the Rearranged S060 UMM panel.
 
 Franklin Dockside 0-4-4-0T: two simple-expansion powered units and fitted
