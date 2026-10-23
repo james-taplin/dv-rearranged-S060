@@ -1,4 +1,4 @@
-# S060 radio 0.17.0 Meyer exhaust-return candidate test
+# S060 radio 0.18.0 transition/effects candidate test
 
 Required packs: Meyer **0.7.0**, Franklin Dockside **0.7.0**. See the installation
 receipt for actual installed hashes and installation mode. Restart/reload after
@@ -8,12 +8,56 @@ This build requires 0.7.0 packs. Their hash-bound validation receipts must match
 the packaged bundle bytes; unchanged packs can reuse matching evidence. Version
 numbers alone are insufficient.
 
+## Latest regression focus
+
+Record the locomotive's existing condition and window state before testing; an
+already damaged engine is not expected to repair itself. Stop, close the
+regulator and apply brakes. Before entering/leaving Meyer, uncouple its rear,
+disconnect the hose and leave clear track behind.
+
+The rear shell's colliders now follow its existing native bogie Rigidbody, so
+articulation no longer moves collider copies inside the main car's automatic
+mass frame. Real rear impacts still use native collision callbacks. This fixes
+an ownership defect, but isolated tests do not establish the exact cause or
+resolution of the reported window damage/body bump. Do not dismiss a repeat as
+normal game behaviour; retain its new transition trace.
+
+- Switch Stock -> Meyer -> Dockside -> Stock, waiting at least three seconds
+  after each selection. Watch the body, wheels and cab while stopped. There
+  should be no conversion-induced body jump, new broken windows or condition
+  loss. Record the exact transition if any changes. Repeat from a loaded Meyer
+  save and on a gentle curve; a straight-track pass alone is insufficient.
+- On a warm Meyer, allow the LP receiver/stage to build pressure and repeat
+  cock cycles, both stopped and moving slowly. In the preceding capture at
+  7.14% regulator, LP cock flow remained below the native 0.01 emission threshold
+  and its chest stayed near atmospheric pressure. That capture did not establish
+  a failed rear effect. Assess pressure/flow and each unit's inlet state alongside
+  what is visible; a stopped crank need not emit from every outlet.
+- Check water drips when cylinder water is actually present, then close/open
+  the cocks several times. Native drips require both water and the cab control;
+  a hot, dry engine may produce none. Repeat on both Dockside units and check
+  that inlet changes at a fixed crank refresh the correct steam outlets.
+
+Automatic diagnostics remain bounded: each changed articulated arrangement gets
+a fresh file, at two samples per second for the first three seconds even with
+the regulator closed, then while the regulator is open, up to 120 samples or
+180 seconds from its first sample. Stock ends the articulated session. Repeating
+the same selection does not extend the budget. Keep the files for both modes
+and Player.log after a failed transition. They now include cylinder water and
+temperature, body health/windows, native forward speed, body/bogie Rigidbody
+pose/velocity, joint anchors/forces and stress. The immediate selection record
+is taken inside conversion, so its geometry may still be in progress; subsequent
+settling samples show the later state. Sampling can miss a brief force peak and
+does not replace native physics reproduction.
+
 ## Meyer LP exhaust-return focus
 
 Meyer now has a dedicated visible pipe from the rear LP cylinder collector back
 to the smokebox. This is exhaust return, separate from the existing admission/
-interstage pipework. Period-style ball/slip joints and support brackets allow the
-rear section to move relative to the body. It is a fictional engineering layout,
+interstage pipework. The body route rises above the cab roof edge, with brackets
+on the roof edge and forward footplate; it must leave the cab entry/steps usable.
+Period-style ball/slip joints allow the rear section to move relative to the
+body. It is a fictional engineering layout,
 not a reconstruction of a specific historical locomotive.
 
 - Select Meyer while stopped, uncoupled at the rear and clear of the vehicle
@@ -62,8 +106,8 @@ tuning and save IDs/schema remain unchanged.
   or a free-running visual clock. These are timing/continuity checks; this build
   does not add a Franklin cutoff actuator animation.
 
-The production radio path's owned readers now normalize event values to the
-reader's actual crank phase. The standalone CCL debug presentation is unchanged
+The production radio path's owned readers normalize event values to the
+reader's actual crank phase and refresh after inlet-mask publication. The standalone CCL debug presentation is unchanged
 in this step. Native activity curves, inlet masks, gains and steam flow remain.
 Drips sit at the rear drain; each cylinder's shared hiss source sits between its
 front and rear drains.
@@ -221,7 +265,8 @@ of slip was expected. Automatic bounded traces remain available.
    outlets. Drive slowly forward/reverse; then restore stock.
 3. Select **Franklin Dockside**. Check both manifolds and connecting pipes,
    round cylinders, thin piston rods and animated Franklin shafts. Open/close
-   the cab cocks: both units vent/stop. Drive through a gentle curve and watch
+   the cab cocks: both units vent/stop when their native pressure/valve gates
+   permit; check water drips only with cylinder water present. Drive through a gentle curve and watch
    the pipes stay attached to both units. Keep all gear beneath the tank body.
 4. Stop, close regulator, uncouple the rear and disconnect its hose, leaving
    clear straight track behind. Select **Meyer**. Check the detailed rear unit,

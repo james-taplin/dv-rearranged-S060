@@ -104,10 +104,13 @@ the reopened bundle SHA256 to the exported binary. Changed bytes, missing
 reports or stale reports fail packaging.
 
 `Test.Runtime.ps1` runs exhaust, cylinder-cock, direct-cleanup and Meyer collision
-audits in the authoring Editor. Its receipt binds report hashes to the exact
-runtime DLL. `Build.Radio.ps1` requires those matching native reports, including
-the initial-smoke-before-owner and detached-audio regressions. It also runs the
-native oiling/engine suites, functional checks, axle transitions, measured
+audits in the authoring Editor, plus native contact delivery and parent-deletion
+cleanup in an isolated PlayMode scene. The contact runner uses a uniquely named
+QA assembly to avoid shadowing the game's `Assembly-CSharp`. Its receipt binds
+report hashes to the exact runtime DLL. `Build.Radio.ps1` requires those matching
+native reports, including the initial-smoke-before-owner, detached-audio,
+inlet-publication and collision ownership regressions. It also runs the
+native oiling/engine suites, bounded diagnostic budget checks, functional checks, axle transitions, measured
 geometry and the runtime IL audit. `Package.Articulated.ps1` verifies the core
 file receipt and both asset receipts before producing the complete archive.
 

@@ -36,6 +36,11 @@ namespace RearrangedS060
             extended.Encapsulate(car.RearCouplerAnchor.localPosition); car._bounds = extended;
         }
         internal Vector3 RearOffset => car.RearCouplerAnchor.localPosition - rearAnchor;
+        internal void ReleaseCollision()
+        {
+            if (collision != null) collision.Dispose();
+            collision = null;
+        }
         internal Vector3 OriginalAxlePosition(Bogie bogie, Transform axle)
         {
             var home = homes.SingleOrDefault(h => h.Bogie == bogie);
@@ -91,6 +96,8 @@ namespace RearrangedS060
                 var rearFrame = car.RearBogie.transform.Find("bogie_car");
                 if (rearFrame == null) throw new InvalidOperationException("Native Meyer rear bogie frame is missing.");
                 collision = S060MeyerCollision.Create(root, rearFrame, materialSource);
+                collision.BindNativeBogie(car.RearBogie);
+                collision.BindNativeContacts(car.CollisionInfoDispenser);
                 var bogieRoot = car.carColliders.GetBogies();
                 if (bogieRoot != null)
                     foreach (var capsule in bogieRoot.GetComponentsInChildren<CapsuleCollider>(true))
@@ -158,6 +165,8 @@ namespace RearrangedS060
         {
             if (!Active) return;
             var errors = new List<Exception>();
+            try { ReleaseCollision(); }
+            catch (Exception ex) { errors.Add(ex); }
             foreach (var home in homes.ToArray())
                 try
                 {
@@ -167,7 +176,6 @@ namespace RearrangedS060
                 catch (Exception ex) { errors.Add(ex); }
             foreach (var home in capsules) if (home.collider != null) { home.collider.center = home.centre; home.collider.height = home.height; }
             capsules.Clear();
-            if (collision != null) { collision.Dispose(); collision = null; }
             foreach (var home in couplingVisuals) if (home.part != null) home.part.localPosition = home.position;
             couplingVisuals.Clear();
             if (car != null)

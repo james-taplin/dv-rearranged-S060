@@ -151,8 +151,12 @@ namespace RearrangedS060
                 if (Attempt(() => { if (home.component != null) home.component.enabled = home.enabled; })) readers.Remove(home);
             if (errors.Count == 0)
             {
-                foreach (var item in added.ToArray())
-                    if (Attempt(() => { if (item != null) { item.SetActive(false); if (Application.isPlaying) UnityEngine.Object.Destroy(item); else UnityEngine.Object.DestroyImmediate(item); } })) added.Remove(item);
+                // Rear collision/contacts now belong to the frame's existing
+                // bogie body. Release them before deleting their parent frame.
+                if (meyerSupport != null) Attempt(meyerSupport.ReleaseCollision);
+                if (errors.Count == 0)
+                    foreach (var item in added.ToArray())
+                        if (Attempt(() => { if (item != null) { item.SetActive(false); if (Application.isPlaying) UnityEngine.Object.Destroy(item); else UnityEngine.Object.DestroyImmediate(item); } })) added.Remove(item);
                 if (errors.Count == 0 && meyerSupport != null && Attempt(meyerSupport.Restore)) meyerSupport = null;
             }
             Attempt(() => { Parts.FrontBogie.axles = Parts.RearBogie.axles = null; });

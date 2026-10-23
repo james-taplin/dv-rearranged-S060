@@ -1,5 +1,88 @@
 # Rearranged S060 — handover
 
+## Current installed transition/effects correction: 0.18.0 / packs 0.7.0 — 23 October 2026
+
+Installed and hash verified at 10:53 UK / 09:53 UTC, game closed and checked again
+immediately before copying. **No backup created**, per James's instruction.
+Eleven installed files and five protected files verified. Receipt:
+`build/articulated-0.18.0/install-receipt-latest.json`. Runtime SHA256:
+`A15190B3B9C52EB2160FD871F285E2792E082FC1C55638442C13E7871D5CF3C1`.
+
+The LP return now rises behind the cab, follows its roof edge at Y3.85 and drops
+ahead of the cab to the existing smokebox run. Measured roof brackets and forward
+footplate supports stay connected. Body ball is at (-1.63,3.05,-4.6); fixed sleeve
+halves are 1.18m. Drawn pipe triangles clear the cab-side entry volume through the
+tested poses. Single chimney, existing LP exhaust/simulation routing and packs
+0.7.0 remain.
+
+Cock investigation distinguished evidence from symptoms. Preserved Player.log,
+120-sample L-021 trace and video frames are under `build/defects-0.17.0`.
+That trace used 7.14% regulator; rear LP chest stayed at 1.000–1.086 bar absolute
+and rear cock flow peaked at 0.006739493, below native jets' 0.01 threshold. It
+does not prove failed rear jets. Cylinder water was not recorded, so absent drips
+cannot be diagnosed from it. Native wet-drip tests confirm water plus the cab
+control are required; no simulated water or forced steam flow has been added.
+Separately, the installed DLL reproduced a real inlet-publication defect: native
+crank events precede the inlet mask, and the reader did not refresh on inlet-only
+changes. Owned timing now observes that mask too, using the actual crank while
+retaining native curves, flow thresholds and teardown ownership.
+
+Confirmed physics defect: rear shell colliders were continuously repositioned
+inside the main car's automatically computed compound mass frame. Their proper
+owner is the **existing native rear bogie Rigidbody**, with fixed local geometry.
+The earlier requirement to retain car-compound ownership was our assumption, not
+James's identity/save requirement. Native rb/readiness/derail policy now gates
+the shell, preventing fallback into the main body while native physics is absent.
+No extra Rigidbody, COM/inertia pin, damage suppression or physics freeze was
+added. The bogie retains native mass/FreezeRotation; its own automatic mass
+distribution reflects the fixed shell, while the main car's frame is preserved.
+
+The bogie had no native collision dispenser. A small owned relay uses the native
+dispenser on that Rigidbody and forwards only shell contacts to the existing car
+dispenser, preserving native impact/pause handling. Explicit cleanup precedes
+parent deletion; direct-parent destruction and same-frame rebinding are tested.
+No custom damage rules or global collision patch is installed.
+
+The exact cause/resolution of the reported Meyer bob and Meyer->Dockside window
+damage remains **unconfirmed in gameplay**. The attempted suspension/stress
+fixture had an unstable stock/no-relocation control and was quarantined outside
+release authoring; it is not reproduction evidence. Native stress uses its own
+joint. Do not dismiss repeats as DV weirdness or claim this fixture proved a cure.
+New bounded traces re-arm per changed arrangement, include the first three
+seconds at closed regulator, and add water/temperature, physical unit mapping,
+health/windows, body/bogie pose/mass/COM/inertia and joint/stress data. Existing
+schema1 fields remain; the immediate selection record is inside conversion and
+later settling samples show its aftermath.
+
+Full `Build.Release.ps1` passed, zero runtime warnings/errors:
+
+- Meyer `build/meyer/authoring-20261023-085857`: 96,555 return checks across 18
+  poses/72 crank samples, actual cab-entry clearance and roof seats. Max drawn
+  endpoint gap 0.0281mm; minimum sleeve overlap 511mm. Assembled previews reviewed.
+  Matching unchanged Dockside evidence: `build/dockside/authoring-20261022-223705`.
+- `build/radio-0.18.0/runtime-audits-20261023-095142`: exhaust611, cocks95,
+  cleanup145, collision7062; actual Unity PlayMode contacts21 covers native
+  Enter/Stay/Exit, pause flag, owned filtering, teardown, same-frame rebinding and
+  exactly-once parent-destruction cleanup. The EditMode audit no longer makes
+  unsupported runtime OnDestroy claims.
+- Functional173, native engine/save/ECS241, oiling527, axle100, geometry1151,
+  conversion35 across 14 injected scenarios, compound25, standalone Meyer18/
+  Dockside17, trace budget145 and installer24. Reports bind to the exact DLL;
+  totals include repeated comparisons and do not imply a full driving test.
+
+Compound model/stage, engine bank, calibration and saved identity/state sources
+match `8cc2abc`: `build/radio-0.18.0/simulation-save-contract.json` names seven
+unchanged files. `S060ArticulatedSimulation.Select` adds only a passive trace
+notification after exhaust refresh. No save migration, resource change or repair
+of the already damaged L-021 was performed.
+
+Next acceptance: record a healthy engine's condition/windows, stop and safely
+switch Stock->Meyer->Dockside->Stock, waiting three seconds each; repeat on a
+gentle curve and from a loaded Meyer save. Build LP pressure before evaluating
+rear jets and record actual cylinder water when evaluating drips. Retain both
+arrangements' new trace files plus Player.log after any failure. No game launched,
+no save edited, no push/publication. Reviewed source/docs/tests preserved locally.
+
 ## Current installed LP exhaust return: 0.17.0 / packs 0.7.0 — 22 October 2026
 
 Installed and hash verified at 23:38 UK / 22:38 UTC, with the game closed and

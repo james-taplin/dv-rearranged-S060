@@ -13,12 +13,18 @@ foreach ($source in @('ExhaustNativeAudit.cs','CockNativeAudit.cs','CleanupNativ
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot "Meyer\Authoring\$source") -Destination (Join-Path $project 'Assets\Editor') -Force
 }
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'RearrangedS060\S060MeyerCollision.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
+$contactFolder = Join-Path $project 'Assets\QA'
+New-Item -ItemType Directory -Path $contactFolder -Force | Out-Null
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Meyer\tools\CollisionContactPlayModeRunner.cs') -Destination $contactFolder -Force
+'{"name":"RearrangedS060.ContactAudit"}' | Set-Content (Join-Path $contactFolder 'RearrangedS060.ContactAudit.asmdef') -Encoding UTF8
 $env:S060_EXHAUST_AUDIT_RUNTIME = $runtime
+$env:S060_CONTACT_AUDIT_RUNTIME = $runtime
 $entries = @(
     @{ name='exhaust'; method='ExhaustNativeAudit.RunBatch'; env='S060_EXHAUST_AUDIT_OUTPUT'; report='native-exhaust-validation.json' },
     @{ name='cocks'; method='CockNativeAudit.RunBatch'; env='S060_COCK_AUDIT_OUTPUT'; report='native-cock-validation.json' },
     @{ name='cleanup'; method='CleanupNativeAudit.RunBatch'; env='S060_CLEANUP_AUDIT_OUTPUT'; report='native-cleanup-validation.json' },
-    @{ name='collision'; method='MeyerCollisionAudit.RunBatch'; env='S060_COLLISION_AUDIT_OUTPUT'; report='meyer-collision-validation.json' }
+    @{ name='collision'; method='MeyerCollisionAudit.RunBatch'; env='S060_COLLISION_AUDIT_OUTPUT'; report='meyer-collision-validation.json' },
+    @{ name='contacts'; method='CollisionContactPlayMode.RunBatch'; env='S060_CONTACT_AUDIT_OUTPUT'; report='native-contact-delivery.json' }
 )
 $reports = @()
 foreach ($entry in $entries) {

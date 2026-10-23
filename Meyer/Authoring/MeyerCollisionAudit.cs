@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -9,8 +10,10 @@ using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-// Executes the shipping collision owner against the authored rear shell. This
-// does not substitute for an in-game player/train collision and rerail test.
+// Executes the shipping collision owner against the authored rear shell,
+// including automatic mass-frame invariants and native collision readiness.
+// Actual contact delivery/joint collision policy run in the separate PlayMode
+// contact audit. This static-pose audit is not a gameplay damage test.
 public static class MeyerCollisionAudit
 {
     public static void RunBatch()
@@ -36,6 +39,7 @@ public static class MeyerCollisionAudit
         var create = ownerType.GetMethod("Create", BindingFlags.Static | BindingFlags.NonPublic);
         var bindFrame = ownerType.GetMethod("BindFrame", BindingFlags.Instance | BindingFlags.NonPublic);
         var syncPose = ownerType.GetMethod("SyncPose", BindingFlags.Instance | BindingFlags.NonPublic);
+        var bindNative = ownerType.GetMethod("BindNativeBogie", BindingFlags.Instance | BindingFlags.NonPublic);
         var encapsulate = ownerType.GetMethod("Encapsulate", BindingFlags.Instance | BindingFlags.NonPublic);
         string folder = "Assets/_CCL_CARS/" + MeyerPlan.CarName;
         var ids = AssetDatabase.FindAssets("t:CustomCarVariant", new[] { folder });
@@ -58,6 +62,12 @@ public static class MeyerCollisionAudit
             var stockCollider = collisionRoot.gameObject.AddComponent<BoxCollider>(); stockCollider.size = new Vector3(2, 3, 8);
             stockCollider.sharedMaterial = material; stockCollider.gameObject.layer = 8;
             var stockCentre = stockCollider.center; var stockSize = stockCollider.size;
+            UnityEngine.Physics.SyncTransforms();
+            var nativeMassCentre = body.centerOfMass; var nativeInertia = body.inertiaTensor; var nativeInertiaRotation = body.inertiaTensorRotation;
+            float nativeMass = body.mass;
+            body.mass = nativeMass * .9f;
+            var nativeReducedInertia = body.inertiaTensor; var nativeReducedInertiaRotation = body.inertiaTensorRotation;
+            body.mass = nativeMass;
             var bogieBody = bogie.AddComponent<Rigidbody>(); bogieBody.isKinematic = true;
             var initialFrame = new GameObject("Native bogie_car before authored frame binding").transform; initialFrame.SetParent(bogie.transform, false);
             var visual = Object.Instantiate(prefabFrame.gameObject, initialFrame).transform;
@@ -78,13 +88,18 @@ public static class MeyerCollisionAudit
             for (int cycle = 0; cycle < 3; cycle++)
             {
                 var binding = (MonoBehaviour)create.Invoke(null, new object[] { collisionRoot, initialFrame, stockCollider });
+                var cleanup = new DisposeCounter();
+                ((IList)ownerType.GetField("contactBindings", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(binding)).Add(cleanup);
                 var ownedGroup = binding.gameObject;
                 try
                 {
-                    Require(binding.transform.parent == collisionRoot && binding.GetComponent<Rigidbody>() == null,
-                        "The owned shell remains under the car collision root, without a new Rigidbody."); checks++;
+                    Require(binding.transform.parent == initialFrame && binding.GetComponent<Rigidbody>() == null,
+                        "The owned shell belongs to the existing rear frame, without a new Rigidbody."); checks++;
                     Require(binding.GetType().Assembly == runtimeAssembly, "The loaded candidate DLL must own the executing collision component."); checks++;
                     bindFrame.Invoke(binding, new object[] { visual });
+                    Require(binding.transform.parent == visual && binding.transform.localPosition == Vector3.zero &&
+                        binding.transform.localRotation == Quaternion.identity && binding.transform.localScale == Vector3.one,
+                        "Rebinding attaches once with an identity local pose; no per-frame body-space copy is needed."); checks++;
                     // Separate the old source after rebinding. Following that
                     // stale source must no longer influence the owned shell.
                     visual.SetParent(bogie.transform, true);
@@ -103,8 +118,8 @@ public static class MeyerCollisionAudit
                                 foreach (var geometry in geometries)
                                 {
                                     var box = binding.transform.Find(geometry.name).GetComponent<BoxCollider>();
-                                    Require(box.attachedRigidbody == body && box.attachedRigidbody != bogieBody,
-                                        "Every rear shell box retains native CAR Rigidbody ownership."); checks++;
+                                    Require(box.attachedRigidbody == bogieBody && box.attachedRigidbody != body,
+                                        "Every rear shell box belongs to the existing native REAR BOGIE Rigidbody."); checks++;
                                     Require(box.sharedMaterial == material && box.gameObject.layer == stockCollider.gameObject.layer && !box.isTrigger,
                                         "Rear shell boxes retain native collision material/layer semantics."); checks++;
                                     Require(Vector3.Distance(box.center, geometry.bounds.center) < .00001f &&
@@ -125,9 +140,43 @@ public static class MeyerCollisionAudit
                                 }
                                 Require(stockCollider.center == stockCentre && stockCollider.size == stockSize && stockCollider.enabled,
                                     "Native stock collider must never be moved or resized by the rear-shell follower."); checks++;
+                                Require(Vector3.Distance(body.centerOfMass, nativeMassCentre) < .00001f &&
+                                    Vector3.Distance(body.inertiaTensor, nativeInertia) < .001f && Quaternion.Angle(body.inertiaTensorRotation, nativeInertiaRotation) < .001f,
+                                    "Rear articulation must not feed moving colliders into the native CAR automatic centre of mass or inertia."); checks++;
                             }
+                    var boxes = binding.GetComponentsInChildren<BoxCollider>();
+                    stockCollider.isTrigger = true; syncPose.Invoke(binding, null);
+                    Require(boxes.All(b => b.isTrigger), "Rear shell mirrors native temporary trigger/rerail policy."); checks++;
+                    stockCollider.enabled = false; syncPose.Invoke(binding, null);
+                    Require(boxes.All(b => !b.enabled), "Rear shell mirrors disabled native collision."); checks++;
+                    stockCollider.enabled = true; stockCollider.isTrigger = false; collisionRoot.gameObject.SetActive(false); syncPose.Invoke(binding, null);
+                    Require(boxes.All(b => !b.enabled), "Rear shell mirrors inactive native collision root."); checks++;
+                    collisionRoot.gameObject.SetActive(true); syncPose.Invoke(binding, null);
+                    Require(boxes.All(b => b.enabled && !b.isTrigger), "Rear shell resumes only the current native collision policy."); checks++;
+                    var dummy = new GameObject("Inactive native Bogie readiness fixture"); dummy.SetActive(false);
+                    try
+                    {
+                        var nativeBogie = dummy.AddComponent(bindNative.GetParameters()[0].ParameterType);
+                        var rbField = nativeBogie.GetType().GetField("rb", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                        var derailed = nativeBogie.GetType().GetField("<HasDerailed>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic);
+                        bindNative.Invoke(binding, new object[] { nativeBogie });
+                        Require(boxes.All(b => !b.enabled), "Absent native Bogie.rb disables shell even while its soon-to-be-destroyed Rigidbody component still exists."); checks++;
+                        rbField.SetValue(nativeBogie, bogieBody); derailed.SetValue(nativeBogie, true); syncPose.Invoke(binding, null);
+                        Require(boxes.All(b => !b.enabled), "Derailed native bogie never activates the added shell on the car fallback body."); checks++;
+                        derailed.SetValue(nativeBogie, false); syncPose.Invoke(binding, null);
+                        Require(boxes.All(b => b.enabled && b.attachedRigidbody == bogieBody), "Rerailed native rear-body ownership re-enables shell."); checks++;
+                    }
+                    finally { bindNative.Invoke(binding, new object[] { null }); Object.DestroyImmediate(dummy); }
+                    float mass = body.mass;
+                    body.mass = mass * .9f;
+                    Require(Mathf.Abs(body.mass - mass * .9f) < .00001f && Vector3.Distance(body.centerOfMass, nativeMassCentre) < .00001f &&
+                        Vector3.Distance(body.inertiaTensor, nativeReducedInertia) < .001f && Quaternion.Angle(body.inertiaTensorRotation, nativeReducedInertiaRotation) < .001f,
+                        "Mass assignment retains the unmodified native body's observed inertia response; the shell must not pin car mass properties."); checks++;
+                    body.mass = mass;
                 }
                 finally { ((IDisposable)binding).Dispose(); }
+                ((IDisposable)binding).Dispose();
+                Require(cleanup.calls == 1, "Normal collision release disposes contact bindings exactly once."); checks++;
                 Require((ownedGroup == null || !ownedGroup.activeSelf) && collisionRoot.GetComponentsInChildren<BoxCollider>().Length == 1,
                     "Returning to stock immediately disables all added rear collision boxes."); checks++;
                 Require(stockCollider.sharedMaterial == material && stockCollider.center == stockCentre && stockCollider.size == stockSize,
@@ -141,7 +190,9 @@ public static class MeyerCollisionAudit
             File.WriteAllText(Path.Combine(output, "meyer-collision-validation.json"), JsonUtility.ToJson(new Report {
                 passed = true, checks = checks, maximumCornerGapMetres = maximumGap,
                 runtimeSha256 = runtimeHash,
-                productionCollisionOwner = true, actualAuthoredShellDimensions = true, carRigidbodyOwnership = true,
+                productionCollisionOwner = true, actualAuthoredShellDimensions = true, rearBogieRigidbodyOwnership = true,
+                nativeCarAutomaticMassFramePreserved = true, nativeCollisionPolicyMirrored = true,
+                nativeBogieReadinessChecked = true,
                 rearBogieIndependentWorldHierarchy = true, bodyYawAndRerailPose = true, repeatedStockRestoration = true,
                 gameRuntimeValidated = false
             }, true));
@@ -149,12 +200,14 @@ public static class MeyerCollisionAudit
         finally { Object.DestroyImmediate(bogie); Object.DestroyImmediate(car); Object.DestroyImmediate(material); }
     }
 
+
     private static Bounds GeometryBounds(Transform frame, MeshFilter[] filters)
     {
         var vertices = filters.SelectMany(f => f.sharedMesh.vertices.Select(v => frame.InverseTransformPoint(f.transform.TransformPoint(v)))).ToArray();
         Require(vertices.Length != 0, "Authored collision shell geometry is required.");
         var bounds = new Bounds(vertices[0], Vector3.zero); foreach (var vertex in vertices) bounds.Encapsulate(vertex); return bounds;
     }
+    private sealed class DisposeCounter : IDisposable { internal int calls; public void Dispose() { calls++; } }
     private static void Require(bool condition, string message) { if (!condition) throw new InvalidOperationException(message); }
     private static Assembly Resolve(object sender, ResolveEventArgs args)
     {
@@ -171,7 +224,8 @@ public static class MeyerCollisionAudit
     }
     [Serializable] private sealed class Report
     {
-        public bool passed, productionCollisionOwner, actualAuthoredShellDimensions, carRigidbodyOwnership,
+        public bool passed, productionCollisionOwner, actualAuthoredShellDimensions, rearBogieRigidbodyOwnership,
+            nativeCarAutomaticMassFramePreserved, nativeCollisionPolicyMirrored, nativeBogieReadinessChecked,
             rearBogieIndependentWorldHierarchy, bodyYawAndRerailPose, repeatedStockRestoration, gameRuntimeValidated;
         public int checks;
         public float maximumCornerGapMetres;

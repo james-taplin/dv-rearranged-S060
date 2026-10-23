@@ -15,7 +15,7 @@ public static class MeyerExhaustPipeAudit
         public bool passed, actualValveChestAndSmokeboxTriangles, actualDrawnCapsAndSleeves,
             actualRunningGearTriangleIntersections, independentBodyAndBogiePoses,
             movingSleevesClearNativeBodyAndDeck, movingSleevesClearSupplyPipes, allExhaustPartsClearSupplyPipes, fixedOutboardRunClearNativeEnvelope,
-            supportsMeetActualNativePlate,
+            supportsMeetActualNativePlate, cabEntryClear, roofSupportsMeetNativeRoof,
             stockSourcesRestored, ownedMeshesReleased, liveMaterialRebound, gameRuntimeValidated;
         public int checks, articulationPoses, crankSamples;
         public float maximumEndpointGapMetres, minimumTelescopicOverlapMetres;
@@ -51,7 +51,7 @@ public static class MeyerExhaustPipeAudit
             Require(deck.Length > 4 && intake.Length == 6, "Native body, authored rear deck and both drawn supply pipe routes are required."); result.checks++;
             var moving = new[] { pipe.InnerSleeve.GetComponent<MeshFilter>(), pipe.OuterSleeve.GetComponent<MeshFilter>(), pipe.SlipCollar.GetComponent<MeshFilter>() };
             float smokeboxSurface = SurfaceX(nativeBody.sharedMesh, 2.25f, 3.7f);
-            foreach (float z in new[] { -1f, 0f, 2.75f })
+            foreach (float z in new[] { 0f, 2.75f })
             {
                 var support = pipe.BodyRoot.Find("LP body support " + z).GetComponent<MeshFilter>();
                 var foot = clone.transform.InverseTransformPoint(DrawnCap(support, false));
@@ -59,6 +59,15 @@ public static class MeyerExhaustPipeAudit
                 var collar = pipe.BodyRoot.Find("LP support collar " + z).GetComponent<MeshFilter>();
                 Require(new SteamMeshContact.Shell(support, clone.transform).Intersects(new SteamMeshContact.Shell(collar, clone.transform)),
                     "Support must physically meet its pipe collar."); result.checks++;
+            }
+            foreach (float z in new[] { -1.6f, -2.7f })
+            {
+                var support = pipe.BodyRoot.Find("LP roof support " + z).GetComponent<MeshFilter>();
+                Require(SurfaceYDistance(nativeBody.sharedMesh, clone.transform.InverseTransformPoint(DrawnCap(support, false))) < .002f,
+                    "Roof bracket must meet the actual native roof face."); result.checks++;
+                var collar = pipe.BodyRoot.Find("LP roof collar " + z).GetComponent<MeshFilter>();
+                Require(new SteamMeshContact.Shell(support, clone.transform).Intersects(new SteamMeshContact.Shell(collar, clone.transform)),
+                    "Roof support must meet its pipe collar."); result.checks++;
             }
             foreach (float yaw in new[] { -15f, 0f, 15f }) foreach (float bodyYaw in new[] { 0f, 73f }) foreach (int rerail in new[] { -1, 0, 1 })
             {
@@ -74,6 +83,10 @@ public static class MeyerExhaustPipeAudit
                 var drawnIntakes = intake.Select(f => new SteamMeshContact.Shell(f, clone.transform)).ToArray();
                 foreach (var filter in generated)
                 {
+                    // Covers the cab-side entry/steps up to window-head height.
+                    // Per-face bounds avoid accepting a pipe that crosses the
+                    // doorway just because its endpoint markers are outside it.
+                    Require(ClearsCabEntry(filter, clone.transform), "Exhaust blocks cab-side access: " + filter.name); result.checks++;
                     var exhaust = new SteamMeshContact.Shell(filter, clone.transform);
                     foreach (var target in drawnIntakes)
                     { Require(!exhaust.Intersects(target, out var contact), "LP collector/return intersects drawn intake route: " + filter.name + " / " + target.Name + " at yaw " + yaw + ", rerail " + rerail + ". " + contact); result.checks++; }
@@ -103,9 +116,9 @@ public static class MeyerExhaustPipeAudit
                 float overlap = Vector3.Dot(innerEnd - outerEnd, direction); result.minimumTelescopicOverlapMetres = Mathf.Min(result.minimumTelescopicOverlapMetres, overlap);
                 Require(overlap > .10f && overlap < 1.50f && Vector3.Cross(innerEnd - outerEnd, direction).magnitude < .0001f,
                     "Actual rigid sleeve meshes must remain collinear with positive travel margin."); result.checks++;
-                Require(Mathf.Abs(Vector3.Distance(innerEnd, pipe.RearJoint.position) - 1.55f) < .0001f &&
-                    Mathf.Abs(Vector3.Distance(outerEnd, pipe.BodyJoint.position) - 1.55f) < .0001f,
-                    "Telescopic tubes retain their actual fixed 1.55m length."); result.checks++;
+                Require(Mathf.Abs(Vector3.Distance(innerEnd, pipe.RearJoint.position) - 1.18f) < .0001f &&
+                    Mathf.Abs(Vector3.Distance(outerEnd, pipe.BodyJoint.position) - 1.18f) < .0001f,
+                    "Telescopic tubes retain their actual fixed 1.18m length."); result.checks++;
                 Near(pipe.SlipCollar.position, outerEnd);
                 foreach (var joint in new[] { pipe.RearJoint, pipe.BodyJoint })
                 {
@@ -156,12 +169,27 @@ public static class MeyerExhaustPipeAudit
             result.movingSleevesClearNativeBodyAndDeck = result.movingSleevesClearSupplyPipes = result.fixedOutboardRunClearNativeEnvelope = true;
             result.allExhaustPartsClearSupplyPipes = true;
             result.supportsMeetActualNativePlate = true;
+            result.cabEntryClear = result.roofSupportsMeetNativeRoof = true;
             result.stockSourcesRestored = result.ownedMeshesReleased = result.liveMaterialRebound = true;
             return result;
             void Near(Vector3 actual, Vector3 expected)
             { float gap = Vector3.Distance(actual, expected); result.maximumEndpointGapMetres = Mathf.Max(result.maximumEndpointGapMetres, gap); Require(gap < .00015f, "Drawn LP return cap detached by " + gap.ToString("R", CultureInfo.InvariantCulture)); result.checks++; }
         }
         finally { supply?.Dispose(); pipe?.Dispose(); Object.DestroyImmediate(clone); foreach (var item in nativeOwned) if (item != null) Object.DestroyImmediate(item); }
+    }
+    private static bool ClearsCabEntry(MeshFilter filter, Transform body)
+    {
+        var matrix = body.worldToLocalMatrix * filter.transform.localToWorldMatrix;
+        var vertices = filter.sharedMesh.vertices.Select(matrix.MultiplyPoint3x4).ToArray();
+        var triangles = filter.sharedMesh.triangles;
+        var entry = new Bounds(new Vector3(-1.63f, 2.55f, -2.7f), new Vector3(.5f, 1.8f, 3.2f));
+        for (int i = 0; i < triangles.Length; i += 3)
+        {
+            var bounds = new Bounds(vertices[triangles[i]], Vector3.zero);
+            bounds.Encapsulate(vertices[triangles[i + 1]]); bounds.Encapsulate(vertices[triangles[i + 2]]);
+            if (bounds.Intersects(entry)) return false;
+        }
+        return true;
     }
     private static Vector3 LowCapCentre(Mesh mesh)
     {

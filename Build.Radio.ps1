@@ -25,17 +25,29 @@ if (-not $nativeReport.passed -or $nativeReport.runtimeSha256 -ne (Get-FileHash 
 foreach ($report in $nativeReport.reports) {
     if ((Get-FileHash $report.path).Hash -ne $report.hash -or -not (Get-Content $report.path -Raw | ConvertFrom-Json).passed) { throw 'Native audit evidence changed.' }
 }
-foreach ($name in @('exhaust','cocks','cleanup','collision')) { if (@($nativeReport.reports | Where-Object name -eq $name).Count -ne 1) { throw "Missing native audit: $name" } }
+foreach ($name in @('exhaust','cocks','cleanup','collision','contacts')) { if (@($nativeReport.reports | Where-Object name -eq $name).Count -ne 1) { throw "Missing native audit: $name" } }
 $cockReport = ($nativeReport.reports | Where-Object name -eq 'cocks').path
 if (-not (Get-Content $cockReport -Raw | ConvertFrom-Json).ownedFixedCrankFlowAndReverser) { throw 'Owned cylinder-cock fixed-crank flow/reverser regression is required.' }
+$cockDetails = Get-Content $cockReport -Raw | ConvertFrom-Json
+if (-not $cockDetails.ownedInletPublicationOrder -or -not $cockDetails.nativeLowFlowThreshold -or -not $cockDetails.ownedWetDripGatesAndReuse) { throw 'Native inlet-order, low-flow and wet-drip regressions are required.' }
 $cleanupReport = ($nativeReport.reports | Where-Object name -eq 'cleanup').path
 if (-not (Get-Content $cleanupReport -Raw | ConvertFrom-Json).lpReturnCandidateLifetime) { throw 'Compiled LP exhaust-return lifetime regression is required.' }
+$collisionReport = Get-Content ($nativeReport.reports | Where-Object name -eq 'collision').path -Raw | ConvertFrom-Json
+if (-not $collisionReport.rearBogieRigidbodyOwnership -or -not $collisionReport.nativeCarAutomaticMassFramePreserved -or -not $collisionReport.nativeBogieReadinessChecked) { throw 'Native rear-bogie collision ownership and mass-frame/readiness regressions are required.' }
+$contactReport = Get-Content ($nativeReport.reports | Where-Object name -eq 'contacts').path -Raw | ConvertFrom-Json
+if (-not $contactReport.actualPlayMode -or -not $contactReport.actualNativeCID -or -not $contactReport.productionRelayUsed -or
+    -not $contactReport.nativeEnterStayExit -or -not $contactReport.pauseFlagPreserved -or -not $contactReport.unownedContactsIgnored -or
+    -not $contactReport.relayTeardown -or -not $contactReport.sameFrameRecovery -or
+    -not $contactReport.directParentDestructionReleasesBindings) { throw 'Compiled rear-contact delivery, filtering and teardown regressions are required.' }
 $exhaustReport = Get-Content ($nativeReport.reports | Where-Object name -eq 'exhaust').path -Raw | ConvertFrom-Json
 if (-not $exhaustReport.smokeBeforeOwnerRegistration -or -not $exhaustReport.detachedPooledAudio) { throw 'Real startup and detached audio regressions are required.' }
 $simDll = Get-ChildItem (Join-Path $repo 'RearrangedS060\obj\Release\net48\PublicizedAssemblies') -Recurse -Filter DV.Simulation.dll | Select-Object -First 1 -ExpandProperty FullName
 $oiling = & $sdk run --project (Join-Path $repo 'tests\Oiling\Native.csproj') -c Release "-p:PublicizedSimulation=$simDll" "-p:ManagedPath=$managed" 2>&1
 if ($LASTEXITCODE -ne 0) { throw "Native oiling checks failed: $oiling" }
 $oiling | Set-Content (Join-Path $output 'oiling-checks.txt')
+$trace = & $sdk run --project (Join-Path $repo 'tests\Trace\Trace.csproj') -c Release 2>&1
+if ($LASTEXITCODE -ne 0) { throw "Bounded diagnostic capture checks failed: $trace" }
+$trace | Set-Content (Join-Path $output 'trace-checks.txt')
 $evidence = if ($DocksideEvidence) { $DocksideEvidence } else { Get-ChildItem (Join-Path $repo 'build\dockside') -Directory -Filter 'authoring-*' | Where-Object { Test-Path (Join-Path $_.FullName 'authoring-result.json') } | Sort-Object Name -Descending | Select-Object -First 1 -ExpandProperty FullName }
 if (-not $evidence) { throw 'A completed Dockside asset export is required.' }
 & $sdk build (Join-Path $repo 'tests\Functional\Functional.csproj') -c Release -p:ArticulatedTest=true "-p:GamePath=$($config.GamePath)" --nologo -v:q
@@ -103,6 +115,7 @@ $receipt = [ordered]@{
     functionalChecks = [string]$functional; engineChecks = [string]$engines; transitionChecks = [string]$transitions
     meyerGeometryChecks = [string]$geometry
     oilingChecks = [string]$oiling
+    traceChecks = [string]$trace
     transactionChecks = [string]$transactions
     compoundChecks = [string]$compound
     nativeCockReaderChecks = Get-Content $cockReport -Raw | ConvertFrom-Json

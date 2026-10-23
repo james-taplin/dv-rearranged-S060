@@ -4,14 +4,29 @@ Change the S060's running gear through a dedicated comms-radio mode in Derail
 Valley. This project forks the Rearranged S282 B99/Re:Arranged branch, based on
 Peter Schinske / SatiricRug's original Rearranged S282.
 
-## Current candidate: S060 0.17.0, Meyer/Dockside packs 0.7.0
+## Current candidate: S060 0.18.0, Meyer/Dockside packs 0.7.0
 
-This candidate adds a dedicated visible return from the Meyer rear LP cylinder
-collector to the smokebox, with period-style ball/slip joints and support
-brackets. The locomotive retains **one chimney**; the rear unit has no separate
-exhaust stack. The fictional pipe arrangement is not an exact historical replica.
+This candidate routes the Meyer rear LP exhaust return above the cab roof edge
+before it descends to the forward smokebox run. Period-style ball/slip joints
+and roof/footplate brackets support it. The locomotive retains **one chimney**;
+the rear unit has no separate exhaust stack. The fictional pipe arrangement is
+not an exact historical replica.
 Final articulation/clearance evidence and gameplay acceptance are recorded in
 the handover rather than inferred from its straight-track appearance.
+
+Owned cylinder-cock readers also refresh when their inlet-valve mask changes,
+including a stopped crank with unchanged steam flow. This retains native valve
+timing and emission thresholds: an LP unit near atmospheric pressure may have
+too little cock flow for visible jets, and a dry cylinder produces no water
+drips. Automatic diagnostics now re-arm for each changed arrangement and include
+cylinder water/temperature, health/windows and body/bogie motion/joint snapshots.
+
+The rear shell now belongs to the existing native rear-bogie Rigidbody. Previously,
+its colliders were moved inside the main car's compound each frame, which could
+change the car's automatic centre of mass and inertia as the bogie moved. Native
+collision readiness and impact callbacks are retained. This corrects a demonstrated
+ownership defect; the reported window damage and stationary bump still need a
+gameplay retest with the expanded diagnostics.
 
 The preceding effects update used discordraconequus's Verde authoring pack as a
 reference. Cock steam/drip/sound holders follow measured cylinder drain caps;

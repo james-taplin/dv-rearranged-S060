@@ -96,12 +96,22 @@ namespace RearrangedS060
             flow.TryGetPort(engine + ".CYLINDER_COCK_FLOW_NORMALIZED", out var vent);
             flow.TryGetPort(engine + ".STEAM_CHEST_PRESSURE", out var pressure);
             flow.TryGetPort(engine + ".CYLINDERS_INLET_VALVE_OPEN", out var inlet);
-            var data = particles.SelectMany(c => c.entries.OfType<CylinderCockParticlePortReader>())
+            flow.TryGetPort(engine + ".WATER_IN_CYLINDERS_NORMALIZED", out var water);
+            flow.TryGetPort(engine + ".CYLINDER_TEMPERATURE", out var temperature);
+            var jets = particles.SelectMany(c => c.entries.OfType<CylinderCockParticlePortReader>()).ToArray();
+            var data = jets
                 .SelectMany(r => r.cylinderSetups).SelectMany(s => s.frontParticlesData.Concat(s.rearParticlesData)).ToArray();
+            var drips = particles.SelectMany(c => c.particlePortReaders).Where(r => r.particlesParent.name.StartsWith("Water drip ", StringComparison.Ordinal)).ToArray();
+            var dripData = drips.Where(r => r.particleSystemsData != null).SelectMany(r => r.particleSystemsData).ToArray();
             Main.Logger.Log("S060 cock check " + car.ID + " " + engine + ": cab=" + cockControl.Value.ToString("0.###") +
                 ", flow=" + (vent?.Value ?? -1).ToString("0.###") + ", chest=" + (pressure?.Value ?? -1).ToString("0.###") +
                 ", inlet=" + (inlet?.Value ?? -1).ToString("0") + ", cached=" + data.Length +
-                ", emitting=" + data.Count(p => p.ps != null && p.ps.isEmitting));
+                ", emitting=" + data.Count(p => p.ps != null && p.ps.isEmitting) +
+                ", flowBound=" + jets.All(r => r.cylinderCockFlowNormalizedPort == vent && r.cylindersInletValveOpenPort == inlet) +
+                ", controllersActive=" + particles.All(c => c.isActiveAndEnabled) +
+                ", water=" + (water?.Value ?? -1).ToString("0.####") + ", cylinderC=" + (temperature?.Value ?? -1).ToString("0.##") +
+                ", dripCached=" + dripData.Length + ", dripEmitting=" + dripData.Count(p => p.ps != null && p.ps.isEmitting) +
+                ", dripGates=" + string.Join(";", drips.Select(r => string.Join("/", r.particleUpdaters.Select(u => u.activationConditionFulfilled ? "1" : "0")))));
         }
         public void Dispose()
         {

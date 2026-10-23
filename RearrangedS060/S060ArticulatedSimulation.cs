@@ -88,6 +88,7 @@ namespace RearrangedS060
             // DV caches max blast flow here. This touches no engine/resource state.
             Flow.OrderedSimComps.OfType<SteamExhaust>().Single().InitializationAfterConnecting();
             Exhaust?.Refresh();
+            trace?.SelectionChanged(traceCar, mode);
         }
         private void Prepare(SimController sim, DamageController damageController)
         {
