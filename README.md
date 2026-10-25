@@ -4,7 +4,13 @@ Change the S060's running gear through a dedicated comms-radio mode in Derail
 Valley. This project forks the Rearranged S282 B99/Re:Arranged branch, based on
 Peter Schinske / SatiricRug's original Rearranged S282.
 
-## Current candidate: S060 0.19.0, Meyer/Dockside packs 0.7.0
+## Current candidate: S060 0.19.1, Meyer/Dockside packs 0.7.0
+
+Version 0.19.1 preserves native drivetrain phases while Meyer/Dockside hide the
+original mechanisms, then restores the original Animator settings on return.
+Oil-save migration now uses the native per-component loader and accepts only
+known six/twelve-point formats; current fourteen-point data and unknown arrays
+are not rewritten. No save schema, circuit ID, simulation or targeting change.
 
 Version 0.19.0 adds a conventional **0-10-0 Tank** with five real powered axles,
 fixed 1.00 m drivers, fitted coupling rods and ten functional big-end oil cups.

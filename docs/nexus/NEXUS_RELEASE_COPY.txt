@@ -2,7 +2,7 @@ MOD NAME
 Rearranged S060 - Re:Arranged
 
 VERSION / FILE CATEGORY
-0.19.0 - 0-10-0 Tank public beta / Main file
+0.19.1 - 0-10-0 Tank and compatibility fixes / Main file
 
 SHORT DESCRIPTION
 Give the S060 new wheel arrangements, a compound Meyer with an attached pannier
@@ -71,7 +71,7 @@ Install CCL's own requirements too, including DV Language Helper for the tested
 CCL 3.1.11. These dependencies are separate downloads. Rearranged S282 is not
 required to play this mod.
 
-Close the game, then drag [b]RearrangedS060-0.19.0-UMM.zip directly into UMM[/b].
+Close the game, then drag [b]RearrangedS060-0.19.1-UMM.zip directly into UMM[/b].
 One Rearranged S060 entry includes the runtime and both Meyer/Dockside bundles.
 There are no ZIPs inside the download and no separate asset-pack installs.
 
@@ -86,7 +86,7 @@ rear, disconnect the hose and leave clear track behind. Use the S060 radio for
 normal play; the asset packs' CCL spawner entries are debug asset donors.
 
 [b]Initial beta notes[/b]
-The new fifth-wheel state uses mod save version 3. Version 0.19.0 reads earlier
+The new fifth-wheel state uses mod save version 3. Version 0.19.1 reads earlier
 saves; older mod versions cannot restore the new 0-10-0 arrangement.
 
 The latest collision correction passes automatic native and contact checks.
@@ -127,7 +127,16 @@ No original game DLLs, Verde audio/art or dependency mods are distributed here.
 [url=https://github.com/james-taplin/dv-rearranged-S282]JimTaplin's S282 fork[/url]
 [url=https://github.com/james-taplin/dv-rearranged-S060]S060 fork[/url]
 
-0.19.0 CHANGELOG - PLAIN TEXT
+0.19.1 CHANGELOG - PLAIN TEXT
+
+- Preserved native left/right crank quartering when returning from Meyer or
+  Dockside to stock or another conventional layout.
+- Restricted oil-save migration to the known six- and twelve-point formats.
+  Existing levels, lids and circuit IDs are retained; unknown or malformed arrays
+  are left untouched. Current fourteen-point saves load without a format change.
+- Retained vehicle targeting, compound simulation and both 0.7.0 asset bundles.
+
+0.19.0 FEATURES RETAINED
 
 - Added the 0-10-0 Tank arrangement: five real powered axles and fixed 1.00 m
   drivers, selectable through the S060 radio and UMM arrangement panel.
@@ -143,7 +152,7 @@ No original game DLLs, Verde audio/art or dependency mods are distributed here.
 
 MAIN FILE DESCRIPTION
 
-Complete 0-10-0 Tank update for B99. Includes RearrangedS060 0.19.0 and both
+Complete 0-10-0 Tank update for B99, with native quartering and oil-save fixes. Includes RearrangedS060 0.19.1 and both
 required 0.7.0 asset bundles in one UMM mod folder. Drag this ZIP directly into
 UMM; no nested ZIPs or separate pack installs. Requires Loco Mesh Splitter and Custom Car Loader separately.
 Rearranged S282 is not required. See the description's beta notes before use.

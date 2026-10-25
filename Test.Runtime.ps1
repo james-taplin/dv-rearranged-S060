@@ -16,6 +16,7 @@ Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'RearrangedS060\S060MeyerCollisi
 $contactFolder = Join-Path $project 'Assets\QA'
 New-Item -ItemType Directory -Path $contactFolder -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Meyer\tools\CollisionContactPlayModeRunner.cs') -Destination $contactFolder -Force
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Meyer\tools\QuarteringPlayModeRunner.cs') -Destination $contactFolder -Force
 '{"name":"RearrangedS060.ContactAudit"}' | Set-Content (Join-Path $contactFolder 'RearrangedS060.ContactAudit.asmdef') -Encoding UTF8
 $env:S060_EXHAUST_AUDIT_RUNTIME = $runtime
 $env:S060_CONTACT_AUDIT_RUNTIME = $runtime
@@ -27,7 +28,8 @@ $entries = @(
     @{ name='cleanup'; method='CleanupNativeAudit.RunBatch'; env='S060_CLEANUP_AUDIT_OUTPUT'; report='native-cleanup-validation.json' },
     @{ name='collision'; method='MeyerCollisionAudit.RunBatch'; env='S060_COLLISION_AUDIT_OUTPUT'; report='meyer-collision-validation.json' },
     @{ name='contacts'; method='CollisionContactPlayMode.RunBatch'; env='S060_CONTACT_AUDIT_OUTPUT'; report='native-contact-delivery.json' },
-    @{ name='conventional'; method='ConventionalNativeAudit.RunBatch'; env='S060_CONVENTIONAL_OUTPUT'; report='conventional-validation.json' }
+    @{ name='conventional'; method='ConventionalNativeAudit.RunBatch'; env='S060_CONVENTIONAL_OUTPUT'; report='conventional-validation.json' },
+    @{ name='quartering'; method='QuarteringPlayMode.RunBatch'; env='S060_QUARTERING_AUDIT_OUTPUT'; report='quartering-validation.json' }
 )
 $reports = @()
 foreach ($entry in $entries) {

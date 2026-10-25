@@ -1,5 +1,80 @@
 # Rearranged S060 — handover
 
+## 0.19.1: native quartering and oil-save migration — 25 October 2026
+
+James authorized fixing these two upstream-review findings, preserving saves,
+running the full checks and rebuilding the single Nexus ZIP. Vehicle targeting
+was explicitly excluded. S060Parts/Targeting, save schema/arrangement IDs, engine
+bank, compound calibration and both 0.7.0 asset bundles are unchanged.
+
+S060NativeQuartering temporarily sets the two ORIGINAL drivetrain Animators'
+keepAnimatorControllerStateOnDisable flags before articulated Apply hides them.
+Undo restores the native mechanisms/readers before returning each original flag;
+failed hierarchy restoration retains the owner for retry. Disposal is idempotent
+and tolerates destroyed native components. No Animator.Play/Update/Rebind or new
+per-frame hook is added. The authored Meyer/Dockside absolute-crank gear stays
+unchanged. Native-first decision: S060 does not swap these native controllers,
+so retaining their existing states is sufficient; the broader S282 controller/
+phase-seeking machinery is unnecessary here.
+
+Oil migration now hooks ManualOilingPoints.SetSaveStateData, the native per-
+component boundary, and requires the existing owned-component weak-table entry.
+Only recognised six/twelve-point arrays of objects migrate to fourteen. Each old
+quantity/lid/index and unknown object property survives; only newly added points
+start full/closed. Current fourteen-point, unknown-count, missing/non-array and
+malformed arrays are passed through unchanged. Unsupported input is not repaired
+or promised loadable by the native loader. Mod save version 3 and older v1/v2
+compatibility are unchanged; there is no renumbering or state migration for wheels.
+
+Full Build.Release passed with zero warnings/errors. Final exact-candidate native
+evidence: build/radio-0.19.1/runtime-audits-20261025-132409, including exhaust611,
+cocks95, cleanup145, collision7062, actual native contact PlayMode21, conventional
+native mesh/motion437, and NEW actual Unity quartering PlayMode115. Quartering
+fixture first reproduces the old disabled-state reset, then exercises the shipping
+retention owner over sixteen hide/return cycles, all four original flag pairs,
+forward/reverse playback, actual sampled wheel poses, repeated disposal and a
+destroyed side. It is an isolated Unity scene, not a DV driving/whole-car test.
+Release IL checks require retention before Hide, forbid animation-seeking calls,
+and verify the per-component oil hook. One complete run timed out during the last
+Unity fixture; its evidence is retained. Explicit unpaused/background fixture
+settings were added and the entire release suite passed on rerun. An earlier
+fixture state-name typo was corrected to the generated controller's actual name.
+
+Other passing checks: functional/save185, engine/save/ECS241, oiling612,
+same-frame axle100, native geometry1151, conversion35 over14 failure scenarios,
+compound25, trace145, Meyer18, Dockside17, installer24. The added oiling cases run
+production migration with the actual native loader, preserving old six/twelve
+values/lids, fourteen-point round trips, foreign unregistered components and
+unknown/malformed input. build/radio-0.19.1/oil-save-baseline.txt independently
+compares the old and new DLL helper in isolated Windows PowerShell processes:
+unknown fifteen points became fourteen in0.19.0 and remain fifteen with the same
+reference in0.19.1. Do not compare both same-name assemblies in one LoadFrom
+context: .NET Framework can return the first assembly and invalidate that fixture.
+
+Single ZIP: build/nexus-0.19.1-single/RearrangedS060-0.19.1-UMM.zip.
+ZIP SHA25679FC9ACF8E9806380AF5FC6C7292AD033DBD2F953EBBF15F4486D61876DA7269.
+Runtime SHA25608CB2EAC7FA164CB97910C24185113CB318723E6742626940F052D081689938D.
+Actual UMM fresh/update/uninstall/legacy migration54 passes at
+umm-proof-20261025-132655; actual UMM-extracted bundles reopen in Unity with32
+checks at combined-unity-20261025-132655. Asset bytes match the prior release.
+Desktop delivery is RearrangedS060-0.19.1-Nexus, including friendly beta ZIP,
+changelog, full Nexus copy, installation and credits. No game installation, save
+edit or Nexus publication. In-game switching, wheel-pose observation, old-save
+loading and the 0-10-0 driving/curve acceptance remain James's tests.
+
+James also requested Shay feasibility and ready-to-use model-session briefs.
+docs/shay/ contains the feasibility/index and four session prompts: fit contract
+first, then independent engine, transmission and truck sessions. No Shay runtime
+or asset is in0.19.1 and no new sessions were created. Explicit priority is maximum
+DV wheelset reuse; native aliases are the default, with original bolt-on gear
+rings/hub covers instead of replacement tread/flange/spoke meshes. Current080
+physics is2+2 but its visuals remain rigid, and native support pivots differ from
+the axle-pair midpoints; the first session must measure/freeze the actual contract.
+Installed B99 engine constructor has an explicit three-cylinder lead1/3 branch
+and six chuffs/cycle, so prefer native three-cylinder steam plus a measured geared
+port graph before any custom solver. Gear ratio2.5 is provisional, not a Lima
+specification. Historical primary references are linked in the feasibility file.
+
 ## 0.19.0 built for testing: 0-10-0 Tank — 25 October 2026
 
 James requested implementation, build, source push and a Nexus-ready single ZIP

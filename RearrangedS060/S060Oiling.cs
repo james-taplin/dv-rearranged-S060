@@ -32,7 +32,7 @@ namespace RearrangedS060
                 prefix: new HarmonyMethod(typeof(S060Oiling), nameof(BeforeTick)), finalizer: new HarmonyMethod(typeof(S060Oiling), nameof(FinishTick)));
             harmony.Patch(AccessTools.Method(typeof(ManualOilingPoints), "OnSpecialRequest"),
                 prefix: new HarmonyMethod(typeof(S060Oiling), nameof(BeforeTick)), finalizer: new HarmonyMethod(typeof(S060Oiling), nameof(FinishTick)));
-            harmony.Patch(AccessTools.Method(typeof(SimulationFlow), nameof(SimulationFlow.SetSaveStateData)),
+            harmony.Patch(AccessTools.Method(typeof(ManualOilingPoints), nameof(ManualOilingPoints.SetSaveStateData)),
                 prefix: new HarmonyMethod(typeof(S060Oiling), nameof(FitSave)));
         }
         internal static ManualOilingPointsDefinition Definition(TrainCar car) => car.GetComponentsInChildren<ManualOilingPointsDefinition>(true).FirstOrDefault();
@@ -114,16 +114,22 @@ namespace RearrangedS060
         { AfterTick(__instance); return __exception; }
         internal static JArray FitSaved(JArray saved, int count)
         {
-            var fitted = new JArray();
-            for (int i = 0; i < count; i++) fitted.Add(saved != null && i < saved.Count && saved[i] is JObject point ? point.DeepClone() : new JObject { ["open"] = false, ["oilLevel"] = 1f });
+            // Only the shipped six/twelve -> fourteen migrations are known.
+            // Leave future, foreign and malformed arrays with the native loader;
+            // never truncate them or replace unknown entries with full reservoirs.
+            if (count != TotalPoints || saved == null || (saved.Count != NativePoints && saved.Count != 12) ||
+                saved.Any(point => !(point is JObject))) return saved;
+            var fitted = (JArray)saved.DeepClone();
+            while (fitted.Count < count) fitted.Add(new JObject { ["open"] = false, ["oilLevel"] = 1f });
             return fitted;
         }
-        private static void FitSave(SimulationFlow __instance, ref JObject savedData)
+        internal static void FitSave(ManualOilingPoints __instance, ref JObject __0)
         {
-            var points = Points(__instance);
-            if (savedData == null || points?.oilingPoints.Length != TotalPoints || !States.TryGetValue(points, out _)) return;
-            if (!(savedData[points.id] is JObject component) || !(component["oilingPoints"] is JArray saved) || saved.Count == TotalPoints) return;
-            var fitted = (JObject)savedData.DeepClone(); ((JObject)fitted[points.id])["oilingPoints"] = FitSaved(saved, TotalPoints); savedData = fitted;
+            if (__0 == null || __instance?.oilingPoints.Length != TotalPoints || !States.TryGetValue(__instance, out _)) return;
+            if (!(__0["oilingPoints"] is JArray saved)) return;
+            var fitted = FitSaved(saved, TotalPoints);
+            if (ReferenceEquals(saved, fitted)) return;
+            var component = (JObject)__0.DeepClone(); component["oilingPoints"] = fitted; __0 = component;
         }
     }
 }

@@ -33,6 +33,7 @@ namespace RearrangedS060
         private S060SteamPipes steamPipes;
         private S060NativeCylinders nativeCylinders;
         private S060MeyerLights meyerLights;
+        private S060NativeQuartering nativeQuartering;
 
         internal static Transform[] Preflight(bool meyer) => ResolveFrames(meyer, out _);
         private static Transform[] ResolveFrames(bool meyer, out Transform donorRoot)
@@ -70,6 +71,8 @@ namespace RearrangedS060
             if (Scale.Factor != 1) throw new InvalidOperationException("Articulated layouts use their authored wheel size.");
             simulation = S060ArticulatedSimulation.Ensure(Parts.Car);
             var frames = ResolveFrames(IsMeyer, out var donorRoot);
+            nativeQuartering = new S060NativeQuartering(Parts.MechanismLeft, Parts.MechanismRight);
+            nativeQuartering.Retain();
             if (IsMeyer) { meyerSupport = S060MeyerSupport.For(Parts.Car); meyerSupport.Apply(IsRestoring); }
             stockCocks = new S060StockCocks(Parts.Car); stockCocks.Mute();
             // Keep native bogies, joints, track travellers and identities. Like
@@ -149,6 +152,7 @@ namespace RearrangedS060
                 if (Attempt(() => { if (home.renderer != null) home.renderer.enabled = home.enabled; })) renderers.Remove(home);
             foreach (var home in readers.ToArray())
                 if (Attempt(() => { if (home.component != null) home.component.enabled = home.enabled; })) readers.Remove(home);
+            if (hidden.Count == 0 && nativeQuartering != null && Attempt(nativeQuartering.Dispose)) nativeQuartering = null;
             if (errors.Count == 0)
             {
                 // Rear collision/contacts now belong to the frame's existing

@@ -1,4 +1,4 @@
-REARRANGED S060 - PUBLIC BETA 0.19.0
+REARRANGED S060 - PUBLIC BETA 0.19.1
 
 ONE ZIP - DRAG DIRECTLY INTO UNITY MOD MANAGER
 
@@ -10,7 +10,7 @@ Custom Car Loader finds the included bundles in its assets subfolders.
 2. Install Unity Mod Manager, Loco Mesh Splitter, Custom Car Loader and CCL's
    own requirements first (including DV Language Helper for CCL 3.1.11).
 3. Open UMM, select Derail Valley and open the Mods tab.
-4. Drag RearrangedS060-0.19.0-UMM.zip directly into UMM.
+4. Drag RearrangedS060-0.19.1-UMM.zip directly into UMM.
 5. Check Rearranged S060 is installed and enabled, then launch the game.
 
 UPGRADING AN EARLIER THREE-PART TEST INSTALL - ONE-TIME STEP
@@ -27,7 +27,8 @@ does not automatically remove separate old mods. New users skip this step.
 
 Required: Derail Valley B99, UMM 0.27.3 or newer, Loco Mesh Splitter and Custom
 Car Loader. Rearranged S282 is not required. Dependencies are not bundled.
-Runtime 0.19.0 adds the 0-10-0 Tank arrangement; both asset bundles stay at 0.7.0.
+Runtime 0.19.1 includes the 0-10-0 Tank plus native quartering and oil-save fixes.
+Both asset bundles stay at 0.7.0; existing saves and settings remain compatible.
 Existing single-folder 0.18.0 installs update normally through UMM.
 
 CHOOSING AN ARRANGEMENT

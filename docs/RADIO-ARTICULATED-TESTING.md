@@ -1,4 +1,4 @@
-# S060 radio 0.19.0 transition/effects candidate test
+# S060 radio 0.19.1 transition/effects candidate test
 
 Required packs: Meyer **0.7.0**, Franklin Dockside **0.7.0**. See the installation
 receipt for actual installed hashes and installation mode. Restart/reload after
@@ -7,6 +7,17 @@ that mode and prior file hashes.
 This build requires 0.7.0 packs. Their hash-bound validation receipts must match
 the packaged bundle bytes; unchanged packs can reuse matching evidence. Version
 numbers alone are insufficient.
+
+## Quartering and oil-save acceptance
+
+Cycle Stock -> Meyer -> Dockside -> Stock, then repeat with Short Wheelbase,
+0-8-0 and 0-10-0. Observe both sides while moving slowly forward and backward:
+left/right cranks must remain 90 degrees apart on return to native gear. Stop,
+close the regulator and leave rear clearance before each switch. Repeat after
+save/reload. Confirm existing oil levels/lids survive and the fifth-axle cups
+retain their own state. Native six-point and earlier twelve-point oil saves
+migrate to fourteen circuits without changing existing quantities or lids.
+Unknown arrays are preserved as supplied to the native loader, not repaired.
 
 ## 0-10-0 Tank acceptance
 

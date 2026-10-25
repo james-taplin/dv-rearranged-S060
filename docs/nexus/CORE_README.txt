@@ -1,8 +1,12 @@
-REARRANGED S060 - 0.19.0 PUBLIC BETA
+REARRANGED S060 - 0.19.1 PUBLIC BETA
 
 Change the native S060's running gear through WHEEL REARRANGER on the comms
 radio, or the mod's UMM arrangement chooser. All arrangements remain attached
 to the same locomotive identity, cab and save ownership.
+
+0.19.1 fixes native crank quartering on return from articulated layouts and
+limits oil-save migration to known six/twelve-point formats. Existing saves,
+arrangement IDs, oil circuit IDs and vehicle targeting are unchanged.
 
 ARRANGEMENTS
 
@@ -52,7 +56,7 @@ the rear assembly and restores the stock rear supports and coupling position.
 INSTALLATION
 
 Requires Derail Valley B99, UMM 0.27.3+, Loco Mesh Splitter and Custom Car Loader.
-Drag RearrangedS060-0.19.0-UMM.zip directly into UMM. One mod folder contains
+Drag RearrangedS060-0.19.1-UMM.zip directly into UMM. One mod folder contains
 the runtime and both 0.7.0 asset bundles; there are no nested ZIPs. Earlier
 three-part test installs must first uninstall the two old standalone asset
 packs in UMM, keeping RearrangedS060 and Settings.xml. See INSTALL.txt.

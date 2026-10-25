@@ -52,6 +52,7 @@ internal static class Program
             "Every pre-0.19 oil quantity/lid stays at its original index; only two new reservoirs initialize");
         Check(S060OilingTopology.ExtraIndex(false,0)==9 && S060OilingTopology.ExtraIndex(false,2)==11 && S060OilingTopology.ExtraIndex(true,3)==12 && S060OilingTopology.ExtraIndex(false,3)==13,
             "Fifth-axle oil points append without shifting prior right-side circuit IDs");
+        MigrationChecks(def);
         oil.SetSaveStateData(new JObject { ["oilingPoints"] = fitted });
         Check(Enumerable.Range(0,6).All(i=>Math.Abs(oil.oilingPoints[i].oilLevelNormalizedReadOut.Value-(.1+i*.1))<.00001), "Actual native loader accepts migrated quantities");
         var active=Enumerable.Range(0,14).Select(i=>i<6).ToArray(); S060Oiling.ConfigureActive(oil,active);
@@ -163,6 +164,54 @@ internal static class Program
         var small = new S060Selection(S060Arrangement.SixCoupled, S060Selection.SmallSixScale);
         Check(S060OilingTopology.ActiveMask(small).SequenceEqual(S060OilingTopology.ActiveMask(S060Selection.Stock)),
             "Short-wheelbase and stock 060 retain identical circuit identities");
+    }
+
+    private static void MigrationChecks(ManualOilingPointsDefinition def)
+    {
+        JArray Saved(int count) => new JArray(Enumerable.Range(0, count).Select(i => new JObject {
+            ["open"] = i % 2 == 1, ["oilLevel"] = .02 + i * .03, ["retainedMetadata"] = "point-" + i }));
+        var target = new ManualOilingPoints(def);
+        foreach (int count in new[] { 6, 12 })
+        {
+            var component = new JObject { ["oilingPoints"] = Saved(count), ["otherField"] = "retained" };
+            var original = component;
+            S060Oiling.FitSave(target, ref component);
+            Check(ReferenceEquals(original, component), "Unregistered native component is never migrated");
+        }
+        S060Oiling.ConfigureActive(target, Enumerable.Repeat(true, 14).ToArray());
+        foreach (int count in new[] { 6, 12 })
+        {
+            var component = new JObject { ["oilingPoints"] = Saved(count), ["otherField"] = "retained" };
+            var original = component; var before = original.DeepClone();
+            S060Oiling.FitSave(target, ref component);
+            Check(!ReferenceEquals(component, original) && JToken.DeepEquals(original, before), "Known legacy component is cloned without changing its caller's saved document");
+            var fitted = (JArray)component["oilingPoints"];
+            Check(fitted.Count == 14 && (string)component["otherField"] == "retained", "Migration preserves component metadata and adds only the new circuits");
+            for (int i = 0; i < count; i++) Check(JToken.DeepEquals(fitted[i], original["oilingPoints"][i]), "Known old point retains its exact index, quantity, lid and unknown fields");
+            for (int i = count; i < 14; i++) Check((bool)fitted[i]["open"] == false && (float)fitted[i]["oilLevel"] == 1f, "Only newly introduced reservoirs start full and closed");
+            target.SetSaveStateData(component);
+            var reload = new ManualOilingPoints(def); reload.SetSaveStateData(target.GetSaveStateData());
+            Check(JToken.DeepEquals(target.GetSaveStateData(), reload.GetSaveStateData()), "Migrated data round trips through the actual B99 component loader");
+        }
+        foreach (int count in new[] { 0, 5, 7, 11, 13, 14, 15, 20 })
+        {
+            var component = new JObject { ["oilingPoints"] = Saved(count), ["otherField"] = "untouched" };
+            var original = component; var before = component.DeepClone();
+            S060Oiling.FitSave(target, ref component);
+            Check(ReferenceEquals(component, original) && JToken.DeepEquals(component, before), "Current or unknown point count " + count + " is not truncated, padded or rewritten");
+        }
+        foreach (int count in new[] { 6, 12 })
+        {
+            var points = Saved(count); points[2] = JValue.CreateNull();
+            var component = new JObject { ["oilingPoints"] = points }; var original = component; var before = component.DeepClone();
+            S060Oiling.FitSave(target, ref component);
+            Check(ReferenceEquals(component, original) && JToken.DeepEquals(component, before), "Malformed legacy entry is retained rather than replaced with full oil");
+        }
+        foreach (var componentValue in new[] { new JObject(), new JObject { ["oilingPoints"] = "unsupported" } })
+        {
+            var component = componentValue; S060Oiling.FitSave(target, ref component);
+            Check(ReferenceEquals(component, componentValue), "Missing or non-array data remains untouched");
+        }
     }
 
     private static void NativeCupPortRemapping(ManualOilingPointsDefinition def)

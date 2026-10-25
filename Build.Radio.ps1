@@ -25,7 +25,10 @@ if (-not $nativeReport.passed -or $nativeReport.runtimeSha256 -ne (Get-FileHash 
 foreach ($report in $nativeReport.reports) {
     if ((Get-FileHash $report.path).Hash -ne $report.hash -or -not (Get-Content $report.path -Raw | ConvertFrom-Json).passed) { throw 'Native audit evidence changed.' }
 }
-foreach ($name in @('exhaust','cocks','cleanup','collision','contacts','conventional')) { if (@($nativeReport.reports | Where-Object name -eq $name).Count -ne 1) { throw "Missing native audit: $name" } }
+foreach ($name in @('exhaust','cocks','cleanup','collision','contacts','conventional','quartering')) { if (@($nativeReport.reports | Where-Object name -eq $name).Count -ne 1) { throw "Missing native audit: $name" } }
+$quartering = Get-Content ($nativeReport.reports | Where-Object name -eq 'quartering').path -Raw | ConvertFrom-Json
+if (-not $quartering.actualPlayMode -or -not $quartering.productionRetention -or -not $quartering.oldResetReproduced -or
+    -not $quartering.repeatedTransitions -or -not $quartering.forwardReverse -or -not $quartering.originalFlagsRestored -or -not $quartering.teardown) { throw 'Actual Unity quartering reset, retention, native return and cleanup regressions are required.' }
 $conventional = Get-Content ($nativeReport.reports | Where-Object name -eq 'conventional').path -Raw | ConvertFrom-Json
 if (-not $conventional.candidateGeometry -or -not $conventional.fiveDrivenAxles -or -not $conventional.fullSizeCylinders -or -not $conventional.tenOilSites -or -not $conventional.cleanup -or -not $conventional.crankSweep -or -not $conventional.tyreClearance) { throw 'Compiled conventional five-axle fit, motion, clearance and cleanup regressions are required.' }
 $cockReport = ($nativeReport.reports | Where-Object name -eq 'cocks').path
@@ -81,6 +84,16 @@ try {
     if (@($types | Where-Object Name -in @('WheelRearranger','CommsRadioS282Rearranger','ArrangementSaveManager','Settings','ConventionalSpawn','S060SpikeWindow','Stage2RuntimeChecks')).Count) { throw 'Archived prototype/S282 entry points must not ship in the current runtime.' }
     $allCalls = @($types | ForEach-Object Methods | Where-Object HasBody | ForEach-Object { $_.Body.Instructions } | Where-Object { $_.OpCode.Code -in @('Call','Callvirt') } | ForEach-Object { $_.Operand.FullName })
     $conversionType = $types | Where-Object Name -eq 'S060Conversion'
+    $articulated = $types | Where-Object Name -eq 'S060Articulated'
+    $applyCalls = @($articulated.Methods | Where-Object Name -eq 'Apply' | ForEach-Object { $_.Body.Instructions } | Where-Object { $_.OpCode.Code -in @('Call','Callvirt','Newobj') } | ForEach-Object { $_.Operand.FullName })
+    $retainIndex = [Array]::FindIndex($applyCalls, [Predicate[object]]{ param($call) $call -match 'S060NativeQuartering::Retain' })
+    $hideIndex = [Array]::FindIndex($applyCalls, [Predicate[object]]{ param($call) $call -match 'S060Articulated::Hide' })
+    if ($retainIndex -lt 0 -or $hideIndex -le $retainIndex) { throw 'Native phase retention must precede hiding the original mechanisms.' }
+    $phaseCalls = @($types | Where-Object Name -eq 'S060NativeQuartering' | ForEach-Object Methods | Where-Object HasBody | ForEach-Object { $_.Body.Instructions } | Where-Object { $_.OpCode.Code -in @('Call','Callvirt') } | ForEach-Object { $_.Operand.FullName })
+    if (@($phaseCalls | Where-Object { $_ -match 'Animator::(Play|Update|Rebind)' }).Count) { throw 'Native quartering retention must not seek or drive Animator playback.' }
+    $oilingRegistration = $types | Where-Object Name -eq 'S060Oiling' | ForEach-Object Methods | Where-Object Name -eq 'Register'
+    $oilingTypes = @($oilingRegistration.Body.Instructions | Where-Object { $_.OpCode.Code -eq 'Ldtoken' } | ForEach-Object { $_.Operand.FullName })
+    if ($oilingTypes -contains 'LocoSim.Implementations.SimulationFlow' -or $oilingTypes -notcontains 'LocoSim.Implementations.ManualOilingPoints') { throw 'Oil migration must use the native per-component loader.' }
     foreach ($methodName in @('AlignAxlesToWheels','RestoreAxlePositions')) {
         $methodCalls = @($conversionType.Methods | Where-Object Name -eq $methodName | ForEach-Object { $_.Body.Instructions } | Where-Object { $_.OpCode.Code -in @('Call','Callvirt') } | ForEach-Object { $_.Operand.FullName })
         if (@($methodCalls | Where-Object { $_ -match 'S060RollingAudio::Refresh' }).Count -ne 1) { throw "Missing native rolling-audio cache refresh in $methodName." }
