@@ -25,5 +25,6 @@
       <HintPath>$(GamePath)\DerailValley_Data\Managed\Newtonsoft.Json.dll</HintPath>
       <Private>true</Private>
     </Reference>
+    <Compile Include="../../RearrangedS060/S060TenLayout.cs" Link="S060TenLayout.cs" />
   </ItemGroup>
 </Project>

@@ -58,7 +58,7 @@ try {
 } finally { $zip.Dispose() }
 Copy-Item -LiteralPath (Join-Path $repo 'docs\nexus\NEXUS_RELEASE_COPY.txt') -Destination $out -Force
 [ordered]@{
-    utc=[DateTime]::UtcNow.ToString('o'); version=$Version; status='Initial public beta package; not published'
+    utc=[DateTime]::UtcNow.ToString('o'); version=$Version; status='Public beta package; not published'
     testedPackageReceipt=$receiptPath; testedPackageReceiptSha256=(Get-FileHash $receiptPath).Hash
     runtimeSha256=$runtimeEntry[0].Hash; binaryPayloadUnchanged=$true; payload=$payload
     packaging='One UMM ZIP, one RearrangedS060 folder/Info.json, two recursively discovered native CCL bundles; no nested ZIPs'

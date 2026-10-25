@@ -61,22 +61,24 @@ namespace RearrangedS060
             var wheelToken = data?["wheelStates"];
             int[] wheels = null;
             bool validWheels = wheelToken == null;
-            if (wheelToken is JArray array && array.Count == 4)
+            if (wheelToken is JArray array && (array.Count == 4 || array.Count == 5))
             {
-                wheels = new int[4]; validWheels = true;
-                for (int i = 0; i < 4; i++)
+                wheels = new int[array.Count]; validWheels = true;
+                for (int i = 0; i < array.Count; i++)
                     if (array[i].Type != JTokenType.Integer || !int.TryParse(array[i].ToString(), out wheels[i])) validWheels = false;
                 validWheels &= S060WheelSlots.Valid(wheels);
             }
             if (version?.Type == JTokenType.Integer && (version.ToString() == "1"
 #if B99_S060_ARTICULATED
-                || version.ToString() == "2"
+                || version.ToString() == "2" || version.ToString() == "3"
 #endif
                 ) &&
                 id?.Type == JTokenType.Integer &&
                 int.TryParse(id.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int value) &&
                 S060Selection.IsSupported(value) && validWheels &&
-                (version.ToString() == "1" ? value <= 3 && wheelToken == null : value >= 4 || wheels != null) &&
+                (version.ToString() == "1" ? value <= 3 && wheelToken == null :
+                    version.ToString() == "2" ? value <= 5 && (wheels == null || wheels.Length == 4) && (value >= 4 || wheels != null) :
+                    value == 6 || wheels?.Length == 5) &&
                 (scale?.Type == JTokenType.Float || scale?.Type == JTokenType.Integer) &&
                 float.TryParse(scale.ToString(Newtonsoft.Json.Formatting.None), NumberStyles.Float, CultureInfo.InvariantCulture, out float factor) &&
                 S060Selection.IsValidScale(factor) && (!S060Selection.RequiresFixedSize((S060Arrangement)value) || factor == 1f))
@@ -111,7 +113,8 @@ namespace RearrangedS060
             if (unrecognized != null) return unrecognized.DeepClone();
             var data = new JObject
             {
-                ["version"] = WheelStates != null || (int)(Pending ?? Applied).Arrangement >= 4 ? 2 : 1,
+                ["version"] = WheelStates?.Length == 5 || (Pending ?? Applied).Arrangement == S060Arrangement.TenCoupled ? 3 :
+                    WheelStates != null || (int)(Pending ?? Applied).Arrangement >= 4 ? 2 : 1,
                 ["arrangement"] = (int)(Pending ?? Applied).Arrangement,
                 ["driverScale"] = (Pending ?? Applied).Scale
             };

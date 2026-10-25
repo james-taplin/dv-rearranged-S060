@@ -1,4 +1,4 @@
-REARRANGED S060 - 0.18.0 INITIAL PUBLIC BETA
+REARRANGED S060 - 0.19.0 PUBLIC BETA
 
 Change the native S060's running gear through WHEEL REARRANGER on the comms
 radio, or the mod's UMM arrangement chooser. All arrangements remain attached
@@ -10,6 +10,7 @@ ARRANGEMENTS
   0-4-0 - four-coupled layout with stock-sized drivers.
   0-6-0 Short Wheelbase - closer axles and fitted 1.14 m drivers.
   0-8-0 - four powered axles with fitted 1.14 m drivers.
+  0-10-0 Tank - five powered axles with fitted 1.00 m drivers.
   0-6-2 - stock-sized drivers and a trailing carrying axle.
   Meyer-style 0-4+4-0T - compound locomotive with an attached pannier steam bogie.
   Franklin Dockside 0-4-4-0T - two simple-expansion units beneath one tank body.
@@ -38,6 +39,9 @@ engine's steam flow and inlet timing. LP jets may be weak at low receiver
 pressure; water drips require actual cylinder water. Each driven axle has two
 functional big-end oil cups, alongside the original guide/crosshead lubricators.
 Oil quantities and lid states survive arrangement changes and save/load.
+The 0-10-0 adds ten big-end cups; old oil and wheel-state slots retain their IDs.
+New fifth-wheel state uses mod save version 3. This version reads earlier saves;
+older mod versions cannot restore the new 0-10-0 arrangement.
 Arrangements use fixed, fitted wheel sizes; there is no driver-size slider.
 
 Switching preserves native identity, livery, fuel, water, damage and save state.
@@ -48,14 +52,14 @@ the rear assembly and restores the stock rear supports and coupling position.
 INSTALLATION
 
 Requires Derail Valley B99, UMM 0.27.3+, Loco Mesh Splitter and Custom Car Loader.
-Drag RearrangedS060-0.18.0-UMM.zip directly into UMM. One mod folder contains
+Drag RearrangedS060-0.19.0-UMM.zip directly into UMM. One mod folder contains
 the runtime and both 0.7.0 asset bundles; there are no nested ZIPs. Earlier
 three-part test installs must first uninstall the two old standalone asset
 packs in UMM, keeping RearrangedS060 and Settings.xml. See INSTALL.txt.
 Rearranged S282 is not a runtime dependency.
 Close the game before installation or updates. No Settings.xml is supplied.
 
-This is an initial public beta. The latest Meyer-to-Dockside damage and stopped
+This is a public beta. The latest Meyer-to-Dockside damage and stopped
 body-bob reports need gameplay confirmation after the collision correction.
 Automatic diagnostics capture a bounded trace for each changed articulated
 arrangement; report it with Player.log and the exact steps if a problem recurs.

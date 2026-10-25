@@ -1,0 +1,220 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Security.Cryptography;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using Object = UnityEngine.Object;
+
+// Native meshes/transforms + shipping geometry, rods and cylinder fittings.
+// Native ECS initialization/traction is outside this isolated geometry fixture.
+public static class ConventionalNativeAudit
+{
+    [Serializable] private class Entry { public string name; public Vector3[] vertices; public Vector2[] uv; public int[] triangles; }
+    [Serializable] private class Node { public string name, mesh; public Vector3 position, scale; public Quaternion rotation; public Node[] children; }
+    [Serializable] private class Data { public Node[] roots; public Entry[] meshes; }
+    [Serializable] private class Report { public bool passed, actualNativeMeshes, candidateGeometry, fiveDrivenAxles, fullSizeCylinders, tenOilSites, cleanup, crankSweep, tyreClearance;
+        public bool gameRuntimeValidated = false; public int checks; public string runtimeSha256; }
+    private static readonly BindingFlags All = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+    private static int checks;
+    private static readonly List<Object> owned = new List<Object>();
+    private static Assembly runtime;
+    private static Material material;
+    private static string output;
+    public static void RunBatch()
+    {
+        output = Environment.GetEnvironmentVariable("S060_CONVENTIONAL_OUTPUT"); Directory.CreateDirectory(output);
+        AppDomain.CurrentDomain.AssemblyResolve += Resolve;
+        try
+        {
+            string dll = Environment.GetEnvironmentVariable("S060_EXHAUST_AUDIT_RUNTIME"); runtime = Assembly.LoadFrom(dll);
+            var data = JsonUtility.FromJson<Data>(File.ReadAllText(Environment.GetEnvironmentVariable("S060_CONVENTIONAL_NATIVE")));
+            var bodyData = JsonUtility.FromJson<Data>(File.ReadAllText(Environment.GetEnvironmentVariable("S060_NATIVE_PREVIEW"))).meshes.Single(m => m.name == "s060_body");
+            var texture = new Texture2D(2, 2); texture.LoadImage(File.ReadAllBytes(Path.Combine(Path.GetDirectoryName(Environment.GetEnvironmentVariable("S060_NATIVE_PREVIEW")), "native-preview-atlas.png"))); owned.Add(texture);
+            material = new Material(Shader.Find("Standard")); material.mainTexture = texture; owned.Add(material);
+            foreach (bool ten in new[] { false, true }) Validate(data, bodyData, ten);
+            File.WriteAllText(Path.Combine(output, "conventional-validation.json"), JsonUtility.ToJson(new Report { passed = true, checks = checks,
+                actualNativeMeshes = true, candidateGeometry = true, fiveDrivenAxles = true, fullSizeCylinders = true, tenOilSites = true, cleanup = true, crankSweep = true, tyreClearance = true, runtimeSha256 = Hash(dll) }, true));
+            EditorApplication.Exit(0);
+        }
+        catch (Exception error) { File.WriteAllText(Path.Combine(output,"error.txt"), error.ToString()); Debug.LogException(error); EditorApplication.Exit(1); }
+        finally { foreach (var obj in owned) if (obj != null) Object.DestroyImmediate(obj); }
+    }
+    private static object New(string name) => Activator.CreateInstance(runtime.GetType("RearrangedS060." + name, true), true);
+    private static void Set(object owner, string name, object value)
+    {
+        for(var type=owner.GetType();type!=null;type=type.BaseType)
+        {
+            var property=type.GetProperty(name,All|BindingFlags.DeclaredOnly);
+            if(property?.GetSetMethod(true)!=null) {property.GetSetMethod(true).Invoke(owner,new[]{value});return;}
+        }
+        throw new InvalidOperationException("Fixture property setter missing: "+name);
+    }
+    private static object Call(object owner, string name, params object[] args) => owner.GetType().GetMethod(name, All).Invoke(owner,args);
+    private static Mesh Mesh(Entry entry, Func<Vector3,bool> keep = null)
+    {
+        var mesh = new Mesh { name = entry.name, indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
+        var triangles=keep == null ? entry.triangles : entry.triangles.Where((v,i) => {int first=i-i%3; return Enumerable.Range(first,3).All(j=>keep(entry.vertices[entry.triangles[j]]));}).ToArray();
+        var used=triangles.Distinct().ToArray(); var remap=used.Select((v,i)=>new {v,i}).ToDictionary(p=>p.v,p=>p.i);
+        mesh.vertices=used.Select(i=>entry.vertices[i]).ToArray(); mesh.uv=used.Select(i=>entry.uv[i]).ToArray(); mesh.triangles=triangles.Select(i=>remap[i]).ToArray();
+        mesh.RecalculateBounds(); mesh.RecalculateNormals(); owned.Add(mesh); return mesh;
+    }
+    private static Transform Draw(Transform parent, string name, Mesh mesh)
+    { var go=new GameObject(name); go.transform.SetParent(parent,false); go.AddComponent<MeshFilter>().sharedMesh=mesh; go.AddComponent<MeshRenderer>().sharedMaterial=material; return go.transform; }
+    private static Transform Tree(Transform parent, Node node, Data data)
+    {
+        var go=new GameObject(node.name); go.transform.SetParent(parent,false); go.transform.localPosition=node.position; go.transform.localRotation=node.rotation; go.transform.localScale=node.scale;
+        if (!string.IsNullOrEmpty(node.mesh)) {go.AddComponent<MeshFilter>().sharedMesh=Mesh(data.meshes.Single(e=>e.name==node.mesh)); go.AddComponent<MeshRenderer>().sharedMaterial=material;}
+        foreach(var child in node.children) Tree(go.transform,child,data);
+        // Lowest-detail native children are exported for reference; only the
+        // highest-detail mesh is drawn in this transient preview.
+        if (node.name.Contains("LOD")) go.SetActive(false);
+        return go.transform;
+    }
+    private static void Validate(Data data, Entry bodyData, bool ten)
+    {
+        var root=new GameObject("Native S060 conventional fixture"); root.SetActive(false);
+        var game=Assembly.LoadFrom(Path.Combine(Environment.GetEnvironmentVariable("S060_AUDIT_MANAGED"),"Assembly-CSharp.dll"));
+        var car=root.AddComponent(game.GetType("TrainCar",true));
+        var body=new GameObject("LocoS060_Body").transform; body.SetParent(root.transform,false);
+        foreach(var node in data.roots) Tree(body,node,data);
+        bool Cylinder(Vector3 v,int side) => SteamNativePreview.NativeCylinder(v,side);
+        bool Brake(Vector3 v) => Mathf.Abs(v.x)>=.41f&&Mathf.Abs(v.x)<=1f&&v.y<=.8215f&&((v.z>=2.16f&&v.z<=2.59f)||(v.z>=.6f&&v.z<=1.31f)||(v.z>=-.91f&&v.z<=-.57f));
+        // Match the existing native preview/splitter masks: original brakes are
+        // hidden by S060DriverScale, not retained inside the body QA mesh.
+        Draw(body,"s060_body",Mesh(bodyData,v=>!Cylinder(v,-1)&&!Cylinder(v,1)&&!Brake(v)));
+        var cylinders=new List<Transform>();
+        foreach(int side in new[]{-1,1}) cylinders.Add(Draw(body,side<0?"s060_cylinder_left":"s060_cylinder_right",Mesh(bodyData,v=>Cylinder(v,side)&&!Brake(v))));
+        var beforeCylinder=cylinders.Select(c=>c.GetComponent<MeshFilter>().sharedMesh.bounds).ToArray();
+        var parts=New("S060Parts"); Set(parts,"Car",car); Set(parts,"Body",body);
+        var left=body.Find("DrivingMechanism_L"); var right=body.Find("DrivingMechanism_R"); Set(parts,"MechanismLeft",left); Set(parts,"MechanismRight",right);
+        var front=new GameObject("Axle_F"); front.transform.SetParent(root.transform,false);
+        var rear=new GameObject("Axle_R"); rear.transform.SetParent(root.transform,false);
+        var bogieType=game.GetType("Bogie",true); Set(parts,"FrontBogie",front.AddComponent(bogieType)); Set(parts,"RearBogie",rear.AddComponent(bogieType));
+        var poweredType=AppDomain.CurrentDomain.GetAssemblies().Select(a=>a.GetType("LocoSim.Implementations.Wheels.PoweredWheel")).First(t=>t!=null);
+        var wheelMap=(IDictionary)parts.GetType().GetField("wheels",All).GetValue(parts);
+        var axleMap=(IDictionary)parts.GetType().GetField("axleForWheel",All).GetValue(parts);
+        var poweredMap=(IDictionary)parts.GetType().GetField("poweredForWheel",All).GetValue(parts);
+        for(int index=1;index<=3;index++)
+        {
+            wheelMap.Add(index,new List<Transform>{left.Find("s060_Wheels_0"+index),right.Find("s060_Wheels_0"+index)});
+            var axle=new GameObject("[axle]"); axle.transform.SetParent(index==1?rear.transform:front.transform,false);
+            var powered=axle.AddComponent(poweredType); poweredType.GetField("wheelTransform",All).SetValue(powered,right.Find("s060_Wheels_0"+index));
+            axleMap.Add(index,axle.transform); poweredMap.Add(index,powered);
+        }
+        var scale=Activator.CreateInstance(runtime.GetType("RearrangedS060.S060DriverScale",true),All,null,new[]{parts},null);
+        float factor=ten?1f/1.424256f:.8f; Call(scale,"Apply",factor);
+        var owner=New(ten?"S060TenCoupled":"S060EightCoupled"); Set(owner,"Parts",parts); Set(owner,"Scale",scale);
+        Check(!Application.isPlaying,"This native geometry fixture runs only in EditMode, without the game lifecycle.");
+        root.SetActive(true);
+        IDisposable rods=null;
+        try
+        {
+            var powered=(Array)Call(owner,"BuildGeometry"); int count=ten?5:4;
+            Check(powered.Length==count,"Candidate must return every live driven axle.");
+            rods=(IDisposable)runtime.GetType("RearrangedS060.S060CouplingRods",true).GetMethod("Apply",All).Invoke(null,new[]{parts});
+            float shift=(float)owner.GetType().GetProperty("CylinderShift",All).GetValue(owner,null); Call(scale,"PositionFittings",shift);
+            var wheels=right.Cast<Transform>().Where(t=>t.name.StartsWith("s060_Wheels_0")&&!t.name.Contains("LOD")).OrderBy(t=>t.position.z).ToArray();
+            Check(wheels.Length==count,"Each side must have the required wheel count.");
+            for(int i=1;i<wheels.Length;i++)
+            {
+                float a=wheels[i-1].GetComponent<MeshFilter>().sharedMesh.bounds.max.z*factor;
+                float b=-wheels[i].GetComponent<MeshFilter>().sharedMesh.bounds.min.z*factor;
+                Check(wheels[i].position.z-wheels[i-1].position.z-a-b>.015f,"Actual adjacent flange envelopes need running clearance.");
+            }
+            Check(Mathf.Abs(wheels[0].position.z-(ten?-2f:-1.3978f))<.00001f,"Actual rearmost wheel must use the fitted station.");
+            Check(wheels[0].position.z-.7582f*factor>-2.7f,"Rear flange must stay forward of cab entry.");
+            Check(wheels.Last().position.z+.7582f*factor<3.47f,"Front flange must clear the coupler band.");
+            for(int i=0;i<cylinders.Count;i++)
+            {
+                Check(cylinders[i].localScale==Vector3.one&&cylinders[i].GetComponent<MeshFilter>().sharedMesh.bounds==beforeCylinder[i],"Native cylinder castings must never be rescaled.");
+                Check(cylinders[i].position.z+beforeCylinder[i].max.z<4.0921f,"Moved full-size cylinders must remain behind the native nose: "+ten+" end="+(cylinders[i].position.z+beforeCylinder[i].max.z));
+            }
+            Check(left.localScale.x==-1&&right.localScale.x==1,"Native gauge and mirror remain unchanged.");
+            var cups=root.AddComponent(runtime.GetType("RearrangedS060.S060OilCups",true)); cups.GetType().GetField("car",All).SetValue(cups,car);
+            var sites=(IList)Call(cups,"Sites"); Check(sites.Count==2*count,"Every driven axle must expose two oil-cup sites.");
+            Render(body.gameObject,ten?"0100":"080");
+            if(ten) Sweep(body,left,right,root.transform,cylinders);
+        }
+        finally
+        {
+            rods?.Dispose(); Call(owner,"RestoreGeometry"); Call(owner,"RestoreGeometry"); Call(scale,"Restore");
+            Check(right.Cast<Transform>().Count(t=>t.name.StartsWith("s060_Wheels_0")&&!t.name.Contains("LOD"))==3,"Cleanup must restore the three native wheels.");
+            Check(left.localScale==new Vector3(-1,1,1)&&right.localScale==Vector3.one,"Cleanup must restore native mechanism scales.");
+            Check(cylinders.All(c=>c.localPosition==Vector3.zero),"Cleanup restores native cylinder/outlet placement.");
+            Object.DestroyImmediate(root);
+        }
+    }
+    private static void Sweep(Transform body,Transform left,Transform right,Transform space,List<Transform> cylinders)
+    {
+        var surfaces=cylinders.Select(c=>c.GetComponent<MeshFilter>()).ToList();
+        var bodyFilter=body.Find("s060_body").GetComponent<MeshFilter>();var source=bodyFilter.sharedMesh;
+        // Unity copies mesh arrays on each getter. Snapshot once before the
+        // face filter instead of copying the whole body for every vertex.
+        var bodyVertices=source.vertices;var bodyTriangles=source.triangles;
+        var low=new Mesh {vertices=bodyVertices,triangles=bodyTriangles.Where((v,i)=>{int first=i-i%3;return Enumerable.Range(first,3).Any(j=>bodyVertices[bodyTriangles[j]].y<1.15f);}).ToArray()};owned.Add(low);
+        var lower=new GameObject("Native lower body surface");lower.transform.SetParent(body,false);lower.AddComponent<MeshFilter>().sharedMesh=low;
+        surfaces.Add(lower.GetComponent<MeshFilter>());
+        foreach(var side in new[]{left,right})
+        {
+            var wheels=side.Cast<Transform>().Where(t=>t.name.StartsWith("s060_Wheels_0")&&!t.name.Contains("LOD")).OrderBy(t=>t.localPosition.z).ToArray();
+            var originals=wheels.ToDictionary(w=>w,w=>w.localRotation);var drive=side.Find("s060_Wheels_01");var rod=side.Find("s060_mech_wheels_connect");
+            var rest=rod.localPosition;const float crank=.335356f;var initial=drive.TransformPoint(new Vector3(.98730177f,-crank,0));
+            var tyres=new Dictionary<Transform,MeshFilter>();
+            var targets=new Dictionary<Transform,SteamMeshContact.Shell[]>();
+            foreach(var wheel in wheels)
+            {
+                var mesh=wheel.GetComponent<MeshFilter>().sharedMesh;var wheelVertices=mesh.vertices;var wheelTriangles=mesh.triangles;
+                var tireMesh=new Mesh {vertices=wheelVertices,triangles=wheelTriangles.Where((v,i)=>{int first=i-i%3;return Enumerable.Range(first,3).All(j=>wheelVertices[wheelTriangles[j]].x>.70f);}).ToArray()};owned.Add(tireMesh);
+                var go=new GameObject("Actual outer wheel/flange");go.transform.SetParent(wheel,false);var filter=go.AddComponent<MeshFilter>();filter.sharedMesh=tireMesh;tyres.Add(wheel,filter);
+                // Conservative full-revolution tyre envelope. Triangle AABBs
+                // outside it cannot contact this wheel at any sampled phase.
+                var centre=space.InverseTransformPoint(wheel.position)+new Vector3(side==left?-.95f:.95f,0,0);
+                var region=new Bounds(centre,new Vector3(.75f,1.2f,1.2f));
+                targets.Add(wheel,surfaces.Select(f=>new SteamMeshContact.Shell(f,space,region)).ToArray());
+            }
+            foreach(float phase in new[]{0f,90f,180f,270f,315f,225f,135f,45f})
+            {
+                foreach(var wheel in wheels.Where(w=>!w.name.Contains("rearranged"))) wheel.localRotation=originals[wheel]*Quaternion.Euler(phase,0,0);
+                foreach(var wheel in wheels.Where(w=>w.name.Contains("rearranged")))
+                {var follow=wheel.GetComponent(runtime.GetType("RearrangedS060.S060FollowPose",true));Call(follow,"LateUpdate");}
+                rod.localPosition=rest+side.InverseTransformVector(drive.TransformPoint(new Vector3(.98730177f,-crank,0))-initial);
+                foreach(var wheel in wheels)
+                {
+                    Check(Quaternion.Angle(wheel.localRotation,drive.localRotation)<.001f,"Every added wheel follows the native crank through forward/reverse poses.");
+                    var shell=new SteamMeshContact.Shell(tyres[wheel],space);
+                    foreach(var target in targets[wheel]) Check(!shell.Intersects(target,out var contact),"Five-axle wheel/flange touches native body/cylinder at phase "+phase+": "+contact);
+                }
+                var filter=rod.GetComponent<MeshFilter>();var vertices=filter.sharedMesh.vertices;
+                for(int i=0;i<wheels.Length;i++)
+                {
+                    var boss=Vector3.zero;for(int v=i*512;v<(i+1)*512;v++)boss+=vertices[v]/512f;var centre=filter.transform.TransformPoint(boss);
+                    var pin=wheels[i].TransformPoint(new Vector3(.98730177f,-crank,0));
+                    Check(Mathf.Abs(centre.y-pin.y)<.00003f&&Mathf.Abs(centre.z-pin.z)<.00003f,"Every fitted coupling boss stays on its driven pin through crank motion.");
+                }
+            }
+            foreach(var wheel in wheels)wheel.localRotation=originals[wheel];rod.localPosition=rest;
+        }
+    }
+    private static void Render(GameObject body,string name)
+    {
+        var scene=EditorSceneManager.NewPreviewScene(); var clone=Object.Instantiate(body); clone.SetActive(true); UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(clone,scene);
+        var cameraGo=new GameObject("QA camera"); UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(cameraGo,scene); var camera=cameraGo.AddComponent<Camera>(); camera.scene=scene; camera.orthographic=true; camera.orthographicSize=2.8f;
+        camera.clearFlags=CameraClearFlags.SolidColor; camera.backgroundColor=new Color(.84f,.88f,.92f); camera.transform.position=new Vector3(10,2.2f,0); camera.transform.LookAt(new Vector3(0,1.7f,0));
+        var lightGo=new GameObject("QA light"); UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(lightGo,scene); var light=lightGo.AddComponent<Light>();light.type=LightType.Directional;light.intensity=1.4f;light.transform.rotation=Quaternion.Euler(45,-30,0);
+        var target=new RenderTexture(1600,900,24); camera.targetTexture=target; camera.Render(); var previous=RenderTexture.active;RenderTexture.active=target;
+        var image=new Texture2D(1600,900,TextureFormat.RGB24,false);image.ReadPixels(new Rect(0,0,1600,900),0,0);image.Apply();File.WriteAllBytes(Path.Combine(output,name+"-native-preview.png"),image.EncodeToPNG());
+        RenderTexture.active=previous;Object.DestroyImmediate(image);Object.DestroyImmediate(target);EditorSceneManager.ClosePreviewScene(scene);
+    }
+    private static void Check(bool condition,string message){if(!condition)throw new InvalidOperationException(message);checks++;}
+    private static string Hash(string path){using(var sha=SHA256.Create())using(var s=File.OpenRead(path))return BitConverter.ToString(sha.ComputeHash(s)).Replace("-","");}
+    private static Assembly Resolve(object sender,ResolveEventArgs args)
+    {
+        string name=new AssemblyName(args.Name).Name;var found=AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a=>a.GetName().Name==name);if(found!=null)return found;
+        string managed=Environment.GetEnvironmentVariable("S060_AUDIT_MANAGED");foreach(var dir in new[]{managed,Path.Combine(managed,"UnityModManager")}){string p=Path.Combine(dir,name+".dll");if(File.Exists(p))return Assembly.LoadFrom(p);}return null;
+    }
+}

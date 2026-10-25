@@ -4,7 +4,14 @@ Change the S060's running gear through a dedicated comms-radio mode in Derail
 Valley. This project forks the Rearranged S282 B99/Re:Arranged branch, based on
 Peter Schinske / SatiricRug's original Rearranged S282.
 
-## Current candidate: S060 0.18.0, Meyer/Dockside packs 0.7.0
+## Current candidate: S060 0.19.0, Meyer/Dockside packs 0.7.0
+
+Version 0.19.0 adds a conventional **0-10-0 Tank** with five real powered axles,
+fixed 1.00 m drivers, fitted coupling rods and ten functional big-end oil cups.
+It is available through the existing radio/UMM controls and an optional spawn
+pool entry. The fifth wheel and oil reservoirs append persistent state without
+renumbering existing arrangements or circuits. The new layout needs in-game
+acceptance, especially on tight curves; it is included as a public beta.
 
 This candidate routes the Meyer rear LP exhaust return above the cab roof edge
 before it descends to the forward smokebox run. Period-style ball/slip joints
@@ -36,8 +43,10 @@ travel, crank wrapping and independent unit clocks; no Franklin cutoff actuator
 animation is added.
 
 The earlier responsibility separation, retryable cleanup and archived prototype
-source remain. Existing saved IDs, engine-save schema, compound simulation and
-calibration precision are retained; this work adds no arrangements or resources.
+source remain. Existing saved IDs, compound simulation and
+calibration precision are retained; this update adds the conventional 0-10-0 without changing resource capacity.
+Version-1/version-2 saves remain readable. A fifth wheel uses version-3 wheel
+condition data; existing oil circuit IDs stay fixed and two new circuits append.
 
 Final candidate validation and installation are recorded in
 [the handover](docs/HANDOVER.md). Source changes and passing isolated checks do
@@ -50,6 +59,7 @@ not establish gameplay acceptance. See [the test guide](docs/RADIO-ARTICULATED-T
 - **0-6-0 Short Wheelbase:** closer axle spacing and 1.14 m drivers.
 - **0-8-0:** four fitted axles using the same 1.14 m drivers.
 - **0-6-2:** stock drivers with a native trailing pony axle.
+- **0-10-0 Tank:** five powered axles, 1.00 m drivers and ten big-end oil cups.
 - **Meyer-style 0-4+4-0T:** two powered axles beneath the S060, plus two beneath
   an attached pannier rear section, with HP -> receiver -> LP compound steam.
 - **Franklin Dockside 0-4-4-0T:** two simple-expansion units beneath the tank body,

@@ -13,14 +13,15 @@ public static class SteamMeshContact
         public readonly string Name;
         public readonly Bounds Bounds;
         private readonly Triangle[] triangles;
-        public Shell(MeshFilter filter, Transform space)
+        public Shell(MeshFilter filter, Transform space, Bounds? region = null)
         {
             Name = filter.name;
             var matrix = space.worldToLocalMatrix * filter.transform.localToWorldMatrix;
             var vertices = filter.sharedMesh.vertices.Select(matrix.MultiplyPoint3x4).ToArray();
             var indices = filter.sharedMesh.triangles;
-            triangles = new Triangle[indices.Length / 3];
-            for (int i = 0; i < triangles.Length; i++) triangles[i] = new Triangle(vertices[indices[3 * i]], vertices[indices[3 * i + 1]], vertices[indices[3 * i + 2]]);
+            triangles = Enumerable.Range(0, indices.Length / 3)
+                .Select(i => new Triangle(vertices[indices[3 * i]], vertices[indices[3 * i + 1]], vertices[indices[3 * i + 2]]))
+                .Where(t => !region.HasValue || t.Bounds.Intersects(region.Value)).ToArray();
             var bounds = new Bounds(vertices[0], Vector3.zero); foreach (var point in vertices) bounds.Encapsulate(point); Bounds = bounds;
         }
         public bool Intersects(Shell other)

@@ -1,5 +1,71 @@
 # Rearranged S060 — handover
 
+## 0.19.0 built for testing: 0-10-0 Tank — 25 October 2026
+
+James requested implementation, build, source push and a Nexus-ready single ZIP
+now, rather than a queued feature. New appended arrangement ID **6**, radio
+choice 7, is **0-10-0 Tank**. Existing IDs/choices are unchanged. It uses five
+real powered axles on the two native bogies (2+3), fixed **1.00 m drivers**, ten
+big-end oil cups and a fitted five-boss coupling rod on each side. No extra
+vehicle, engine simulation, native mass, resource capacity or gauge scaling.
+The optional random-spawn entry defaults off.
+
+The current 1.14m 0-8-0 wheels do not fit a fifth axle within both cab and nose
+limits. The one-metre layout reuses native S060 wheels at the Dockside radius.
+Rear axle centre is car Z-2.0, nominal pitch 1.0878m; the rearmost flange stays
+forward of the Z-2.7 cab-entry station. Cylinder castings remain full-sized and
+translate with their pipes, steam outlets and audio through the existing fitting
+owner. Native direct-drive wheel animation remains; both added wheels follow its
+crank. Shared conventional geometry retains the existing 0-8-0 behaviour.
+
+Save compatibility: the original four wheel keys stay 0..3 and the fifth appends
+as 4. Mod save version 3 carries the fifth condition/selection; versions 1 and 2
+remain readable, with unknown/corrupt payload preservation retained. Old mod
+versions cannot restore the new arrangement. The original twelve oil circuit/
+port IDs remain at their old indexes (including right-side 9..11); new left/right
+fifth-axle reservoirs append at 12/13. Native six- and twelve-point saves pad to
+fourteen without changing existing quantities or lids. Existing compound model,
+engine bank, calibration, resource and native identity handling are unchanged.
+
+Full Build.Release passed against the exact candidate, with zero runtime build
+warnings/errors. `build/radio-0.19.0/runtime-audits-20261025-000252` records
+exhaust611, cocks95, cleanup145, collision7062, native PlayMode contacts21 and
+**conventional437**. The new audit executes candidate geometry, rod swaps and
+fittings using local native mechanism meshes/transforms, checks tyre/body/cylinder
+triangle clearance through eight forward/reverse crank poses, every fitted boss,
+gauge, cylinder size, ten cup sites and repeated geometry restoration. Native
+four-axle static regression also passes; native previews were inspected.
+
+Other passing checks: functional/save185, native engine/save/ECS241, oiling564
+(including old twelve-point migration and fifth-axle masks), axle100, geometry1151,
+conversion35 across 14 injected failure cases, compound25, trace budget145,
+Meyer18/Dockside17 and installer24. Existing 0.7.0 bundles remain byte-identical;
+their earlier hash-bound authoring evidence is reused.
+
+Fixture lesson: an initial whole-mesh bound included unused vertices after face
+selection; compacting the selected native casting fixed the fixture, not the
+runtime. The first exhaustive sweep timed out, then conservative per-wheel
+triangle pruning and caching Unity mesh arrays removed repeated whole-array
+copies. No contact assertion or release gate was removed. Final geometry audit
+passes within the normal timeout. Native fixture exports stay ignored and are
+not part of either Git source or the release archive.
+
+Single UMM package: `build/nexus-0.19.0-single/RearrangedS060-0.19.0-UMM.zip`.
+Actual UMM fresh/update/uninstall/legacy migration: **54** passing assertions at
+`umm-proof-20261025-000553`. Unity reopens both actual extracted CCL bundles:
+**32** assertions at `combined-unity-20261025-000553`. Public files are copied to
+Desktop/Derail Valley Mods/RearrangedS060-0.19.0-Nexus, including the friendly
+`Rearranged S060 0.19.0-beta.zip`, full Nexus copy and separate changelog.
+One mod folder/Info.json, both nested bundles, no nested ZIPs. Normal single-folder
+0.18.0 updates retain settings; older three-part installs use the documented
+one-time removal of only the two standalone asset packs through UMM.
+
+This is a tested public beta candidate, not full driving acceptance. James still
+needs to test curves/points, forward/reverse running, oil-can/lid operation,
+wheel damage, save/reload and switching through stock/080/Meyer/Dockside before
+uploading. No game was launched or installation changed. Source push is explicitly
+authorized; Nexus upload/publication remains James's action.
+
 ## Corrected Nexus release: one directly installable UMM ZIP — 23 October 2026
 
 James superseded the deferral and requested the combined release now, with no

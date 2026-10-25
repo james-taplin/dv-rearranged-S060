@@ -25,7 +25,9 @@ if (-not $nativeReport.passed -or $nativeReport.runtimeSha256 -ne (Get-FileHash 
 foreach ($report in $nativeReport.reports) {
     if ((Get-FileHash $report.path).Hash -ne $report.hash -or -not (Get-Content $report.path -Raw | ConvertFrom-Json).passed) { throw 'Native audit evidence changed.' }
 }
-foreach ($name in @('exhaust','cocks','cleanup','collision','contacts')) { if (@($nativeReport.reports | Where-Object name -eq $name).Count -ne 1) { throw "Missing native audit: $name" } }
+foreach ($name in @('exhaust','cocks','cleanup','collision','contacts','conventional')) { if (@($nativeReport.reports | Where-Object name -eq $name).Count -ne 1) { throw "Missing native audit: $name" } }
+$conventional = Get-Content ($nativeReport.reports | Where-Object name -eq 'conventional').path -Raw | ConvertFrom-Json
+if (-not $conventional.candidateGeometry -or -not $conventional.fiveDrivenAxles -or -not $conventional.fullSizeCylinders -or -not $conventional.tenOilSites -or -not $conventional.cleanup -or -not $conventional.crankSweep -or -not $conventional.tyreClearance) { throw 'Compiled conventional five-axle fit, motion, clearance and cleanup regressions are required.' }
 $cockReport = ($nativeReport.reports | Where-Object name -eq 'cocks').path
 if (-not (Get-Content $cockReport -Raw | ConvertFrom-Json).ownedFixedCrankFlowAndReverser) { throw 'Owned cylinder-cock fixed-crank flow/reverser regression is required.' }
 $cockDetails = Get-Content $cockReport -Raw | ConvertFrom-Json

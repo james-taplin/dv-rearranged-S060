@@ -12,7 +12,7 @@ namespace RearrangedS060
 {
     // Existing S282 pattern: extend native manual oiling before flow creation.
     // Six original guide/crosshead/big-end circuits keep their IDs and quantities;
-    // three additional big ends per side cover the largest four-axle layouts.
+    // four additional big ends per side cover the five-axle layout.
     internal static class S060Oiling
     {
         internal const int NativePoints = S060OilingTopology.NativePoints,
@@ -47,10 +47,10 @@ namespace RearrangedS060
         internal static void ExtendDefinition(ManualOilingPointsDefinition definition)
         {
             if (definition.oilingPoints.Length == TotalPoints) return;
-            if (definition.oilingPoints.Length != NativePoints) throw new InvalidOperationException("Unexpected S060 manual oiling point count.");
+            if (definition.oilingPoints.Length != NativePoints && definition.oilingPoints.Length != 12) throw new InvalidOperationException("Unexpected S060 manual oiling point count.");
             var template = definition.oilingPoints[2];
             PortDefinition Copy(PortDefinition port, int index) => new PortDefinition(port.type, port.valueType, port.ID + "_RS060BIG" + index);
-            definition.oilingPoints = definition.oilingPoints.Concat(Enumerable.Range(NativePoints, TotalPoints - NativePoints).Select(i => new ManualOilingPointsDefinition.OilingPointDefinition
+            definition.oilingPoints = definition.oilingPoints.Concat(Enumerable.Range(definition.oilingPoints.Length, TotalPoints - definition.oilingPoints.Length).Select(i => new ManualOilingPointsDefinition.OilingPointDefinition
             {
                 oilLevelReadOut = Copy(template.oilLevelReadOut, i), oilLevelNormalizedReadOut = Copy(template.oilLevelNormalizedReadOut, i),
                 pointDoorExtIn = Copy(template.pointDoorExtIn, i), refillExtIn = Copy(template.refillExtIn, i),

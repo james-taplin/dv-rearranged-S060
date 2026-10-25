@@ -8,5 +8,6 @@
     <Compile Include="../../RearrangedS060/S060Conversion.cs" Link="S060Conversion.cs" />
     <Compile Include="../../RearrangedS060/S060Selection.cs" Link="S060Selection.cs" />
     <Compile Include="../../RearrangedS060/S060EightLayout.cs" Link="S060EightLayout.cs" />
+    <Compile Include="../../RearrangedS060/S060TenLayout.cs" Link="S060TenLayout.cs" />
   </ItemGroup>
 </Project>

@@ -8,8 +8,8 @@ namespace RearrangedS060
         // native wheels retain their keys; newly authored units use free keys.
         internal static int[] Map(int[] originalIndexes)
         {
-            if (originalIndexes == null || originalIndexes.Length > 4) throw new ArgumentException("Invalid S060 wheel count.");
-            var used = new bool[4]; var result = (int[])originalIndexes.Clone();
+            if (originalIndexes == null || originalIndexes.Length > 5) throw new ArgumentException("Invalid S060 wheel count.");
+            var used = new bool[5]; var result = (int[])originalIndexes.Clone();
             foreach (int id in result)
             {
                 if (id == -1) continue;
@@ -25,6 +25,6 @@ namespace RearrangedS060
             }
             return result;
         }
-        internal static bool Valid(int[] states) => states != null && states.Length == 4 && Array.TrueForAll(states, value => value >= 0 && value <= 2);
+        internal static bool Valid(int[] states) => states != null && (states.Length == 4 || states.Length == 5) && Array.TrueForAll(states, value => value >= 0 && value <= 2);
     }
 }

@@ -24,6 +24,7 @@ namespace RearrangedS060
                     if (GUILayout.Button("APPLY 0-4-0")) Apply(car, S060Arrangement.FourCoupled);
                     if (GUILayout.Button("0-6-0 SHORT WHEELBASE")) Apply(car, S060Arrangement.SixCoupled);
                     if (GUILayout.Button("APPLY 0-8-0")) Apply(car, S060Arrangement.EightCoupled);
+                    if (GUILayout.Button("APPLY 0-10-0")) Apply(car, S060Arrangement.TenCoupled);
                     if (GUILayout.Button("APPLY 0-6-2")) Apply(car, S060Arrangement.SixTwo);
                     if (GUILayout.Button("RESTORE STOCK"))
                         S060Lifecycle.TryApply(car, S060Selection.Stock, out status);

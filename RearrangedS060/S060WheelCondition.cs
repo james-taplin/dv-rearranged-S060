@@ -12,7 +12,7 @@ namespace RearrangedS060
     {
         private PoweredWheel[] stock, current;
         private int[] slots;
-        private int[] states = new int[4];
+        private int[] states = new int[5];
         internal static void Register(Harmony harmony)
         {
             harmony.CreateClassProcessor(typeof(NativeSaving)).Patch();
@@ -36,11 +36,11 @@ namespace RearrangedS060
             if (current == null) return;
             for (int i = 0; i < current.Length; i++) if (current[i] != null) states[slots[i]] = (int)current[i].state;
         }
-        internal int[] Capture() { Sync(); return (int[])states.Clone(); }
+        internal int[] Capture() { Sync(); return states.Take(current?.Length == 5 || states[4] != 0 ? 5 : 4).ToArray(); }
         internal void Load(int[] saved)
         {
             if (!S060WheelSlots.Valid(saved)) throw new InvalidOperationException("Invalid saved S060 wheel condition.");
-            states = (int[])saved.Clone(); ApplyStates();
+            states = new int[5]; Array.Copy(saved, states, saved.Length); ApplyStates();
         }
         private void ApplyStates()
         {
@@ -55,7 +55,7 @@ namespace RearrangedS060
             int[] originalIndexes = wheels.Select(w => Array.FindIndex(stock, source => ReferenceEquals(source, w))).ToArray();
             slots = S060WheelSlots.Map(originalIndexes); current = (PoweredWheel[])wheels.Clone(); ApplyStates();
         }
-        internal void ResetIdentity() { stock = current = null; slots = null; states = new int[4]; }
+        internal void ResetIdentity() { stock = current = null; slots = null; states = new int[5]; }
         [HarmonyPatch(typeof(PoweredWheelsManager), nameof(PoweredWheelsManager.GetSaveStateData))]
         private static class NativeSaving
         {
@@ -68,7 +68,7 @@ namespace RearrangedS060
                 owner.Sync();
                 var broken = Enumerable.Range(0, 3).Where(i => owner.states[i] == (int)PoweredWheel.State.BROKEN).ToArray();
                 // Native restoration precedes geometry: never hand its original
-                // three-wheel manager a fourth index. The mod saves all four.
+                // three-wheel manager a fourth index. The mod saves every owned wheel separately.
                 __result = broken.Length == 0 ? null : new JObject { ["deadIndices"] = new JArray(broken) };
                 return false;
             }

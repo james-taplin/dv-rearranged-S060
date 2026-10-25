@@ -2,7 +2,7 @@ param([switch]$Force)
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'Build.Config.ps1')
 $config = Get-S060BuildConfig
-$scripts = @('Meyer\tools\Prepare.GeometryEvidence.py','Meyer\tools\Prepare.OilCupFixtures.py','Meyer\tools\Prepare.MeyerLightsEvidence.py','Dockside\tools\Prepare.WheelComparison.py')
+$scripts = @('Meyer\tools\Prepare.GeometryEvidence.py','Meyer\tools\Prepare.OilCupFixtures.py','Meyer\tools\Prepare.MeyerLightsEvidence.py','Dockside\tools\Prepare.WheelComparison.py','Meyer\tools\Prepare.ConventionalEvidence.py')
 $inputs = @((Join-Path $config.GamePath 'DerailValley_Data\resources.assets')) + @($scripts | ForEach-Object { Join-Path $PSScriptRoot $_ })
 $hashes = @($inputs | Get-FileHash | Select-Object Path,Hash)
 $receiptPath = Join-Path $config.QAPath 'fixture-receipt.json'
@@ -17,7 +17,7 @@ foreach ($script in $scripts) {
     & $config.Python (Join-Path $PSScriptRoot $script) --output $config.QAPath --game $config.GamePath
     if ($LASTEXITCODE -ne 0) { throw "Native QA preparation failed: $script" }
 }
-$outputs = @('native-preview.json','native-preview-atlas.png','native-oilcups.json','meyer-lights-native.json','s282-wheels-comparison.json')
+$outputs = @('native-preview.json','native-preview-atlas.png','native-oilcups.json','meyer-lights-native.json','s282-wheels-comparison.json','conventional-native.json')
 [ordered]@{ inputs=$hashes; nativeAssetsPackaged=$false; files=@($outputs | ForEach-Object { Get-FileHash (Join-Path $config.QAPath $_) } | Select-Object Path,Hash) } |
     ConvertTo-Json -Depth 5 | Set-Content $receiptPath -Encoding UTF8
 Write-Output "Prepared local-only native QA fixtures: $($config.QAPath)"

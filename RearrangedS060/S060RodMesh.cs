@@ -11,7 +11,7 @@ namespace RearrangedS060
     {
         public static Mesh Build(string name, Vector2[] pins, float bossRadius = .067f, float hole = .042f)
         {
-            if (pins == null || pins.Length < 2 || pins.Length > 4) throw new ArgumentException("Two to four driven pins required.");
+            if (pins == null || pins.Length < 2 || pins.Length > 5) throw new ArgumentException("Two to five driven pins required.");
             var vertices = new List<Vector3>(); var triangles = new List<int>();
             void Quad(Vector3 a, Vector3 b, Vector3 c, Vector3 d)
             { int i = vertices.Count; vertices.AddRange(new[] { a, b, c, d }); triangles.AddRange(new[] { i, i + 1, i + 2, i, i + 2, i + 3 }); }

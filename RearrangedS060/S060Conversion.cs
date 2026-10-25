@@ -32,6 +32,7 @@ namespace RearrangedS060
 #if B99_S060_ARTICULATED
             this is S060Meyer ? S060Arrangement.Meyer : this is S060Dockside ? S060Arrangement.Dockside :
 #endif
+            this is S060TenCoupled ? S060Arrangement.TenCoupled :
             this is S060FourCoupled ? S060Arrangement.FourCoupled :
             this is S060EightCoupled ? S060Arrangement.EightCoupled :
             this is S060SixTwo ? S060Arrangement.SixTwo : S060Arrangement.SixCoupled, requestedScale);
@@ -106,7 +107,7 @@ namespace RearrangedS060
             active.Add(car, state);
             try
             {
-                state.Scale.Apply(driverScale);
+                state.Scale.Apply(typeof(T) == typeof(S060TenCoupled) ? S060TenLayout.Scale : driverScale);
                 state.Apply();
                 if (state is S060FourCoupled || state is S060EightCoupled) state.fittedCouplingRods = S060CouplingRods.Apply(parts);
                 state.Scale.PositionFittings(state.CylinderShift);
@@ -249,7 +250,7 @@ namespace RearrangedS060
 #if B99_S060_ARTICULATED
                 // A saved articulated flow can be restored before its deferred
                 // geometry. An explicit stock choice must cancel that mode too.
-                if (selection.Arrangement <= S060Arrangement.SixTwo)
+                if ((selection.Arrangement <= S060Arrangement.SixTwo || selection.Arrangement == S060Arrangement.TenCoupled))
                 {
                     if (Current(car) == null) support?.Restore();
                     SelectSimpleEngine(car);
@@ -284,13 +285,14 @@ namespace RearrangedS060
 #if B99_S060_ARTICULATED
             if (selection.Arrangement != S060Arrangement.Meyer && Current(car) == null)
                 car.GetComponent<S060MeyerSupport>()?.Restore();
-            if (selection.Arrangement <= S060Arrangement.SixTwo) SelectSimpleEngine(car);
+            if ((selection.Arrangement <= S060Arrangement.SixTwo || selection.Arrangement == S060Arrangement.TenCoupled)) SelectSimpleEngine(car);
 #endif
             if (selection.IsStock) { S060Oiling.Select(car, selection); return; }
             switch (selection.Arrangement)
             {
                 case S060Arrangement.FourCoupled: Convert<S060FourCoupled>(car, selection.Scale, restoring); break;
                 case S060Arrangement.EightCoupled: Convert<S060EightCoupled>(car, selection.Scale, restoring); break;
+                case S060Arrangement.TenCoupled: Convert<S060TenCoupled>(car, 1f, restoring); break;
                 case S060Arrangement.SixTwo: Convert<S060SixTwo>(car, selection.Scale, restoring); break;
 #if B99_S060_ARTICULATED
                 case S060Arrangement.Meyer: Convert<S060Meyer>(car, 1f, restoring); break;

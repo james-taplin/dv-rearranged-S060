@@ -185,6 +185,7 @@ namespace RearrangedS060
         { Faults.UndoCalls++; if (Faults.FailUndoAfter == Faults.UndoCalls) throw new Exception("injected rollback");
           Faults.Throw(ref Faults.UndoFailures, "injected undo"); Faults.Resources.Remove(Parts.Car); }
     }
+    internal class S060TenCoupled : ProbeConversion {}
     internal class S060FourCoupled : ProbeConversion {} internal class S060EightCoupled : ProbeConversion {}
     internal class S060SixTwo : ProbeConversion {} internal class S060Rescaled : ProbeConversion {}
     internal class S060Meyer : ProbeConversion {} internal class S060Dockside : ProbeConversion {}

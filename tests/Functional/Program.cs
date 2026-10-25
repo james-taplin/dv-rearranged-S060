@@ -208,6 +208,24 @@ internal static class Program
                 "articulated random-spawn options use the chosen layout's authored size");
         }
 #endif
+#if B99_S060_ARTICULATED
+        // New 0-10-0 IDs append; legacy v1/v2 and original oil/wheel keys remain.
+        var ten = new S060Selection(S060Arrangement.TenCoupled, 1f);
+        Assert((int)S060Arrangement.TenCoupled == 6 && (int)S060Arrangement.Dockside == 5, "ten-coupled ID appends without renumbering existing saves");
+        Assert(ten.DriverDiameter == 1f && ten.Name.Contains("0-10-0"), "new choice reports fitted one-metre drivers");
+        state.RecordApplied(ten);
+        Assert((int)state.Save()["version"] == 3 && state.Load(state.Save()) && state.Pending.Value.Equals(ten), "ten-coupled selection round trips through version 3");
+        var fifth = new[] { 0, 1, 2, 1, 2 };
+        state.RecordWheelStates(fifth); var tenSave = state.Save();
+        var tenReload = new S060SavedState();
+        Assert(tenReload.Load(tenSave) && tenReload.WheelStates.SequenceEqual(fifth), "five independent wheel conditions survive save/reload");
+        Assert(S060WheelSlots.Map(new[] { 0, 1, 2, -1, -1 }).SequenceEqual(new[] { 0, 1, 2, 3, 4 }), "added fourth and fifth wheels keep separate stable condition identities");
+        Assert(S060Selection.PickInitial(true,false,false,false,1f,new Random(5),false,false,false,true).Equals(ten), "ten-only random pool selects fitted 0-10-0");
+        Assert(Math.Abs(S060TenLayout.Position(S060TenLayout.SourceRear) - S060TenLayout.Rear) < .00001f, "fifth axle fits its authored rear station");
+        Assert(S060TenLayout.Position(S060EightLayout.NativeFront) + .7582f * S060TenLayout.Scale < S060EightLayout.CouplerInnerFace - .1f, "front wheel flange clears native coupler band");
+        Assert(3.6917117f + S060PipeGeometry.CylinderOffset(S060TenLayout.Scale, S060TenLayout.ForwardOffset).z < S060EightLayout.BodyFront - .05f, "full-size moved cylinders clear the body nose");
+        Assert(S060TenLayout.Rear - .7582f * S060TenLayout.Scale > -2.7f, "rear flange stays forward of the cab entry station");
+#endif
         Console.WriteLine(checks + " functional behavior checks passed (no Unity/game execution).");
     }
 }

@@ -18,7 +18,7 @@ namespace RearrangedS060
                 foreach (var side in new[] { parts.MechanismLeft, parts.MechanismRight })
                 {
                     var wheels = side.Cast<Transform>().Where(t => t.name.StartsWith("s060_Wheels_0", StringComparison.Ordinal) && !t.name.Contains("LOD") && t.gameObject.activeInHierarchy).OrderBy(t => t.localPosition.z).ToArray();
-                    if (wheels.Length != 2 && wheels.Length != 4) throw new InvalidOperationException("Fitted coupling rods require two or four driven axles.");
+                    if (wheels.Length != 2 && wheels.Length != 4 && wheels.Length != 5) throw new InvalidOperationException("Fitted coupling rods require two, four or five driven axles.");
                     var rod = side.Find("s060_mech_wheels_connect") ?? throw new InvalidOperationException("Native coupling-rod animation parent missing.");
                     foreach (var filter in rod.GetComponentsInChildren<MeshFilter>(true))
                     {

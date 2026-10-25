@@ -36,19 +36,25 @@ internal static class Program
             oilLevelReadOut=P("LEVEL"+i), oilLevelNormalizedReadOut=P("NORMAL"+i), pointDoorExtIn=P("DOOR"+i), refillExtIn=P("REFILL"+i), refillingFlowNormalizedReadOut=P("FLOW"+i)
         }).ToArray();
         var originals = def.oilingPoints.ToArray(); S060Oiling.ExtendDefinition(def);
-        Check(def.oilingPoints.Length == 12 && originals.Select((p,i) => ReferenceEquals(p,def.oilingPoints[i])).All(x=>x), "Original six circuits retain identities when adding big ends");
+        Check(def.oilingPoints.Length == 14 && originals.Select((p,i) => ReferenceEquals(p,def.oilingPoints[i])).All(x=>x), "Original six circuits retain identities when adding big ends");
         var ids = def.oilingPoints.SelectMany(p=>new[]{p.oilLevelReadOut.ID,p.oilLevelNormalizedReadOut.ID,p.pointDoorExtIn.ID,p.refillExtIn.ID,p.refillingFlowNormalizedReadOut.ID}).ToArray();
-        Check(ids.Distinct().Count()==60, "All twelve native oil points have unique ports");
-        S060Oiling.ExtendDefinition(def); Check(def.oilingPoints.Length==12, "Definition extension is idempotent");
+        Check(ids.Distinct().Count()==70, "All fourteen native oil points have unique ports");
+        S060Oiling.ExtendDefinition(def); Check(def.oilingPoints.Length==14, "Definition extension is idempotent");
         var oil = new ManualOilingPoints(def); oil.SetGameParams(new SimGameParams(true,true,true,1,1));
         var rpm=Port("RPM",60); var storage=Port("STORAGE",100); var consumed=Port("CONSUMED",0);
         oil.wheelRpm.port=rpm; oil.oilStorage.port=storage; oil.oilConsumption.port=consumed;
         var legacy = new JArray(Enumerable.Range(0,6).Select(i=>new JObject { ["open"] = i%2==1, ["oilLevel"] = .1+i*.1 }));
-        var fitted=S060Oiling.FitSaved(legacy,12);
-        Check(fitted.Count==12 && legacy.Count==6 && Enumerable.Range(0,6).All(i=>JToken.DeepEquals(legacy[i],fitted[i])), "Legacy oil quantities/lids survive migration without mutation");
+        var fitted=S060Oiling.FitSaved(legacy,14);
+        Check(fitted.Count==14 && legacy.Count==6 && Enumerable.Range(0,6).All(i=>JToken.DeepEquals(legacy[i],fitted[i])), "Legacy oil quantities/lids survive migration without mutation");
+        var oldTwelve = new JArray(Enumerable.Range(0,12).Select(i=>new JObject { ["open"] = i%2==0, ["oilLevel"] = .02+i*.04 }));
+        var migratedFourteen = S060Oiling.FitSaved(oldTwelve,14);
+        Check(Enumerable.Range(0,12).All(i=>JToken.DeepEquals(oldTwelve[i],migratedFourteen[i])) && (float)migratedFourteen[12]["oilLevel"]==1 && (float)migratedFourteen[13]["oilLevel"]==1,
+            "Every pre-0.19 oil quantity/lid stays at its original index; only two new reservoirs initialize");
+        Check(S060OilingTopology.ExtraIndex(false,0)==9 && S060OilingTopology.ExtraIndex(false,2)==11 && S060OilingTopology.ExtraIndex(true,3)==12 && S060OilingTopology.ExtraIndex(false,3)==13,
+            "Fifth-axle oil points append without shifting prior right-side circuit IDs");
         oil.SetSaveStateData(new JObject { ["oilingPoints"] = fitted });
         Check(Enumerable.Range(0,6).All(i=>Math.Abs(oil.oilingPoints[i].oilLevelNormalizedReadOut.Value-(.1+i*.1))<.00001), "Actual native loader accepts migrated quantities");
-        var active=Enumerable.Range(0,12).Select(i=>i<6).ToArray(); S060Oiling.ConfigureActive(oil,active);
+        var active=Enumerable.Range(0,14).Select(i=>i<6).ToArray(); S060Oiling.ConfigureActive(oil,active);
         var dormant=oil.oilingPoints[8]; dormant.oilLevelReadOut.Value=0; dormant.oilLevelNormalizedReadOut.Value=0; dormant.pointDoorExtIn.Value=1; dormant.refillExtIn.Value=1;
         float original=oil.oilingPoints[0].oilLevelReadOut.Value;
         for(int cycle=0;cycle<100;cycle++)
@@ -63,7 +69,7 @@ internal static class Program
         rpm.Value=0; S060Oiling.BeforeTick(oil); oil.Tick(1); S060Oiling.AfterTick(oil);
         Check(dormant.oilLevelReadOut.Value>0 && consumed.Value>0, "Selected native cup refills from real storage consumption port");
         var saved=oil.GetSaveStateData(); var reload=new ManualOilingPoints(def); reload.SetSaveStateData(saved);
-        Check(JToken.DeepEquals(saved,reload.GetSaveStateData()), "All twelve oil quantities and lid states round trip through native save/load");
+        Check(JToken.DeepEquals(saved,reload.GetSaveStateData()), "All fourteen oil quantities and lid states round trip through native save/load");
         var unused=oil.oilingPoints[10]; unused.oilLevelReadOut.Value=2.3f; unused.oilLevelNormalizedReadOut.Value=.23f; unused.pointDoorExtIn.Value=1;
         S060Oiling.BeforeTick(oil); S060Oiling.BeforeTick(oil); S060Oiling.AfterTick(oil);
         Check(unused.oilLevelReadOut.Value==oil.capacity, "Nested native callbacks retain the outer dormant mask until both callbacks finish");
@@ -144,7 +150,7 @@ internal static class Program
             int expected = 4 + 2 * S060OilingTopology.DrivenAxles(arrangement);
             Check(S060OilingTopology.ActiveMask(selection).Count(x => x) == expected,
                 arrangement + " topology has four original guide/crosshead circuits plus two big ends per driven axle");
-            for (int empty = 0; empty < 12; empty++)
+            for (int empty = 0; empty < 14; empty++)
             {
                 var probe = FreshOil(def);
                 probe.oilingPoints[empty].oilLevelReadOut.Value = 0;
@@ -169,7 +175,7 @@ internal static class Program
             p.oilLevelNormalizedReadOut.ID, p.pointDoorExtIn.ID, p.refillExtIn.ID,
             p.refillingFlowNormalizedReadOut.ID }).ToArray();
         foreach (bool left in new[] { true, false })
-        for (int slot = 0; slot < 3; slot++)
+        for (int slot = 0; slot < 4; slot++)
         {
             var from = def.oilingPoints[S060OilingTopology.NativeBigEndIndex(left)];
             var to = def.oilingPoints[S060OilingTopology.ExtraIndex(left, slot)];

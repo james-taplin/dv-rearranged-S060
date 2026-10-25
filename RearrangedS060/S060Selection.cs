@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace RearrangedS060
 {
     // Stable S060-only IDs; independent of the inherited S282 catalogue.
-    internal enum S060Arrangement { SixCoupled = 0, FourCoupled = 1, EightCoupled = 2, SixTwo = 3, Meyer = 4, Dockside = 5 }
+    internal enum S060Arrangement { SixCoupled = 0, FourCoupled = 1, EightCoupled = 2, SixTwo = 3, Meyer = 4, Dockside = 5, TenCoupled = 6 }
 
     internal readonly struct S060Selection : IEquatable<S060Selection>
     {
@@ -21,7 +21,7 @@ namespace RearrangedS060
             new S060Selection(arrangement, arrangement == S060Arrangement.SixCoupled ? SmallSixScale : 1f);
         internal bool IsStock => Arrangement == S060Arrangement.SixCoupled && Scale == 1f;
         internal string Name => Arrangement == S060Arrangement.SixCoupled && !IsStock ? "0-6-0 Short Wheelbase" : NameOf(Arrangement);
-        internal float DriverDiameter => Arrangement == S060Arrangement.Dockside ? 1f : StockDiameter * Scale;
+        internal float DriverDiameter => (Arrangement == S060Arrangement.Dockside || Arrangement == S060Arrangement.TenCoupled) ? 1f : StockDiameter * Scale;
         internal bool FixedSize => RequiresFixedSize(Arrangement);
         internal string Description => Name + " / " + DriverDiameter.ToString("0.00", CultureInfo.InvariantCulture) + " m drivers";
 
@@ -38,17 +38,17 @@ namespace RearrangedS060
 
         internal static bool IsSupported(int id) => id >= 0 && id <=
 #if B99_S060_ARTICULATED
-            5;
+            6;
 #else
             3;
 #endif
-        internal static bool RequiresFixedSize(S060Arrangement arrangement) => arrangement == S060Arrangement.SixTwo || arrangement == S060Arrangement.Meyer || arrangement == S060Arrangement.Dockside;
+        internal static bool RequiresFixedSize(S060Arrangement arrangement) => arrangement == S060Arrangement.TenCoupled || arrangement == S060Arrangement.SixTwo || arrangement == S060Arrangement.Meyer || arrangement == S060Arrangement.Dockside;
         internal static bool IsValidScale(float scale) => !float.IsNaN(scale) && !float.IsInfinity(scale) &&
             scale >= MinimumScale && scale <= MaximumScale;
         internal static string NameOf(S060Arrangement arrangement) => arrangement == S060Arrangement.FourCoupled
             ? "0-4-0" : arrangement == S060Arrangement.EightCoupled ? "0-8-0" : arrangement == S060Arrangement.SixTwo ? "0-6-2" :
-            arrangement == S060Arrangement.Meyer ? "0-4+4-0T Meyer Compound" : arrangement == S060Arrangement.Dockside ? "0-4-4-0T Franklin Dockside" : "0-6-0";
-        internal static S060Selection PickInitial(bool randomize, bool six, bool four, bool eight, float scale, Random random, bool trailing = false, bool meyer = false, bool dockside = false)
+            arrangement == S060Arrangement.TenCoupled ? "0-10-0 Tank" : arrangement == S060Arrangement.Meyer ? "0-4+4-0T Meyer Compound" : arrangement == S060Arrangement.Dockside ? "0-4-4-0T Franklin Dockside" : "0-6-0";
+        internal static S060Selection PickInitial(bool randomize, bool six, bool four, bool eight, float scale, Random random, bool trailing = false, bool meyer = false, bool dockside = false, bool ten = false)
         {
             if (!randomize) return Stock;
             var pool = new List<S060Arrangement>();
@@ -59,6 +59,7 @@ namespace RearrangedS060
 #if B99_S060_ARTICULATED
             if (meyer) pool.Add(S060Arrangement.Meyer);
             if (dockside) pool.Add(S060Arrangement.Dockside);
+            if (ten) pool.Add(S060Arrangement.TenCoupled);
 #endif
             if (pool.Count == 0) return Stock;
             var selected = pool[random.Next(pool.Count)];

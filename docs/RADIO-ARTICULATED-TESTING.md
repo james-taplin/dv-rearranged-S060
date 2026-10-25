@@ -1,4 +1,4 @@
-# S060 radio 0.18.0 transition/effects candidate test
+# S060 radio 0.19.0 transition/effects candidate test
 
 Required packs: Meyer **0.7.0**, Franklin Dockside **0.7.0**. See the installation
 receipt for actual installed hashes and installation mode. Restart/reload after
@@ -7,6 +7,16 @@ that mode and prior file hashes.
 This build requires 0.7.0 packs. Their hash-bound validation receipts must match
 the packaged bundle bytes; unchanged packs can reuse matching evidence. Version
 numbers alone are insufficient.
+
+## 0-10-0 Tank acceptance
+
+Select 0-10-0 Tank on a stopped S060 with regulator closed. Inspect all five
+driving axles, coupling rods, full-size cylinders, connected pipes and the cab
+entry. Confirm ten big-end oil cups work, including the fifth axle. Test slow
+forward/reverse travel and tight curves, slip/braking, switching through stock,
+0-8-0, Meyer and Dockside, and save/reload. Existing saved fuel/water, condition,
+identity, oil quantities/lids and old arrangements must be preserved.
+The new axle uses a fifth wheel-condition slot and two appended oil circuits.
 
 ## Latest regression focus
 

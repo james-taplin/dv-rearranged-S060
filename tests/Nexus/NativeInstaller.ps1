@@ -1,12 +1,13 @@
 param(
     [string]$Installer = 'C:\Users\james\Desktop\Tools\UnityModManagerInstaller',
-    [string]$Version = '0.18.0'
+    [string]$Version = ''
 )
 $ErrorActionPreference = 'Stop'
 # Run in Windows PowerShell/.NET Framework for UMM's WinForms assembly. No form
 # is shown or constructed: only its native ZIP reader/extractor is exercised.
 if ($PSVersionTable.PSEdition -ne 'Desktop') { throw 'Use Windows PowerShell for the native installer fixture.' }
 $repo = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
+if (-not $Version) { $Version = (Get-Content (Join-Path $repo 'Info.json') -Raw | ConvertFrom-Json).Version }
 $package = Join-Path $repo "build\nexus-$Version-single"
 $receiptPath = Join-Path $package 'nexus-package-receipt.json'
 $receipt = Get-Content $receiptPath -Raw | ConvertFrom-Json

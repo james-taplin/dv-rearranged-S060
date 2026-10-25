@@ -12,6 +12,7 @@ namespace RearrangedS060
         public bool spawn060 = true;
         public bool spawn040 = true;
         public bool spawn080 = false;
+        public bool spawn0100 = false;
         public bool spawn062 = false;
         public bool spawnMeyer = false;
         public bool spawnDockside = false;
@@ -21,7 +22,7 @@ namespace RearrangedS060
         internal float ValidScale => S060Selection.IsValidScale(driverScale) ? driverScale : 1f;
 
         internal S060Selection PickInitial(System.Random random)
-            => S060Selection.PickInitial(spawnRandom, spawn060, spawn040, spawn080, 1f, random, spawn062, spawnMeyer, spawnDockside);
+            => S060Selection.PickInitial(spawnRandom, spawn060, spawn040, spawn080, 1f, random, spawn062, spawnMeyer, spawnDockside, spawn0100);
 
         internal void Draw()
         {
@@ -37,6 +38,7 @@ namespace RearrangedS060
                 spawn060 = GUILayout.Toggle(spawn060, "0-6-0");
                 spawn040 = GUILayout.Toggle(spawn040, "0-4-0");
                 spawn080 = GUILayout.Toggle(spawn080, "0-8-0 (experimental)");
+                spawn0100 = GUILayout.Toggle(spawn0100, "0-10-0 Tank (experimental; 1 m drivers)");
                 spawn062 = GUILayout.Toggle(spawn062, "0-6-2 (experimental; stock drivers)");
             }
 #if B99_S060_ARTICULATED
@@ -47,7 +49,7 @@ namespace RearrangedS060
             }
             GUILayout.Label("Meyer and Dockside require their installed asset packs; each uses its authored wheel size.");
 #endif
-            if (!spawn060 && !spawn040 && !spawn080 && !spawn062 && !spawnMeyer && !spawnDockside) GUILayout.Label("Empty pool: new locomotives remain stock.");
+            if (!spawn060 && !spawn040 && !spawn080 && !spawn0100 && !spawn062 && !spawnMeyer && !spawnDockside) GUILayout.Label("Empty pool: new locomotives remain stock.");
         }
     }
 }
