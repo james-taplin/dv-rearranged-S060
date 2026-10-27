@@ -19,15 +19,41 @@ namespace RearrangedS060
                 // Reuse only the processed native effects subtree. Cloning a
                 // complete donor truck would leave unused running-gear scripts.
                 var source=S060Articulated.Preflight(false)[0].GetComponentsInChildren<ParticlesPortReadersController>(true).Single();
-                owner.root=UnityEngine.Object.Instantiate(source.gameObject,model.transform);
-                owner.root.name="[Meyer engine effects]"; // shared native teardown guard
-                Fit(owner.root,car.transform,find);
+                owner.root=Build(source,model.transform,car.transform,find);
+                owner.root.SetActive(true);
                 owner.presentation=new S060ArticulatedPresentation(car,owner.root,S060EngineMapping.MainId,false,3);owner.presentation.Bind();return owner;
             }
             catch{owner.Dispose();throw;}
         }
+        // Native Doppler.Awake adds a DisallowMultipleComponent ECS converter.
+        // Complete every nested clone before the first activation, so no copy
+        // inherits a converter added by an earlier clone's Awake.
+        internal static GameObject Build(ParticlesPortReadersController source,Transform parent,Transform car,Func<string,Transform> find)
+        {
+            var staging=new GameObject("[Shay native cylinder effects]");staging.SetActive(false);staging.transform.SetParent(parent,false);
+            try
+            {
+                var effects=UnityEngine.Object.Instantiate(source.gameObject,staging.transform);
+                effects.name="[Meyer engine effects]"; // shared native teardown guard
+                Fit(effects,car,find);effects.SetActive(true);
+                return staging;
+            }
+            catch
+            {
+                if(Application.isPlaying)UnityEngine.Object.Destroy(staging);else UnityEngine.Object.DestroyImmediate(staging);
+                throw;
+            }
+        }
         internal static void Fit(GameObject root,Transform car,Func<string,Transform> find)
         {
+                if(root.activeInHierarchy)throw new InvalidOperationException("Shay effects must be assembled before activation.");
+                var controller=root.GetComponentsInChildren<ParticlesPortReadersController>(true).Single();
+                // CCL substitutes each authored holder with its native alias.
+                // The port contract survives; the holder's display name does not.
+                var oldDrips=controller.particlePortReaders.Where(p=>p.particlesParent!=null &&
+                    p.particleUpdaters.Any(u=>u.portId.EndsWith(".WATER_IN_CYLINDERS_NORMALIZED",StringComparison.Ordinal)) &&
+                    p.particleUpdaters.Any(u=>u.portId=="cylinderCock.EXT_IN")).ToArray();
+                if(oldDrips.Length!=2)throw new InvalidOperationException("Native Shay drip templates missing.");
                 var jets=root.GetComponentsInChildren<CylinderCockParticlePortReader>(true).Single();
                 var audio=root.GetComponentsInChildren<CylinderCockLayeredPortReader>(true).Single();
                 var original=jets.cylinderSetups[0];var setups=new CylinderCockParticlePortReader.CylinderSetup[3];
@@ -43,10 +69,7 @@ namespace RearrangedS060
                 }
                 foreach(var s in jets.cylinderSetups){s.frontParticlesParent.SetActive(false);s.rearParticlesParent.SetActive(false);}
                 foreach(var source in audio.cylCockAudio)source.gameObject.SetActive(false);
-                jets.cylinderSetups=setups;audio.cylCockAudio=sources;root.SetActive(true);
-                var controller=root.GetComponentsInChildren<ParticlesPortReadersController>(true).Single();
-                var oldDrips=controller.particlePortReaders.Where(p=>p.particlesParent.name.StartsWith("Water drip ",StringComparison.Ordinal)).ToArray();
-                if(oldDrips.Length!=2)throw new InvalidOperationException("Native Shay drip templates missing.");
+                jets.cylinderSetups=setups;audio.cylCockAudio=sources;
                 var clone=typeof(object).GetMethod("MemberwiseClone",BindingFlags.Instance|BindingFlags.NonPublic);
                 var drips=new ParticlesPortReadersController.ParticlePortReader[3];
                 for(int i=0;i<3;i++)

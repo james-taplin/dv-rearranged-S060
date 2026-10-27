@@ -4,7 +4,11 @@ Change the S060's running gear through a dedicated comms-radio mode in Derail
 Valley. This project forks the Rearranged S282 B99/Re:Arranged branch, based on
 Peter Schinske / SatiricRug's original Rearranged S282.
 
-## Current candidate: S060 0.20.0, Meyer/Dockside packs 0.7.0
+## Current candidate: S060 0.20.1, Meyer/Dockside packs 0.7.0
+
+0.20.1 corrects the Shay's processed-CCL drip lookup and assembles its effects
+while inactive, preventing native Doppler/ECS components being cloned twice.
+Saves, arrangement IDs, wheelsets and simulation retain their 0.20.0 behaviour.
 
 Version 0.20.0 adds a radio/UMM-selectable **two-truck Shay** using complete live
 DV S060 wheel meshes and distant LODs, stock gauge, fitted 1.14 m drivers, three

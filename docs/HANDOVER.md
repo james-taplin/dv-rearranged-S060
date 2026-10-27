@@ -1,5 +1,60 @@
 # Rearranged S060 — handover
 
+## 0.20.1: processed-CCL Shay effects hotfix — 27 October 2026
+
+James's radio screenshot reports "Native Shay drip templates missing". The
+reproduction log is preserved privately at build/shay-drip-bug/Player-repro.log.
+It also contains repeated native Doppler.Awake null references and Unity's
+duplicate DVConvertToEntity diagnostic at S060ShayEffects.Fit's audio clones.
+The previous selection (including 0-10-0 Tank) is restored after refusal.
+
+Confirmed cause: installed CCL's ObjectInstancerProcessor clones the native
+CylCockWaterDripParticles system and ReplaceInstancedObjects substitutes that
+object for the authored "Water drip N" reference. Its name therefore changes.
+Matching display names in the 0.20.0 Shay fitter was wrong. Select the two drip
+readers through their WATER_IN_CYLINDERS_NORMALIZED and cylinderCock.EXT_IN
+ports instead; preserve the native gate definitions when making three copies.
+Validate templates before starting cloning. No new aliases or CCL pack needed.
+
+The second cause is nested cloning after activation. Doppler.Awake adds the
+DisallowMultipleComponent DVConvertToEntity. Cloning the now-awakened LayeredAudio
+subtree copies that converter, so the next native Awake cannot add its own and
+dereferences null. Build the entire FX subtree under an inactive staging root,
+complete every jet/audio/drip clone, then activate exactly once before binding
+the existing presentation. Fit explicitly rejects an active hierarchy and never
+activates a partially constructed tree. Keep the child controller's existing
+"[Meyer engine effects]" name for its established teardown guard.
+
+The original fixture missed CCL's replaced names and used empty LayeredAudio
+objects without native Doppler components. Corrected the native drip fixture to
+use processed native names. Added an actual Unity Play Mode regression with
+native Doppler.Awake/DVConvertToEntity creation: reproduce the old duplicate and
+exception, then exercise shipping Fit and twelve reactivations with exactly one
+converter per fitted emitter and no activation errors. This test has 23 checks.
+It seeds the native managed reader/audio configuration because the isolated
+Editor's external-MonoBehaviour serializer does not copy those nested lists;
+it does not claim whole-CCL import or audible mixer validation. Native archetypes
+use an isolated ECS World. The absent game's conversion/removal queue and the
+unbound fixture particle-controller teardown are skipped; actual Doppler
+component creation and Unity Awake ordering run normally.
+The new shay-effects receipt is mandatory in Test.Runtime/Build.Radio.
+
+Only runtime FX construction changes. All arrangement IDs (including 0-10-0),
+save versions, native wheel aliases, oil circuits, compound/traction calibration
+and the three asset bundles retain their 0.20.0 meanings/bytes. This hotfix uses
+the existing hash-bound bundle evidence; rebuilding model meshes is unnecessary.
+Use build/radio-0.20.1 for final runtime receipts, build/nexus-0.20.1-single for
+the single UMM ZIP and its exact-hash installer/bundle/install receipts. The
+installation remains gated on DerailValley being closed, preserves settings,
+and creates no backup as requested. Original 0.20.0 builds remain on disk but
+are superseded. Gameplay acceptance of the repaired Shay remains pending.
+
+Final native evidence: build/radio-0.20.1/runtime-audits-20261027-170730,
+including cocks248 and the new actual Doppler Play Mode23; all original native
+suites pass too. Runtime SHA256 9F21DE0E51DE0F03B149EBD71578B5C60861E9A95514D3B4BDE43D554215C419.
+Managed/native release tests retain functional193, engine351, oil627 and the
+other 0.20.0 checks. Exact ZIP native UMM extraction/update/migration passes57.
+
 ## 0.20.0: integrated two-truck Shay — 27 October 2026
 
 James authorised completing the four R1 module sessions' transmission checks,

@@ -260,6 +260,8 @@ public static class CockNativeAudit
             }
             if(shay)
             {
+                root.SetActive(false);
+                foreach(var ppr in readers)((GameObject)pprType.GetField("particlesParent").GetValue(ppr)).name="CylCockWaterDripParticles(Clone)";
                 var audioType=game.GetType("DV.ModularAudioCar.CylinderCockLayeredPortReader",true);var audio=root.AddComponent(audioType);
                 var layerType=Assembly.LoadFrom(Path.Combine(managed,"DV.LayeredAudio.dll")).GetType("LayeredAudio",true);
                 var layers=Array.CreateInstance(layerType,2);
@@ -270,6 +272,8 @@ public static class CockNativeAudit
                 for(int i=1;i<=3;i++)foreach(string end in new[]{"FRONT","REAR"})
                 {string name="COCK_C"+i+"_"+end;var go=new GameObject(name);go.transform.SetParent(root.transform,false);go.transform.localPosition=new Vector3(1.36f,end=="FRONT"?2.43f:1.93f,(i-1)*.24f);markers.Add(name,go.transform);}
                 mod.GetType("RearrangedS060.S060ShayEffects",true).GetMethod("Fit",BindingFlags.Static|BindingFlags.NonPublic).Invoke(null,new object[]{root,root.transform,new Func<string,Transform>(name=>markers[name])});
+                Check(!root.activeSelf,"Production fitting must not activate partially assembled native audio",ref checks);
+                root.SetActive(true);
                 var fitted=(Array)cockType.GetField("cylinderSetups").GetValue(cock);
                 Check(fitted.Length==3&&((Array)audioType.GetField("cylCockAudio").GetValue(audio)).Length==3,"Production Shay fitting creates three native cylinder/audio channels",ref checks);
                 readers=(IList)controllerType.GetField("particlePortReaders").GetValue(controller);

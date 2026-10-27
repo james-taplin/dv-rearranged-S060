@@ -25,7 +25,9 @@ if (-not $nativeReport.passed -or $nativeReport.runtimeSha256 -ne (Get-FileHash 
 foreach ($report in $nativeReport.reports) {
     if ((Get-FileHash $report.path).Hash -ne $report.hash -or -not (Get-Content $report.path -Raw | ConvertFrom-Json).passed) { throw 'Native audit evidence changed.' }
 }
-foreach ($name in @('exhaust','cocks','cleanup','collision','contacts','conventional','quartering')) { if (@($nativeReport.reports | Where-Object name -eq $name).Count -ne 1) { throw "Missing native audit: $name" } }
+foreach ($name in @('exhaust','cocks','cleanup','collision','contacts','conventional','quartering','shay-effects')) { if (@($nativeReport.reports | Where-Object name -eq $name).Count -ne 1) { throw "Missing native audit: $name" } }
+$shayEffects = Get-Content ($nativeReport.reports | Where-Object name -eq 'shay-effects').path -Raw | ConvertFrom-Json
+if (-not $shayEffects.actualPlayMode -or -not $shayEffects.oldDopplerFailureReproduced -or -not $shayEffects.productionInactiveAssembly -or -not $shayEffects.nativeDopplerAwake) { throw 'Native Shay audio activation and processed-CCL drip regressions are required.' }
 $quartering = Get-Content ($nativeReport.reports | Where-Object name -eq 'quartering').path -Raw | ConvertFrom-Json
 if (-not $quartering.actualPlayMode -or -not $quartering.productionRetention -or -not $quartering.oldResetReproduced -or
     -not $quartering.repeatedTransitions -or -not $quartering.forwardReverse -or -not $quartering.originalFlagsRestored -or -not $quartering.teardown) { throw 'Actual Unity quartering reset, retention, native return and cleanup regressions are required.' }

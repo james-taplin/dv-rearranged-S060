@@ -1,4 +1,4 @@
-# S060 radio 0.20.0 transition/effects candidate test
+# S060 radio 0.20.1 transition/effects candidate test
 
 ## Shay acceptance
 
