@@ -1,5 +1,22 @@
 # Rearranged S060 — handover
 
+## 0.20.2: Shay gear-clock trace — 27 October 2026 (Claude)
+
+James reports the Shay gears, pinions and U-joints do not turn. The 0.20.1
+trace showed the main slot's crank advancing and his clip shows the wheels
+turning, so the break is somewhere between the simulated S060ShayEngine and
+the transforms. The articulated trace (schema 2) now adds a "shay" block to
+every Shay sample: whether the simulated Shay engine is the selected one, its
+GearTurns/crank/geared RPM port; whether S060ShayMotion exists, is enabled
+and active, how many LateUpdates it has run and on which frame, and whether
+its engine is the same object the simulation ticks; the transmission's input
+turns, wheel turns and phase errors; and the live local rotations of the
+engine crank, rear axle and the first outlet/line/pinion/wheel/cross/member
+part. Shay/tools/Read.GearTrace.py prints one line per sample (newest trace
+in the installed diagnostics folder by default). Samples are written at 2 Hz for
+the first three seconds after selection and then only while the regulator is
+open (120 samples / 180 s per window). Diagnostics only.
+
 ## 0.20.2: Shay body relief and finishes — 27 October 2026 (Claude)
 
 Claude took the repository over from Codex at fa64f34 (shared board X121).

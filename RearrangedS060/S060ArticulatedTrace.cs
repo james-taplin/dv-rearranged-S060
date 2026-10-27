@@ -1,6 +1,7 @@
 #if B99_S060_ARTICULATED
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using DV;
 using DV.Damage;
@@ -89,6 +90,7 @@ namespace RearrangedS060
                     sample["ecsGripPerAxleN"] = N(grip.wheelslipForceLimitPerAxle);
                     sample["ecsGripTotalN"] = N(grip.wheelslipForceLimitPerAxle * input.numberOfPoweredAxles);
                 }
+                if (owner.Bank.Mode == S060EngineMode.Shay) sample["shay"] = Shay(car, owner.Bank);
                 Write(sample);
                 if (now - lastFlush >= 5) { writer.Flush(); lastFlush = now; }
                 if (window.Limit(now) != null) Finish(window.Limit(now));
@@ -103,7 +105,7 @@ namespace RearrangedS060
             string path = Path.Combine(directory, "articulated-" + safeId + "-" + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss-fff") + "-" + (++captureNumber).ToString("D3") + ".jsonl");
             writer = new StreamWriter(new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.Read), new UTF8Encoding(false));
             started = lastFlush = Time.realtimeSinceStartup;
-            Write(new JObject { ["record"] = "session", ["schema"] = 1, ["car"] = car.ID,
+            Write(new JObject { ["record"] = "session", ["schema"] = 2, ["car"] = car.ID,
                 ["version"] = typeof(Main).Assembly.GetName().Version.ToString(),
                 ["phase"] = "Passive S060 owner Update; native components/ECS can be from different ticks",
                 ["limits"] = "New window per changed arrangement; 2 Hz for first 3 seconds, then while articulated regulator open; maximum 120 samples or 180 seconds since first sample",
@@ -126,6 +128,45 @@ namespace RearrangedS060
             ["selectedWaterInCylindersNormalized"] = slot.Selected == null ? JValue.CreateNull() : N(slot.Selected.waterInCylindersNormalizedReadOut.Value),
             ["selectedCylinderTemperature"] = slot.Selected == null ? JValue.CreateNull() : N(slot.Selected.cylinderTemperatureReadOut.Value),
             ["selectedCockFlow"] = slot.Selected == null ? JValue.CreateNull() : N(slot.Selected.cylinderCockFlowNormalizedReadOut.Value) };
+        // Gear clock chain: simulated Shay engine -> motion component -> transmission
+        // solver -> actual transforms. Shows where visible rotation stops.
+        private static JObject Shay(TrainCar car, S060EngineBank bank)
+        {
+            var simulated = bank.Main.Engines[3] as S060ShayEngine;
+            var motion = car.GetComponentInChildren<S060ShayMotion>(true);
+            var data = new JObject {
+                ["simulatedEngineIsSelected"] = simulated != null && ReferenceEquals(bank.Main.Selected, simulated),
+                ["simulatedGearTurns"] = simulated == null ? JValue.CreateNull() : D(simulated.GearTurns),
+                ["simulatedCrankRotation"] = simulated == null ? JValue.CreateNull() : N(simulated.crankRotation),
+                ["simulatedCrankRpm"] = simulated == null ? JValue.CreateNull() : N(simulated.crankRpm.Value),
+                ["gearedRpmPort"] = bank.ShayRpm == null ? JValue.CreateNull() : N(bank.ShayRpm.Value),
+                ["motionFound"] = motion != null, ["frame"] = Time.frameCount };
+            if (motion == null) return data;
+            var transmission = motion.Transmission;
+            data["motionEnabled"] = motion.enabled; data["motionActive"] = motion.gameObject.activeInHierarchy;
+            data["motionUpdates"] = motion.Updates; data["motionLastFrame"] = motion.LastFrame;
+            data["motionLastTurns"] = D(motion.LastTurns);
+            data["motionEngineIsSimulated"] = motion.Engine != null && ReferenceEquals(motion.Engine, simulated);
+            data["motionEngineGearTurns"] = motion.Engine == null ? JValue.CreateNull() : D(motion.Engine.GearTurns);
+            data["crankLocal"] = T(motion.Crank); data["rearAxleLocal"] = T(motion.RearAxle);
+            if (transmission == null) return data;
+            data["transmissionEngineTurns"] = D(transmission.engineTurns);
+            data["rearWheelTurns"] = D(transmission.RearWheelTurns); data["frontWheelTurns"] = D(transmission.FrontWheelTurns);
+            data["rearPhaseErrorDegrees"] = D(transmission.rearPhaseErrorDegrees); data["frontPhaseErrorDegrees"] = D(transmission.frontPhaseErrorDegrees);
+            data["rearJointAngle"] = N(transmission.rearJointAngle); data["frontJointAngle"] = N(transmission.frontJointAngle);
+            var parts = new JObject();
+            foreach (var role in new[] { "outlet", "line", "pinion", "wheel", "cross", "member" })
+            {
+                var part = transmission.parts?.FirstOrDefault(p => p.role == role);
+                parts[role] = part == null ? JValue.CreateNull() : new JObject { ["name"] = part.transform == null ? null : part.transform.name, ["transform"] = T(part.transform) };
+            }
+            data["parts"] = parts;
+            return data;
+        }
+        private static JToken T(Transform t) => t == null ? JValue.CreateNull() : new JObject {
+            ["active"] = t.gameObject.activeInHierarchy, ["localRotation"] = Q(t.localRotation),
+            ["localEuler"] = V(t.localEulerAngles), ["parent"] = t.parent == null ? null : t.parent.name };
+        private static JToken D(double value) => double.IsNaN(value) || double.IsInfinity(value) ? JValue.CreateNull() : new JValue(value);
         private static JObject Vehicle(TrainCar car)
         {
             var damage = car.GetComponent<DamageController>();

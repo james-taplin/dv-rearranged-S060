@@ -11,6 +11,14 @@ namespace RearrangedS060
         private S060ShayEngine engine;
         private S060ShayTransmission transmission;
         private Transform[] levels, axles, cranks, reversed;
+        // Read-only diagnostics for the articulated trace (gear clock reports).
+        internal S060ShayEngine Engine => engine;
+        internal S060ShayTransmission Transmission => transmission;
+        internal Transform Crank => cranks?.FirstOrDefault();
+        internal Transform RearAxle => axles?.FirstOrDefault();
+        internal int Updates { get; private set; }
+        internal int LastFrame { get; private set; } = -1;
+        internal double LastTurns { get; private set; } = double.NaN;
         private Transform[][] rods, crossheads, valves;
         internal void Bind(S060EngineBank bank, Transform root, TextAsset data, Transform[] all)
         {
@@ -36,6 +44,7 @@ namespace RearrangedS060
         {
             if (engine == null || transmission == null) return;
             double turns=engine.GearTurns, fraction=turns-Math.Floor(turns);
+            Updates++; LastFrame=Time.frameCount; LastTurns=turns;
             for(int lod=0;lod<levels.Length;lod++)
             {
                 cranks[lod].localRotation=Quaternion.AngleAxis((float)(-fraction*360),Vector3.forward);
