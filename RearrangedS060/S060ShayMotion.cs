@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 
 namespace RearrangedS060
@@ -7,7 +8,6 @@ namespace RearrangedS060
     [DefaultExecutionOrder(1000)]
     internal sealed class S060ShayMotion : MonoBehaviour
     {
-        [Serializable] private class MotionData { public S060ShayTransmission.Part[] parts=Array.Empty<S060ShayTransmission.Part>(); }
         private S060ShayEngine engine;
         private S060ShayTransmission transmission;
         private Transform[] levels, axles, cranks, reversed;
@@ -31,7 +31,11 @@ namespace RearrangedS060
             crossheads = levels.Select(l => Enumerable.Range(1,3).Select(i=>l.Find("CROSSHEAD_"+i)).ToArray()).ToArray();
             valves = levels.Select(l => Enumerable.Range(1,3).Select(i=>l.Find("VALVE_VISUAL_ONLY_"+i)).ToArray()).ToArray();
             transmission = root.Find("Transmission").gameObject.AddComponent<S060ShayTransmission>();
-            transmission.parts = JsonUtility.FromJson<MotionData>(data.text).parts;
+            // JsonUtility returned an empty list in game for this mod-assembly type
+            // (0.20.2 trace: every part null), so nothing but the crank and axles turned.
+            transmission.parts = Parts(data.text);
+            if (transmission.parts.Length != 43 || transmission.parts.Any(p => string.IsNullOrEmpty(p.role) || string.IsNullOrEmpty(p.path)))
+                throw new InvalidOperationException("Shay transmission motion data incomplete: " + transmission.parts.Length + " of 43 parts.");
             foreach (var p in transmission.parts)
             { p.transform = all.Single(t=>t.name==p.path.Substring(p.path.LastIndexOf('/')+1)); }
             transmission.rearTruck = all.Single(t=>t.name=="TRUCK_REAR_PIVOT");
@@ -39,6 +43,14 @@ namespace RearrangedS060
             axles = new[] { "REAR_AXLE_1", "REAR_AXLE_2", "FRONT_AXLE_3", "FRONT_AXLE_4" }
                 .Select(n=>all.Single(t=>t.name==n)).ToArray();
             LateUpdate();
+        }
+        internal static S060ShayTransmission.Part[] Parts(string json)
+        {
+            Vector3 V(JToken t) => new Vector3((float)t["x"], (float)t["y"], (float)t["z"]);
+            Quaternion Q(JToken t) => new Quaternion((float)t["x"], (float)t["y"], (float)t["z"], (float)t["w"]);
+            return ((JArray)JObject.Parse(json)["parts"] ?? new JArray()).Select(p => new S060ShayTransmission.Part {
+                path = (string)p["path"], role = (string)p["role"], index = (int)p["index"],
+                restPosition = V(p["restPosition"]), restRotation = Q(p["restRotation"]) }).ToArray();
         }
         private void LateUpdate()
         {

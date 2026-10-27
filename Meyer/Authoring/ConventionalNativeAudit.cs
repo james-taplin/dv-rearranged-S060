@@ -274,7 +274,16 @@ public static class ConventionalNativeAudit
             Check(markers.Where(t=>t.name.StartsWith("OIL_CUP_")).Count()==8,"Two supported axlebox cup markers per driven axle survive articulation");
             Check(markers.All(t=>!float.IsNaN(t.localRotation.x)),"Shipping combined engine/transmission produces finite poses");
         }
-        rear.transform.localRotation=front.transform.localRotation=Quaternion.identity;Set(engine,"GearTurns",0.0);Call(motion,"LateUpdate");
+        rear.transform.localRotation=front.transform.localRotation=Quaternion.identity;
+        // The game's 0.20.2 trace showed an empty parts list: prove every gear role is bound and actually turns.
+        var bound=((Array)transmission.GetType().GetField("parts").GetValue(transmission)).Cast<object>().ToArray();
+        Check(bound.Length==43,"All 43 Shay transmission parts are bound from the bundle's motion data");
+        Transform Role(string role)=>(Transform)bound.Select(p=>new{role=(string)p.GetType().GetField("role").GetValue(p),t=(Transform)p.GetType().GetField("transform").GetValue(p)}).First(p=>p.role==role).t;
+        var turning=new[]{"outlet","line","pinion","wheel","cross"}.Select(Role).ToArray();
+        Set(engine,"GearTurns",0.0);Call(motion,"LateUpdate");var at0=turning.Select(t=>t.localRotation).ToArray();
+        Set(engine,"GearTurns",.3);Call(motion,"LateUpdate");
+        for(int i=0;i<turning.Length;i++)Check(Quaternion.Angle(at0[i],turning[i].localRotation)>1,"Shay "+turning[i].name+" turns with the gear clock");
+        Set(engine,"GearTurns",0.0);Call(motion,"LateUpdate");
         Render(root,"shay");
         var detached=markers.Where(t=>t.name=="TRUCK_REAR"||t.name=="TRUCK_FRONT"||t.name=="TRUCK_REAR_PIVOT"||t.name=="TRUCK_FRONT_PIVOT").ToArray();
         Call(owner,"RestoreModels");Check(bodyFilter.sharedMesh==originalBody,"Leaving Shay restores the exact native body mesh");
