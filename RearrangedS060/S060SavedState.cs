@@ -70,7 +70,7 @@ namespace RearrangedS060
             }
             if (version?.Type == JTokenType.Integer && (version.ToString() == "1"
 #if B99_S060_ARTICULATED
-                || version.ToString() == "2" || version.ToString() == "3"
+                || version.ToString() == "2" || version.ToString() == "3" || version.ToString() == "4"
 #endif
                 ) &&
                 id?.Type == JTokenType.Integer &&
@@ -78,7 +78,7 @@ namespace RearrangedS060
                 S060Selection.IsSupported(value) && validWheels &&
                 (version.ToString() == "1" ? value <= 3 && wheelToken == null :
                     version.ToString() == "2" ? value <= 5 && (wheels == null || wheels.Length == 4) && (value >= 4 || wheels != null) :
-                    value == 6 || wheels?.Length == 5) &&
+                    version.ToString() == "3" ? value <= 6 && (value == 6 || wheels?.Length == 5) : value == 7) &&
                 (scale?.Type == JTokenType.Float || scale?.Type == JTokenType.Integer) &&
                 float.TryParse(scale.ToString(Newtonsoft.Json.Formatting.None), NumberStyles.Float, CultureInfo.InvariantCulture, out float factor) &&
                 S060Selection.IsValidScale(factor) && (!S060Selection.RequiresFixedSize((S060Arrangement)value) || factor == 1f))
@@ -113,7 +113,7 @@ namespace RearrangedS060
             if (unrecognized != null) return unrecognized.DeepClone();
             var data = new JObject
             {
-                ["version"] = WheelStates?.Length == 5 || (Pending ?? Applied).Arrangement == S060Arrangement.TenCoupled ? 3 :
+                ["version"] = (Pending ?? Applied).Arrangement == S060Arrangement.Shay ? 4 : WheelStates?.Length == 5 || (Pending ?? Applied).Arrangement == S060Arrangement.TenCoupled ? 3 :
                     WheelStates != null || (int)(Pending ?? Applied).Arrangement >= 4 ? 2 : 1,
                 ["arrangement"] = (int)(Pending ?? Applied).Arrangement,
                 ["driverScale"] = (Pending ?? Applied).Scale

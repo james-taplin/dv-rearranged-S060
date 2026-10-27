@@ -118,6 +118,17 @@ internal static class Program
             Assert(Enumerable.Range(0, 4).All(id => seen[id] == ((mask & (1 << id)) != 0)), "random pool visits enabled choices only");
         }
         state.RecordApplied(S060Selection.Stock);
+#if B99_S060_ARTICULATED
+        var shayState=new S060SavedState();shayState.BeginIdentity("shay");shayState.RecordApplied(new S060Selection(S060Arrangement.Shay,1));
+        shayState.RecordWheelStates(new[]{0,1,2,1,0});var shaySave=shayState.Save();
+        Assert((int)shaySave["version"]==4,"Only the appended Shay arrangement uses schema four");
+        var shayReload=new S060SavedState();shayReload.BeginIdentity("shay");
+        Assert(shayReload.Load(shaySave)&&shayReload.Pending.Value.Arrangement==S060Arrangement.Shay&&shayReload.WheelStates.SequenceEqual(new[]{0,1,2,1,0}),"Shay preserves all five dormant/active wheel condition slots");
+        foreach(int old in new[]{1,2,3})
+        {var invalid=(JObject)shaySave.DeepClone();invalid["version"]=old;Assert(!shayReload.Load(invalid)&&JToken.DeepEquals(invalid,shayReload.Save()),"Earlier schema cannot misinterpret the new arrangement ID");}
+        var badShay=(JObject)shaySave.DeepClone();badShay["arrangement"]=0;
+        Assert(!shayReload.Load(badShay)&&JToken.DeepEquals(badShay,shayReload.Save()),"Schema four with an unrelated layout is preserved as unsupported data");
+#endif
         var stockReload = new S060SavedState();
         Assert(stockReload.Load(state.Save()) && stockReload.Pending.Value.IsStock, "explicit stock restoration remains stock after reload");
 

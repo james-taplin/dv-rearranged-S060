@@ -126,9 +126,19 @@ namespace RearrangedS060
             var muted = definitions.AddComponent<ConfigurablePortDefinition>(); muted.ID = "rs060MutedCock";
             muted.port = new PortDefinition(PortType.READONLY_OUT, PortValueType.GENERIC, "VALUE"); muted.value = 0;
             var extended = new List<SimComponentDefinition> { muted };
+            var gearRatio = definitions.AddComponent<ConfigurablePortDefinition>(); gearRatio.ID = "rs060ShayRatio";
+            gearRatio.port = new PortDefinition(PortType.READONLY_OUT, PortValueType.GENERIC, "VALUE"); gearRatio.value = S060ShayEngine.Ratio;
+            var gearRpm = definitions.AddComponent<S060ShayRpmDefinition>(); gearRpm.ID = "rs060ShayRpm"; gearRpm.Bank = Bank;
+            gearRpm.aReader = new PortReferenceDefinition(PortValueType.RPM, "A");
+            gearRpm.bReader = new PortReferenceDefinition(PortValueType.GENERIC, "B");
+            gearRpm.mulReadOut = new PortDefinition(PortType.OUT, PortValueType.RPM, "OUT");
+            refs.Add(new PortReferenceConnection(gearRpm.ID + ".A", mainRefs.Single(r => r.portReferenceId == RearId + "." + main.crankRpm.ID).portId));
+            refs.Add(new PortReferenceConnection(gearRpm.ID + ".B", gearRatio.ID + ".VALUE"));
+            extended.Add(gearRatio);
             foreach (var component in order)
             {
                 if (component.ID == "steamConsumptionCalculator") extended.Add(intake);
+                if (component == main) extended.Add(gearRpm);
                 extended.Add(component == main ? rear : component);
                 if (component == main) extended.AddRange(new SimComponentDefinition[] { front, torque, exhaust, capacity });
             }
@@ -152,6 +162,12 @@ namespace RearrangedS060
             slot.Dockside.pistonStroke = S060SteamCalibration.Dockside.Stroke;
             slot.Dockside.steamChestVolume = S060SteamCalibration.Dockside.ChestLitres;
             slot.Dockside.throttleMaxFlow = S060SteamCalibration.Dockside.MaxFlow;
+            if (!auxiliary)
+            {
+                slot.Shay = Clone<ReciprocatingSteamEngineDefinition>(native, id);
+                slot.Shay.numCylinders = 3; slot.Shay.cylinderBore = .17f; slot.Shay.pistonStroke = .150395513f;
+                slot.Shay.steamChestVolume = 12; slot.Shay.throttleMaxFlow = .8f;
+            }
             slot.Meyer = Clone<MeyerStageDefinition>(native, id);
             slot.Meyer.Owner = Bank.Compound; slot.Meyer.HighPressure = !auxiliary;
             slot.Meyer.cylinderBore = auxiliary ? S060SteamCalibration.Meyer.NativeLpBore : S060SteamCalibration.Meyer.NativeHpBore;
@@ -201,6 +217,12 @@ namespace RearrangedS060
     internal sealed class S060InitialSumDefinition : MultiplePortSumDefinition
     {
         public override SimComponent InstantiateImplementation() => new S060InitialSum(this);
+    }
+    internal sealed class S060ShayRpmDefinition : ConfigurableMultiplierDefinition
+    {
+        internal S060EngineBank Bank;
+        public override SimComponent InstantiateImplementation()
+        { var multiplier = new ConfigurableMultiplier(this); Bank.ShayRpm = multiplier.mulReadOut; return multiplier; }
     }
     internal sealed class S060InitialSum : MultiplePortSum
     {

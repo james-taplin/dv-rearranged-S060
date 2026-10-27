@@ -1,4 +1,18 @@
-# S060 radio 0.19.1 transition/effects candidate test
+# S060 radio 0.20.0 transition/effects candidate test
+
+## Shay acceptance
+
+Stop and close the regulator. Select Two-truck Shay in WHEEL REARRANGER or UMM.
+Check both sides: four driven axles, unchanged gauge and no native side rods.
+Drive slowly forward/reverse and through points/curves. The crank, sliding
+shafts, joints, gears and wheels must move together, with both trucks following
+the track. Check all three cylinders' jets while hot, and wet drips when cold;
+cycle the cab lever repeatedly. Oil both cups on each axle and the engine cups.
+Part-drain oil, leave different lids open, incur normal damage and save/reload.
+Switch Shay -> stock -> Dockside -> Meyer -> Shay while stopped, observing the
+usual rear-clearance requirements for Meyer. Identity/resources/damage and oil
+quantities must persist, with no leftover meshes, cups, sound or particle jets.
+Reload a pre-0.20 save too. This is a new arrangement awaiting gameplay acceptance.
 
 Required packs: Meyer **0.7.0**, Franklin Dockside **0.7.0**. See the installation
 receipt for actual installed hashes and installation mode. Restart/reload after

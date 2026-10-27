@@ -86,6 +86,7 @@ public static class CockNativeAudit
             deinit.Invoke(reader, null);
             checks += PhaseTimingRegression(root, gameAssembly, assembly);
             checks += WaterDripRegression(root, gameAssembly, assembly);
+            checks += WaterDripRegression(root, gameAssembly, assembly, true);
             Check(systems.All(p => !p.gameObject.activeSelf), "native closed state disables leaves", ref checks);
             foreach (var ps in systems) ps.gameObject.SetActive(true);
             init.Invoke(reader, new[] { flow });
@@ -196,7 +197,7 @@ public static class CockNativeAudit
         }
         return checks;
     }
-    private static int WaterDripRegression(GameObject parent, Assembly game, Assembly sim)
+    private static int WaterDripRegression(GameObject parent, Assembly game, Assembly sim, bool shay=false)
     {
         int checks = 0;
         var mod = Assembly.LoadFrom(Environment.GetEnvironmentVariable("S060_EXHAUST_AUDIT_RUNTIME"));
@@ -222,7 +223,7 @@ public static class CockNativeAudit
             var cock = root.AddComponent(cockType); var setupType = cockType.GetNestedType("CylinderSetup");
             var setup = Activator.CreateInstance(setupType);
             foreach (string side in new[] { "front", "rear" })
-            { var leaf = new GameObject(side); leaf.transform.SetParent(root.transform, false); leaf.AddComponent<ParticleSystem>(); leaf.SetActive(false); setupType.GetField(side + "ParticlesParent").SetValue(setup, leaf); }
+            { var leaf = new GameObject(side); leaf.transform.SetParent(root.transform, false); leaf.AddComponent<ParticleSystem>(); leaf.SetActive(false); setupType.GetField(side + "ParticlesParent").SetValue(setup, leaf); setupType.GetField(side+"ActivityCurve").SetValue(setup,AnimationCurve.Linear(0,1,1,1)); }
             var setups = Array.CreateInstance(setupType, 1); setups.SetValue(setup, 0); cockType.GetField("cylinderSetups").SetValue(cock, setups);
             var portType = sim.GetType("LocoSim.Implementations.Port", true);
             var definitionType = sim.GetType("LocoSim.Definitions.PortDefinition", true);
@@ -257,6 +258,32 @@ public static class CockNativeAudit
                 }
                 pprType.GetField("particleUpdaters").SetValue(ppr, updaters); readers.Add(ppr);
             }
+            if(shay)
+            {
+                var audioType=game.GetType("DV.ModularAudioCar.CylinderCockLayeredPortReader",true);var audio=root.AddComponent(audioType);
+                var layerType=Assembly.LoadFrom(Path.Combine(managed,"DV.LayeredAudio.dll")).GetType("LayeredAudio",true);
+                var layers=Array.CreateInstance(layerType,2);
+                for(int i=0;i<2;i++)
+                {var go=new GameObject("Source sound "+i);go.transform.SetParent(root.transform,false);var item=go.AddComponent(layerType);layerType.GetField("layers",Fields).SetValue(item,Array.CreateInstance(layerType.GetNestedType("Layer"),0));layers.SetValue(item,i);}
+                audioType.GetField("cylCockAudio").SetValue(audio,layers);
+                var markers=new System.Collections.Generic.Dictionary<string,Transform>();
+                for(int i=1;i<=3;i++)foreach(string end in new[]{"FRONT","REAR"})
+                {string name="COCK_C"+i+"_"+end;var go=new GameObject(name);go.transform.SetParent(root.transform,false);go.transform.localPosition=new Vector3(1.36f,end=="FRONT"?2.43f:1.93f,(i-1)*.24f);markers.Add(name,go.transform);}
+                mod.GetType("RearrangedS060.S060ShayEffects",true).GetMethod("Fit",BindingFlags.Static|BindingFlags.NonPublic).Invoke(null,new object[]{root,root.transform,new Func<string,Transform>(name=>markers[name])});
+                var fitted=(Array)cockType.GetField("cylinderSetups").GetValue(cock);
+                Check(fitted.Length==3&&((Array)audioType.GetField("cylCockAudio").GetValue(audio)).Length==3,"Production Shay fitting creates three native cylinder/audio channels",ref checks);
+                readers=(IList)controllerType.GetField("particlePortReaders").GetValue(controller);
+                systems=readers.Cast<object>().Select(p=>((GameObject)pprType.GetField("particlesParent").GetValue(p)).GetComponent<ParticleSystem>()).ToArray();
+                Check(systems.Length==3&&systems.Distinct().Count()==3,"Three independent native drips replace the donor pair",ref checks);
+                gateObjects.Clear();foreach(var ppr in readers)foreach(var gate in (IList)pprType.GetField("particleUpdaters").GetValue(ppr))gateObjects.Add(gate);
+                Check(gateObjects.Distinct().Count()==6,"Shay drip updater state is cloned per cylinder",ref checks);
+                for(int i=0;i<3;i++)
+                {
+                    var item=fitted.GetValue(i);
+                    foreach(string end in new[]{"front","rear"})
+                    {var holder=(GameObject)setupType.GetField(end+"ParticlesParent").GetValue(item);Check(Vector3.Distance(holder.transform.position,markers["COCK_C"+(i+1)+"_"+end.ToUpperInvariant()].position)<1e-6f,"Shay outlet seats on the actual drain marker",ref checks);}
+                }
+            }
             runtime.GetMethod("PrepareCockParticles", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, new[] { controller });
             Check(systems.All(p => p.gameObject.activeSelf), "production preparation reactivates both pooled LP drip aliases", ref checks);
             foreach (var ppr in readers)
@@ -274,6 +301,27 @@ public static class CockNativeAudit
             Check(systems.All(p => !p.isEmitting), "empty LP cylinders cannot fabricate drips", ref checks);
             value("rs060FrontEngine.WATER_IN_CYLINDERS_NORMALIZED", .00001f);
             Check(systems.All(p => p.isEmitting), "native authored water gate accepts any positive condensate", ref checks);
+            if(shay)
+            {
+                foreach(string name in new[]{"crankRotation","reverser","cylindersInletValveOpen","cylinderCockFlowNormalized","forwardSpeed"})
+                {
+                    var def=Activator.CreateInstance(definitionType,new[]{Enum.Parse(portEnum,"READONLY_OUT"),Enum.Parse(valueEnum,"GENERIC"),(object)name});
+                    ports.Add("shay."+name,Activator.CreateInstance(portType,new[]{"shay",def,(object)0f}));cockType.GetField(name+"PortId").SetValue(cock,"shay."+name);
+                }
+                foreach(string name in new[]{"startSpeedMultiplierMin","startSpeedMultiplierMax","startSizeMultiplierMin","startSizeMultiplierMax","emissionRateMultiplierMin","emissionRateMultiplierMax"})cockType.GetField(name).SetValue(cock,1f);
+                value("shay.reverser",1);value("shay.cylinderCockFlowNormalized",1);
+                cockType.GetMethod("Init").Invoke(cock,new[]{flow});
+                var timing=(IDisposable)mod.GetType("RearrangedS060.S060CockTiming",true).GetMethod("Bind",BindingFlags.Static|BindingFlags.NonPublic).Invoke(null,new[]{cock});
+                var fitted=(Array)cockType.GetField("cylinderSetups").GetValue(cock);
+                for(int cycle=0;cycle<12;cycle++)for(int cylinder=0;cylinder<3;cylinder++)
+                {
+                    value("shay.crankRotation",cycle/12f);value("shay.cylindersInletValveOpen",1<<cylinder);
+                    for(int i=0;i<3;i++)
+                    {var holder=(GameObject)setupType.GetField("frontParticlesParent").GetValue(fitted.GetValue(i));Check(holder.GetComponent<ParticleSystem>().isEmitting==(i==cylinder),"Native three-cylinder valve masks select the correct outlet",ref checks);}
+                    value("shay.cylindersInletValveOpen",0);
+                }
+                timing.Dispose();cockType.GetMethod("Deinit").Invoke(cock,null);
+            }
             foreach (var gate in gateObjects) updaterType.GetMethod("Deinit").Invoke(gate, new[] { flow }); gateObjects.Clear();
             foreach (var port in ports.Values) Check(portType.GetField("ValueUpdatedInternally", Fields).GetValue(port) == null, "native drip teardown removes port callbacks", ref checks);
         }

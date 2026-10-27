@@ -51,9 +51,22 @@ public static class CombinedPackageAudit
                 finally { bundle.Unload(true); }
             }
             Require(ids.Distinct().Count() == 2, "Donor IDs must remain distinct.");
+            string shayPath=Path.Combine(root,"assets","Shay","shay_running_gear");
+            var shay=AssetBundle.LoadFromFile(shayPath);
+            Require(shay!=null,"The extracted original Shay model bundle must reopen.");
+            try
+            {
+                var prefab=shay.LoadAsset<GameObject>("assets/shayintegration/s060shay.prefab");
+                Require(prefab!=null,"Shay prefab must be addressable by the runtime asset path.");
+                Require(prefab.GetComponentsInChildren<MeshFilter>(true).Count(f=>f.sharedMesh==null)==8,"Exactly eight native-wheel placeholders remain unbundled.");
+                Require(prefab.GetComponentsInChildren<MonoBehaviour>(true).Length==0 && prefab.GetComponentsInChildren<Collider>(true).Length==0,"Original Shay bundle has no runtime scripts or physics.");
+                Require(shay.LoadAllAssets<TextAsset>().Length==1,"Transmission binding table must be present.");
+                Require(shay.LoadAllAssets<CustomCarPack>().Length==0 && shay.LoadAllAssets<Texture>().Length==0 && shay.LoadAllAssets<AudioClip>().Length==0,"Shay adds no donor car, native textures or audio.");
+            }
+            finally {shay.Unload(true);}
             Directory.CreateDirectory(Path.GetDirectoryName(output));
             File.WriteAllText(output, JsonUtility.ToJson(new Report { passed = true, checks = checks, reopenedNestedBundles = true,
-                existingRadioDonorsAvailable = true, liveryIds = ids.ToArray(), bundleHashes = hashes.ToArray() }, true));
+                existingRadioDonorsAvailable = true, shayModelsAvailable=true, shayBundleSha256=Hash(shayPath), liveryIds = ids.ToArray(), bundleHashes = hashes.ToArray() }, true));
             EditorApplication.Exit(0);
         }
         catch (Exception error) { Debug.LogException(error); EditorApplication.Exit(1); }
@@ -63,8 +76,9 @@ public static class CombinedPackageAudit
     { using (var sha = SHA256.Create()) using (var stream = File.OpenRead(path)) return BitConverter.ToString(sha.ComputeHash(stream)).Replace("-", ""); }
     [Serializable] private sealed class Report
     {
-        public bool passed, reopenedNestedBundles, existingRadioDonorsAvailable;
+        public bool passed, reopenedNestedBundles, existingRadioDonorsAvailable, shayModelsAvailable;
         public bool gameRuntimeValidated = false, nativeWorldImportValidated = false;
         public int checks; public string[] liveryIds, bundleHashes;
+        public string shayBundleSha256;
     }
 }

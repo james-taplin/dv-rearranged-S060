@@ -38,6 +38,11 @@ internal static class NativeProbe
             def.Dockside = Def<ReciprocatingSteamEngineDefinition>(id);
             def.Dockside.cylinderBore = S060SteamCalibration.Dockside.Bore; def.Dockside.pistonStroke = S060SteamCalibration.Dockside.Stroke;
             def.Dockside.steamChestVolume = S060SteamCalibration.Dockside.ChestLitres; def.Dockside.throttleMaxFlow = S060SteamCalibration.Dockside.MaxFlow;
+            if(!front)
+            {
+                def.Shay=Def<ReciprocatingSteamEngineDefinition>(id);def.Shay.numCylinders=3;def.Shay.cylinderBore=.17f;
+                def.Shay.pistonStroke=.150395513f;def.Shay.steamChestVolume=12;def.Shay.throttleMaxFlow=.8f;
+            }
             def.Meyer = Def<MeyerStageDefinition>(id); def.Meyer.Owner = bank.Compound; def.Meyer.HighPressure = !front;
             def.Meyer.cylinderBore = (float)(front ? S060SteamCalibration.Meyer.LpBore : S060SteamCalibration.Meyer.HpBore);
             def.Meyer.pistonStroke = (float)S060SteamCalibration.Meyer.Stroke;
@@ -49,6 +54,7 @@ internal static class NativeProbe
     }
     private static Port Input(string id, float value) => new Port("cab", new PortDefinition(PortType.EXTERNAL_IN, PortValueType.GENERIC, id), value);
     private static Port throttle, cocks, rpm;
+    private static readonly System.Collections.Generic.Dictionary<S060EngineBank,ConfigurableMultiplier> Gears=new System.Collections.Generic.Dictionary<S060EngineBank,ConfigurableMultiplier>();
     private static void Connect(S060EngineBank bank)
     {
         var values = new System.Collections.Generic.Dictionary<string, Port> {
@@ -57,6 +63,11 @@ internal static class NativeProbe
             ["INTAKE_TEMPERATURE"] = Input("temperature", 200), ["INTAKE_QUALITY"] = Input("quality", 1),
             ["CRANK_RPM"] = rpm = Input("rpm", 80), ["LUBRICATION_NORMALIZED"] = Input("oil", 1)
         };
+        var multiplier=(ConfigurableMultiplierDefinition)FormatterServices.GetUninitializedObject(typeof(ConfigurableMultiplierDefinition));multiplier.ID="nativeShayRpm";
+        multiplier.aReader=new PortReferenceDefinition(PortValueType.RPM,"A");multiplier.bReader=new PortReferenceDefinition(PortValueType.GENERIC,"B");
+        multiplier.mulReadOut=new PortDefinition(PortType.OUT,PortValueType.RPM,"OUT");
+        var gear=new ConfigurableMultiplier(multiplier);gear.aReader.SetPortReference(rpm);gear.bReader.SetPortReference(Input("ratio",S060ShayEngine.Ratio));
+        gear.Tick(0);bank.ShayRpm=gear.mulReadOut;Gears[bank]=gear;
         foreach (var slot in new[] { bank.Rear, bank.Front })
         {
             foreach (var reference in slot.GetAllPortReferences()) reference.SetPortReference(values[S060EngineState.Suffix(reference.id)]);
@@ -64,7 +75,7 @@ internal static class NativeProbe
         }
     }
     private static void Tick(S060EngineBank bank, int count)
-    { for (int i = 0; i < count; i++) { bank.Rear.Tick(.02f); bank.Front.Tick(.02f); } }
+    { for (int i = 0; i < count; i++) { Gears[bank].Tick(.02f);bank.Rear.Tick(.02f); bank.Front.Tick(.02f); } }
     private static void Main(string[] args)
     {
         var json = JObject.Parse(File.ReadAllText(args[0])); calibration = json["MonoBehaviour"] as JObject ?? json;
@@ -132,7 +143,44 @@ internal static class NativeProbe
         TractionEnvelope();
         CockCycles();
         checks += NativeSlipKernel.CheckThresholds();
+        ShayChecks();
         Console.WriteLine(checks + " production engine-bank checks passed against actual B99 engines. No Unity scene or driving executed.");
+    }
+
+    private static void ShayChecks()
+    {
+        var bank=Bank();Connect(bank);bank.Select(S060EngineMode.Shay);cocks.Value=1;rpm.Value=60;
+        var geared=(S060ShayEngine)bank.Main.Selected;geared.temperatureInCylinders=200;geared.waterInCylindersNormalizedReadOut.Value=0;Tick(bank,100);cocks.Value=0;
+        Check(geared.numCylinders==3&&Math.Abs(geared.pistonRotationLead-1f/3)<1e-6,"Native Shay has three 120-degree cylinder channels");
+        for(int i=0;i<2200;i++)
+        {
+            try{Tick(bank,1);}catch{Console.WriteLine("Shay failing tick="+i+" water="+geared.waterInCylindersNormalizedReadOut.Value+" temp="+geared.temperatureInCylinders+" pressure="+geared.steamChestPressureReadOut.Value);throw;}
+            if(i%100==0)
+            {
+                Check(Math.Abs(bank.ShayRpm.Value-rpm.Value*S060ShayEngine.Ratio)<1e-4,"Native RPM multiplier retains the gearbox ratio");
+                Check(Math.Abs(geared.GearTurns-Math.Floor(geared.GearTurns)-geared.crankRotation)<1e-5,"Full 43-turn gear phase stays aligned with the native crank");
+                Check(bank.Auxiliary.torqueOut.Value==0&&bank.Auxiliary.intakeFlowReadOut.Value==0,"Single Shay engine does not draw steam or torque from a second unit");
+                Check(Math.Abs(bank.Main.torqueOut.Value-geared.torqueOut.Value*S060ShayEngine.Ratio*S060ShayEngine.Efficiency)<.01,"Geared output trades RPM for torque with power loss, without an extra force model");
+            }
+        }
+        var saved=bank.Main.GetSaveStateData();var auxiliary=bank.Auxiliary.GetSaveStateData();
+        var restored=Bank();Connect(restored);restored.Main.SetSaveStateData(saved);restored.Auxiliary.SetSaveStateData(auxiliary);
+        Check(restored.Mode==S060EngineMode.Shay&&JToken.DeepEquals(saved,restored.Main.GetSaveStateData()),"Three-cylinder state and full geared phase round trip exactly");
+        cocks.Value=1;Tick(restored,50);Check(restored.Main.cylinderCockFlowNormalizedReadOut.Value>0,"Shay cylinder cocks draw native steam from the cab control");
+        rpm.Value=-60;Tick(restored,100);var reverse=(S060ShayEngine)restored.Main.Selected;
+        Check(reverse.GearTurns>=0&&reverse.GearTurns<43&&Math.Abs(reverse.GearTurns-Math.Floor(reverse.GearTurns)-reverse.crankRotation)<1e-5,"Reverse gear phase wraps without a discontinuity");
+        restored.Select(S060EngineMode.Simple);Check(restored.Main.Selected.numCylinders==2,"Stock restores its original two-cylinder native engine");
+        var legacy=(JObject)restored.Main.GetSaveStateData().DeepClone();legacy.Remove("3");var oldBank=Bank();Connect(oldBank);oldBank.Main.SetSaveStateData(legacy);
+        Check(oldBank.Mode==S060EngineMode.Simple,"Pre-Shay saves may omit only the new dormant engine circuit");
+        var corrupt=(JObject)saved.DeepClone();corrupt["3"]["gearTurns"]=-1;var before=bank.Main.GetSaveStateData();bool refused=false;
+        try{bank.Main.SetSaveStateData(corrupt);}catch(InvalidOperationException){refused=true;}
+        Check(refused&&JToken.DeepEquals(before,bank.Main.GetSaveStateData()),"Invalid geared phase rolls back the complete native slot state");
+        var outOfPhase=(JObject)saved.DeepClone();outOfPhase["3"]["gearTurns"]=((double)outOfPhase["3"]["gearTurns"]+.25)%43;
+        refused=false;try{bank.Main.SetSaveStateData(outOfPhase);}catch(InvalidOperationException){refused=true;}
+        Check(refused&&JToken.DeepEquals(before,bank.Main.GetSaveStateData()),"Disagreeing native/visual crank saves roll back atomically");
+        var malformed=(JObject)legacy.DeepClone();malformed["3"]="invalid";var oldBefore=oldBank.Main.GetSaveStateData();
+        refused=false;try{oldBank.Main.SetSaveStateData(malformed);}catch(InvalidOperationException){refused=true;}
+        Check(refused&&JToken.DeepEquals(oldBefore,oldBank.Main.GetSaveStateData()),"Only an absent dormant Shay state is legacy-compatible; malformed state is rejected");
     }
 
     // Retained pre-cleanup serializer as a compatibility oracle. It is
@@ -246,13 +294,13 @@ internal static class NativeProbe
         // Run the production bank and unmodified DV engines, rather than an
         // invented torque formula. This reports available force; it does not
         // pretend to reproduce ECS weather, braking or the player's controls.
-        foreach (var mode in new[] { S060EngineMode.Meyer, S060EngineMode.Dockside })
+        foreach (var mode in new[] { S060EngineMode.Meyer, S060EngineMode.Dockside, S060EngineMode.Shay })
         foreach (float speed in new[] { 1f, 10f, 40f, 80f })
         {
             var bank = Bank(); Connect(bank); bank.Select(mode);
             cocks.Value = 0; rpm.Value = speed;
             bank.Rear.reverserControl.port.Value = 1;
-            foreach (var slot in new[] { bank.Rear, bank.Front })
+            foreach (var slot in new[] { bank.Rear, bank.Front }.Where(s=>s.Selected!=null))
             {
                 slot.Selected.waterInCylindersNormalizedReadOut.Value = 0;
                 slot.Selected.temperatureInCylinders = 200;
@@ -263,7 +311,7 @@ internal static class NativeProbe
             {
                 Tick(bank, 1);
                 double force = (bank.Rear.torqueOut.Value + bank.Front.torqueOut.Value) /
-                    (mode == S060EngineMode.Meyer ? .712128 : .5);
+                    (mode == S060EngineMode.Shay ? .5697024 : mode == S060EngineMode.Meyer ? .712128 : .5);
                 minimum = Math.Min(minimum, force); maximum = Math.Max(maximum, force); sum += force;
             }
             Check(minimum >= 0 && maximum > 0 && !double.IsInfinity(maximum), "Articulated production engine delivers finite positive traction");

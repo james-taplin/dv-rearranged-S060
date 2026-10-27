@@ -21,6 +21,8 @@ Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Meyer\tools\QuarteringPlayModeR
 $env:S060_EXHAUST_AUDIT_RUNTIME = $runtime
 $env:S060_CONTACT_AUDIT_RUNTIME = $runtime
 $env:S060_NATIVE_PREVIEW = Join-Path $config.QAPath 'native-preview.json'
+$shayBundle=Get-ChildItem (Join-Path $PSScriptRoot 'build\shay') -Directory -Filter 'bundle-*' | Where-Object { Test-Path (Join-Path $_.FullName 'bundle-receipt.json') } | Sort-Object Name -Descending | Select-Object -First 1
+$env:S060_SHAY_AUDIT_BUNDLE=Join-Path $shayBundle.FullName 'shay_running_gear'
 $env:S060_CONVENTIONAL_NATIVE = Join-Path $config.QAPath 'conventional-native.json'
 $entries = @(
     @{ name='exhaust'; method='ExhaustNativeAudit.RunBatch'; env='S060_EXHAUST_AUDIT_OUTPUT'; report='native-exhaust-validation.json' },

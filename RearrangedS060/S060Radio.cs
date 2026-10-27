@@ -104,7 +104,7 @@ namespace RearrangedS060
                 var current = S060Conversion.Current(selected)?.Selection ?? S060Selection.Stock;
                 choice = current.IsStock ? 0 : current.Arrangement == S060Arrangement.FourCoupled ? 1 :
                     current.Arrangement == S060Arrangement.SixCoupled ? 2 : current.Arrangement == S060Arrangement.SixTwo ? 4 :
-                    current.Arrangement == S060Arrangement.Meyer ? 5 : current.Arrangement == S060Arrangement.Dockside ? 6 : current.Arrangement == S060Arrangement.TenCoupled ? 7 : 3;
+                    current.Arrangement == S060Arrangement.Shay ? 8 : current.Arrangement == S060Arrangement.Meyer ? 5 : current.Arrangement == S060Arrangement.Dockside ? 6 : current.Arrangement == S060Arrangement.TenCoupled ? 7 : 3;
                 ButtonBehaviour = ButtonBehaviourType.Override;
                 Play(selectSound);
                 ShowChoice();
@@ -123,7 +123,7 @@ namespace RearrangedS060
             }
         }
 
-        private S060Selection Selection() => choice == 7 ? new S060Selection(S060Arrangement.TenCoupled, 1f) : choice == 0 ? S060Selection.Stock : choice == 5 ? new S060Selection(S060Arrangement.Meyer, 1f) :
+        private S060Selection Selection() => choice == 8 ? new S060Selection(S060Arrangement.Shay, 1f) : choice == 7 ? new S060Selection(S060Arrangement.TenCoupled, 1f) : choice == 0 ? S060Selection.Stock : choice == 5 ? new S060Selection(S060Arrangement.Meyer, 1f) :
             choice == 6 ? new S060Selection(S060Arrangement.Dockside, 1f) : choice == 4 ?
             new S060Selection(S060Arrangement.SixTwo, 1f) :
             S060Selection.ForConversion(choice == 1 ? S060Arrangement.FourCoupled : choice == 2 ?
@@ -141,7 +141,7 @@ namespace RearrangedS060
         private bool Cycle(int direction)
         {
             if (selected == null) return false;
-            int count = S060Selection.IsSupported(6) ? 8 : S060Selection.IsSupported(5) ? 7 : 5;
+            int count = S060Selection.IsSupported(7) ? 9 : S060Selection.IsSupported(6) ? 8 : S060Selection.IsSupported(5) ? 7 : 5;
             choice = (choice + direction + count) % count;
             ShowChoice();
             return true;

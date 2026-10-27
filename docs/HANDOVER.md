@@ -1,5 +1,98 @@
 # Rearranged S060 — handover
 
+## 0.20.0: integrated two-truck Shay — 27 October 2026
+
+James authorised completing the four R1 module sessions' transmission checks,
+integrating the Shay into the existing S060 radio, reusing DV wheels, keeping
+saves compatible and installing only while the game is closed. Persistent
+preference: no installation backup. Vehicle targeting is unchanged.
+
+Ninth radio/UMM choice, arrangement ID 7 appended; no separate spawned vehicle.
+Complete native 01/02/02/03 S060 wheel halves and native distant LODs are aliased
+live, with Y/Z radial factor 0.8 and unchanged X gauge. Four native PoweredWheel
+objects register directly beneath the existing two native bogie_car transforms.
+Original mechanisms, cylinders/readers are hidden, not destroyed; per-car R1
+body relief/pipe mesh copies and all detached truck frames restore on exit.
+Live painted materials track the S060 body. See docs/shay/INTEGRATION.md.
+
+Native-first decision: B99 already supports three-cylinder ReciprocatingSteamEngine.
+Use it with the existing stable main slot and an appended native RPM multiplier,
+43/19 reduction and 0.92 transmission efficiency. No extra steam, adhesion or
+force solver/dependency. Auxiliary slot is dormant in Shay. Native model bore
+0.17 m/stroke 0.150395513 m matches the original kit. Measured native full-gear,
+16-bar traction mean is approximately 13.7 kN at 1 wheel RPM and 12.6 kN at 80;
+expect substantially less pulling force than stock, not guaranteed wheelslip.
+Existing Meyer compound calibration and Dockside engines are untouched.
+
+Visible shafts/joints/gears/wheels follow the kit's actual Hooke-joint solver.
+Traction uses its average reduction. Compound poses have instantaneous phase
+ripple (original study worst 8.6645/11.4457 degrees), not concealed exact CV
+motion. Bevel flanks are a visual approximation, not certified tooth contact.
+Whole assembly repeats at 43 engine/19 wheel turns. Native cylinder phase and
+that full animation cycle are saved together and validated for agreement.
+
+Selection schema 4 is Shay-only. Schemas 1–3, old arrangement IDs, all five
+possible wheel-state slots and fourteen oil circuit IDs retain meaning. A
+missing appended dormant engine circuit is accepted from pre-Shay saves;
+malformed present state and invalid phase roll the whole engine slot back.
+Eight axlebox cups, three engine big ends and a common bearing lubricator reuse
+twelve existing servicing points; the last two stay dormant. The native
+six/twelve-to-fourteen oil migration is unchanged.
+
+Effects reuse ONLY the processed donor's native effects subtree. Three jets,
+three independent water-drip readers and three native sound emitters replace
+the donor pair; no spare truck scripts are cloned. Existing cab cocks, flow,
+water gates, 120-degree phase curves and teardown ownership remain native.
+Admission/exhaust tubes connect to boiler and smokebox; one chimney remains.
+
+Original-only asset bundle: build/shay/bundle-20261027-014426/shay_running_gear,
+SHA256 C5BE7FCDAA5BE70E2A6E067CF082FDC3191F5F8C7EBAB296E5445F915BBDF462.
+Frozen fit-contract SHA256 3A6A104D1F12C49C3E399001E67F9F095C10EECD5AF2F39677AC44D70F37E8A7.
+Original editable module sources remain B:/LLW CONVERT/locos/s060-shay; the
+bundle contains no game meshes/textures/sounds/DLLs or new CCL car identity.
+Build.Shay.ps1 copies the original kits into the ignored authoring project.
+Keep its S060.Shay.ModelSource.asmdef: without it Unity creates Assembly-CSharp
+and can shadow the actual native game assembly in offline audits.
+
+The transmission's isolated Unity builder now compiles, reopens its scene and
+validates all 43 references (transmission/evidence/unity-validation.json).
+This supersedes the old module handover's Editor/licensing limitation. Added
+combined triangle audit: 13,151 narrow-phase checks, zero unexpected contacts,
+all four fixed hangers supported in all 49 poses x eight phases per truck.
+Fixed hanger/casting seat contacts are intentional. No continuous sweep claimed.
+
+Final native suite: build/radio-0.20.0/runtime-audits-20261027-015616.
+Exact runtime SHA256 ACBE6C63F1D9C59F3118CF72CC9F53AFC10C2AF594D04521DAC55227B7C31965.
+Passed exhaust611, cocks247 (including three-cylinder fitting/masks, repeated
+cycles and independent drips), cleanup145, Meyer collision7062, native contact
+PlayMode21, conventional+Shay native-mesh/motion505, quartering PlayMode115.
+Managed/native checks: functional/save193, engine351, oiling627, axle100,
+geometry1151, conversion35/14 failure scenarios, compound25, diagnostic145,
+Meyer18 and Dockside17. Runtime compiles with zero warnings/errors.
+
+Public output: build/nexus-0.20.0-single/RearrangedS060-0.20.0-UMM.zip.
+One UMM root/Info.json, both unchanged 0.7.0 CCL donor bundles and the extra
+Shay asset-only bundle; no nested archives. Actual UMM extraction, update,
+settings preservation and old-three-part migration pass 57 assertions. Unity
+reopens the extracted three bundles with 38 checks. Install.Nexus.ps1 is the
+new deployment path; tests/Installer/Nexus.ps1 exercises its running-game gate,
+tampered-package rejection, legacy removal and repeated settings preservation
+with 18 fixture checks. Raw articulated-test.zip remains a legacy three-part
+migration fixture, not the complete Shay installation; use the Nexus ZIP.
+
+Installation uses Install.Nexus.ps1 with closed-game checks immediately before
+mutation, exact receipt/hash checks and no backup. It preserves Settings.xml
+and unrelated mods, retires the two old standalone donor folders after verifying
+the replacement bytes, and clears only this runtime's generated DLL cache.
+Inspect build/nexus-0.20.0-single/install-receipt-latest.json for final installed
+hash/version evidence. Desktop copy goes in C:/Users/james/Desktop/Derail Valley Mods.
+No push or Nexus publication is authorised/performed for this update.
+
+Whole-car DV driving, sound balance, curve behaviour, gameplay performance and
+radio operation remain for James's in-game acceptance. See the explicit Shay
+steps at the top of docs/RADIO-ARTICULATED-TESTING.md. Do not describe isolated
+Unity/native fixtures as a completed driving test or claim historical fidelity.
+
 ## 0.19.1: native quartering and oil-save migration — 25 October 2026
 
 James authorized fixing these two upstream-review findings, preserving saves,

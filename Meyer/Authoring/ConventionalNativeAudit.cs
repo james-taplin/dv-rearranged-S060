@@ -18,7 +18,7 @@ public static class ConventionalNativeAudit
     [Serializable] private class Node { public string name, mesh; public Vector3 position, scale; public Quaternion rotation; public Node[] children; }
     [Serializable] private class Data { public Node[] roots; public Entry[] meshes; }
     [Serializable] private class Report { public bool passed, actualNativeMeshes, candidateGeometry, fiveDrivenAxles, fullSizeCylinders, tenOilSites, cleanup, crankSweep, tyreClearance;
-        public bool gameRuntimeValidated = false; public int checks; public string runtimeSha256; }
+        public bool gameRuntimeValidated = false, shayNativeWheelReuse; public int checks; public string runtimeSha256, shayBundleSha256; }
     private static readonly BindingFlags All = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
     private static int checks;
     private static readonly List<Object> owned = new List<Object>();
@@ -37,8 +37,11 @@ public static class ConventionalNativeAudit
             var texture = new Texture2D(2, 2); texture.LoadImage(File.ReadAllBytes(Path.Combine(Path.GetDirectoryName(Environment.GetEnvironmentVariable("S060_NATIVE_PREVIEW")), "native-preview-atlas.png"))); owned.Add(texture);
             material = new Material(Shader.Find("Standard")); material.mainTexture = texture; owned.Add(material);
             foreach (bool ten in new[] { false, true }) Validate(data, bodyData, ten);
+            if(!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("S060_SHAY_AUDIT_BUNDLE"))) ValidateShay(data,bodyData);
             File.WriteAllText(Path.Combine(output, "conventional-validation.json"), JsonUtility.ToJson(new Report { passed = true, checks = checks,
-                actualNativeMeshes = true, candidateGeometry = true, fiveDrivenAxles = true, fullSizeCylinders = true, tenOilSites = true, cleanup = true, crankSweep = true, tyreClearance = true, runtimeSha256 = Hash(dll) }, true));
+                actualNativeMeshes = true, candidateGeometry = true, fiveDrivenAxles = true, fullSizeCylinders = true, tenOilSites = true, cleanup = true, crankSweep = true, tyreClearance = true, runtimeSha256 = Hash(dll),
+                shayNativeWheelReuse = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("S060_SHAY_AUDIT_BUNDLE")),
+                shayBundleSha256 = Hash(Environment.GetEnvironmentVariable("S060_SHAY_AUDIT_BUNDLE")) }, true));
             EditorApplication.Exit(0);
         }
         catch (Exception error) { File.WriteAllText(Path.Combine(output,"error.txt"), error.ToString()); Debug.LogException(error); EditorApplication.Exit(1); }
@@ -200,6 +203,79 @@ public static class ConventionalNativeAudit
             foreach(var wheel in wheels)wheel.localRotation=originals[wheel];rod.localPosition=rest;
         }
     }
+    private static void ValidateShay(Data data,Entry bodyData)
+    {
+        var root=new GameObject("Native S060 Shay fixture"); root.SetActive(false);
+        var game=Assembly.LoadFrom(Path.Combine(Environment.GetEnvironmentVariable("S060_AUDIT_MANAGED"),"Assembly-CSharp.dll"));
+        var car=root.AddComponent(game.GetType("TrainCar",true));
+        var body=new GameObject("LocoS060_Body").transform; body.SetParent(root.transform,false);
+        foreach(var node in data.roots) Tree(body,node,data);
+        bool Cylinder(Vector3 v,int side) => SteamNativePreview.NativeCylinder(v,side);
+        bool Brake(Vector3 v) => Mathf.Abs(v.x)>=.41f&&Mathf.Abs(v.x)<=1f&&v.y<=.8215f&&((v.z>=2.16f&&v.z<=2.59f)||(v.z>=.6f&&v.z<=1.31f)||(v.z>=-.91f&&v.z<=-.57f));
+        // Match the existing native preview/splitter masks: original brakes are
+        // hidden by S060DriverScale, not retained inside the body QA mesh.
+        Draw(body,"s060_body",Mesh(bodyData,v=>!Cylinder(v,-1)&&!Cylinder(v,1)&&!Brake(v)));
+        var cylinders=new List<Transform>();
+        foreach(int side in new[]{-1,1}) cylinders.Add(Draw(body,side<0?"s060_cylinder_left":"s060_cylinder_right",Mesh(bodyData,v=>Cylinder(v,side)&&!Brake(v))));
+        var beforeCylinder=cylinders.Select(c=>c.GetComponent<MeshFilter>().sharedMesh.bounds).ToArray();
+        var parts=New("S060Parts"); Set(parts,"Car",car); Set(parts,"Body",body);
+        var left=body.Find("DrivingMechanism_L"); var right=body.Find("DrivingMechanism_R"); Set(parts,"MechanismLeft",left); Set(parts,"MechanismRight",right);
+        var front=new GameObject("Axle_F"); front.transform.SetParent(root.transform,false);front.transform.localPosition=new Vector3(0,0,.925f);
+        var frontFrame=new GameObject("bogie_car");frontFrame.transform.SetParent(front.transform,false);
+        var rear=new GameObject("Axle_R"); rear.transform.SetParent(root.transform,false);rear.transform.localPosition=new Vector3(0,0,-1.4f);
+        var rearFrame=new GameObject("bogie_car");rearFrame.transform.SetParent(rear.transform,false);
+        var bogieType=game.GetType("Bogie",true); Set(parts,"FrontBogie",front.AddComponent(bogieType)); Set(parts,"RearBogie",rear.AddComponent(bogieType));
+        var poweredType=AppDomain.CurrentDomain.GetAssemblies().Select(a=>a.GetType("LocoSim.Implementations.Wheels.PoweredWheel")).First(t=>t!=null);
+        var wheelMap=(IDictionary)parts.GetType().GetField("wheels",All).GetValue(parts);
+        var axleMap=(IDictionary)parts.GetType().GetField("axleForWheel",All).GetValue(parts);
+        var poweredMap=(IDictionary)parts.GetType().GetField("poweredForWheel",All).GetValue(parts);
+        for(int index=1;index<=3;index++)
+        {
+            wheelMap.Add(index,new List<Transform>{left.Find("s060_Wheels_0"+index),right.Find("s060_Wheels_0"+index)});
+            var axle=new GameObject("[axle]"); axle.transform.SetParent(index==1?rearFrame.transform:frontFrame.transform,false);
+            var powered=axle.AddComponent(poweredType); poweredType.GetField("wheelTransform",All).SetValue(powered,right.Find("s060_Wheels_0"+index));
+            axleMap.Add(index,axle.transform); poweredMap.Add(index,powered);
+        }
+
+        var bundlePath=Environment.GetEnvironmentVariable("S060_SHAY_AUDIT_BUNDLE");
+        var bundle=AssetBundle.LoadFromFile(bundlePath);
+        var prefab=bundle.LoadAsset<GameObject>("assets/shayintegration/s060shay.prefab");
+        Check(prefab!=null,"Shipping Shay prefab loads by its verified asset path");
+        var owner=New("S060Shay");Set(owner,"Parts",parts);root.SetActive(true);
+        var bodyFilter=body.GetComponentsInChildren<MeshFilter>(true).Single(f=>f.name=="s060_body");var originalBody=bodyFilter.sharedMesh;
+        var returned=(Array)Call(owner,"BuildModels",prefab);
+        Check(returned.Length==4,"Shay geometry returns four real native PoweredWheel objects");
+        var markers=(Transform[])owner.GetType().GetProperty("Markers",All).GetValue(owner,null);
+        var model=(GameObject)owner.GetType().GetProperty("Root",All).GetValue(owner,null);
+        var aliases=markers.SelectMany(t=>t.GetComponents<MeshFilter>()).Where(f=>f.name.Contains("_NATIVE_")).ToArray();
+        Check(aliases.Length==8&&aliases.All(f=>f.sharedMesh!=null),"All eight complete DV wheel halves are aliased from live native references");
+        foreach(var f in aliases)Check(Math.Abs(Math.Abs(f.transform.localScale.x)-1)<1e-6,"Native Shay gauge/mirror is never radially scaled");
+        Check(bodyFilter.sharedMesh!=originalBody,"Measured tank and lower-frame relief is a per-car mesh copy");
+        var bank=New("S060EngineBank");var slot=System.Runtime.Serialization.FormatterServices.GetUninitializedObject(runtime.GetType("RearrangedS060.S060EngineSlot"));
+        var engineType=runtime.GetType("RearrangedS060.S060ShayEngine");var engine=System.Runtime.Serialization.FormatterServices.GetUninitializedObject(engineType);
+        var nativeEngine=engineType.BaseType;var engines=Array.CreateInstance(nativeEngine,4);engines.SetValue(engine,3);
+        slot.GetType().GetField("Engines",All).SetValue(slot,engines);bank.GetType().GetField("Rear",All).SetValue(bank,slot);
+        var motion=model.AddComponent(runtime.GetType("RearrangedS060.S060ShayMotion"));Call(motion,"Bind",bank,model.transform,bundle.LoadAllAssets<TextAsset>().Single(),markers);
+        var transmission=(Component)motion.GetType().GetField("transmission",All).GetValue(motion);
+        foreach(float yaw in new[]{-12f,0,12f})
+        foreach(double turn in new[]{0.0,.125,.25,.75,1.0,42.875})
+        {
+            rear.transform.localRotation=Quaternion.Euler(1,yaw,-1);front.transform.localRotation=Quaternion.Euler(-1,-yaw,1);
+            Set(engine,"GearTurns",turn);Call(motion,"LateUpdate");
+            float engagement=(float)transmission.GetType().GetField("rearEngagement").GetValue(transmission);
+            float frontEngagement=(float)transmission.GetType().GetField("frontEngagement").GetValue(transmission);
+            Check(engagement>=.08f&&frontEngagement>=.08f,"Shipping articulated links retain the frozen minimum engagement");
+            Check(markers.Where(t=>t.name.StartsWith("OIL_CUP_")).Count()==8,"Two supported axlebox cup markers per driven axle survive articulation");
+            Check(markers.All(t=>!float.IsNaN(t.localRotation.x)),"Shipping combined engine/transmission produces finite poses");
+        }
+        rear.transform.localRotation=front.transform.localRotation=Quaternion.identity;Set(engine,"GearTurns",0.0);Call(motion,"LateUpdate");
+        Render(root,"shay");
+        var detached=markers.Where(t=>t.name=="TRUCK_REAR"||t.name=="TRUCK_FRONT"||t.name=="TRUCK_REAR_PIVOT"||t.name=="TRUCK_FRONT_PIVOT").ToArray();
+        Call(owner,"RestoreModels");Check(bodyFilter.sharedMesh==originalBody,"Leaving Shay restores the exact native body mesh");
+        Check(detached.All(t=>t==null||!t.gameObject.activeSelf),"Leaving Shay retires every detached truck and transmission frame");
+        Object.DestroyImmediate(root);bundle.Unload(true);
+    }
+
     private static void Render(GameObject body,string name)
     {
         var scene=EditorSceneManager.NewPreviewScene(); var clone=Object.Instantiate(body); clone.SetActive(true); UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(clone,scene);

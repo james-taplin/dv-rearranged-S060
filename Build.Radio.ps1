@@ -30,6 +30,7 @@ $quartering = Get-Content ($nativeReport.reports | Where-Object name -eq 'quarte
 if (-not $quartering.actualPlayMode -or -not $quartering.productionRetention -or -not $quartering.oldResetReproduced -or
     -not $quartering.repeatedTransitions -or -not $quartering.forwardReverse -or -not $quartering.originalFlagsRestored -or -not $quartering.teardown) { throw 'Actual Unity quartering reset, retention, native return and cleanup regressions are required.' }
 $conventional = Get-Content ($nativeReport.reports | Where-Object name -eq 'conventional').path -Raw | ConvertFrom-Json
+if (-not $conventional.shayNativeWheelReuse -or -not $conventional.shayBundleSha256) { throw 'Combined Shay native-wheel and articulation validation is required.' }
 if (-not $conventional.candidateGeometry -or -not $conventional.fiveDrivenAxles -or -not $conventional.fullSizeCylinders -or -not $conventional.tenOilSites -or -not $conventional.cleanup -or -not $conventional.crankSweep -or -not $conventional.tyreClearance) { throw 'Compiled conventional five-axle fit, motion, clearance and cleanup regressions are required.' }
 $cockReport = ($nativeReport.reports | Where-Object name -eq 'cocks').path
 if (-not (Get-Content $cockReport -Raw | ConvertFrom-Json).ownedFixedCrankFlowAndReverser) { throw 'Owned cylinder-cock fixed-crank flow/reverser regression is required.' }
@@ -104,7 +105,10 @@ try {
         if (@($types | Where-Object Name -eq $name).Count -ne 1) { throw "Missing runtime component: $name" }
     }
     if (@($module.AssemblyReferences | Where-Object Name -Match 'CCL|AssetStudio|RearrangedS282').Count) { throw 'Unexpected runtime dependency.' }
-    $implementation = @($types | Where-Object { $_.Name -in @('S060Conversion','S060Articulated','S060EngineBank','S060EngineSlot','S060ArticulatedSimulation','S060MeyerSupport','S060LogicLength','S060Lifecycle') })
+    foreach ($name in @('S060Shay','S060ShayAssets','S060ShayEngine','S060ShayMotion','S060ShayTransmission','S060ShayEffects','S060ShayPlumbing')) {
+        if (@($types | Where-Object Name -eq $name).Count -ne 1) { throw "Missing Shay runtime component: $name" }
+    }
+    $implementation = @($types | Where-Object { $_.Name -in @('S060Conversion','S060Articulated','S060Shay','S060EngineBank','S060EngineSlot','S060ArticulatedSimulation','S060MeyerSupport','S060LogicLength','S060Lifecycle') })
     $instructions = @($implementation | ForEach-Object Methods | Where-Object HasBody | ForEach-Object { $_.Body.Instructions })
     $calls = @($instructions | Where-Object { $_.OpCode.Code -in @('Call','Callvirt','Newobj') } | ForEach-Object { $_.Operand.FullName })
     if (@($calls | Where-Object { $_ -match 'CarSpawner::|SimController::Initialize\(|TrainCar::InitializeNewLogicCar|TrainCar::set_carLivery' }).Count) {

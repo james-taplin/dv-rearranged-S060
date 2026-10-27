@@ -2,7 +2,7 @@ MOD NAME
 Rearranged S060 - Re:Arranged
 
 VERSION / FILE CATEGORY
-0.19.1 - 0-10-0 Tank and compatibility fixes / Main file
+0.20.0 - Two-truck Shay / Main file
 
 SHORT DESCRIPTION
 Give the S060 new wheel arrangements, a compound Meyer with an attached pannier
@@ -21,7 +21,7 @@ Rearranged S060 is a fork of my Rearranged S282 B99 / Re:Arranged fork,
 itself based on Peter Schinske / SatiricRug's original Rearranged S282. The fork
 retains the original MIT licence and copyright notices.
 
-[b]Eight arrangement choices[/b]
+[b]Nine arrangement choices[/b]
 [list]
 [*]0-6-0 Stock - original 1.42 m drivers.
 [*]0-4-0 - four-coupled layout with stock-sized drivers.
@@ -33,7 +33,17 @@ retains the original MIT licence and copyright notices.
 an attached pannier steam bogie, sharing the same cab, locomotive identity and save.
 [*]Franklin Dockside 0-4-4-0T - two simple-expansion units, 1.00 m drivers and
 animated Franklin gear, all beneath one tank locomotive.
+[*]Two-truck Shay - three vertical cylinders, jointed drive shafts, bevel gears
+and four driven axles using complete native DV wheelsets with fitted 1.14 m drivers.
 [/list]
+
+[b]Two-truck Shay[/b]
+A fictional S060 conversion with a three-cylinder side engine and 43:19 geared
+drive to two swivelling trucks. Steam and exhaust pipes connect the engine to
+the boiler and single chimney. All three cylinder-cock channels use the cab
+lever; eight working axlebox cups service the four driven axles. The Shay is
+available from the radio and UMM chooser, and is excluded from random spawning.
+This first version still needs gameplay acceptance, especially on tight curves.
 
 [b]Meyer compound[/b]
 The Meyer has an HP engine, finite steam receiver and LP engine. Its LP exhaust
@@ -71,7 +81,7 @@ Install CCL's own requirements too, including DV Language Helper for the tested
 CCL 3.1.11. These dependencies are separate downloads. Rearranged S282 is not
 required to play this mod.
 
-Close the game, then drag [b]RearrangedS060-0.19.1-UMM.zip directly into UMM[/b].
+Close the game, then drag [b]RearrangedS060-0.20.0-UMM.zip directly into UMM[/b].
 One Rearranged S060 entry includes the runtime and both Meyer/Dockside bundles.
 There are no ZIPs inside the download and no separate asset-pack installs.
 
@@ -86,7 +96,7 @@ rear, disconnect the hose and leave clear track behind. Use the S060 radio for
 normal play; the asset packs' CCL spawner entries are debug asset donors.
 
 [b]Initial beta notes[/b]
-The new fifth-wheel state uses mod save version 3. Version 0.19.1 reads earlier
+The new fifth-wheel state uses mod save version 3. Version 0.20.0 reads earlier
 saves; older mod versions cannot restore the new 0-10-0 arrangement.
 
 The latest collision correction passes automatic native and contact checks.
@@ -127,7 +137,20 @@ No original game DLLs, Verde audio/art or dependency mods are distributed here.
 [url=https://github.com/james-taplin/dv-rearranged-S282]JimTaplin's S282 fork[/url]
 [url=https://github.com/james-taplin/dv-rearranged-S060]S060 fork[/url]
 
-0.19.1 CHANGELOG - PLAIN TEXT
+0.20.0 CHANGELOG - PLAIN TEXT
+
+- Added a two-truck Shay to the existing radio and UMM arrangement chooser.
+- Reused complete DV wheelsets at the fitted 1.14 m diameter and stock gauge.
+- Added a native three-cylinder simple engine, geared RPM and torque, sliding
+  shafts, articulated universal joints, bevel gears and swivelling truck frames.
+- Added connected boiler/exhaust pipes, three cab-controlled cylinder-cock
+  channels, native water drips and eight working axlebox oil cups.
+- Preserved existing arrangement/oil circuit IDs and previous save formats.
+  The new Shay selection uses version-4 mod data; older mods cannot restore it.
+- Kept the single directly installable UMM ZIP, adding the original-only Shay
+  model bundle. The Meyer/Dockside bundles remain at 0.7.0.
+
+0.19.1 FIXES RETAINED
 
 - Preserved native left/right crank quartering when returning from Meyer or
   Dockside to stock or another conventional layout.
@@ -147,13 +170,13 @@ No original game DLLs, Verde audio/art or dependency mods are distributed here.
   circuit/port IDs retain their meanings; the two new circuits append.
 - Added fifth-wheel damage persistence with version-3 mod save data, retaining
   support for existing version-1/version-2 selections and four-wheel states.
-- All eight choices remain in one directly installable UMM ZIP. The two included
+- All nine choices remain in one directly installable UMM ZIP. The two included
   Meyer/Dockside asset bundles remain at 0.7.0.
 
 MAIN FILE DESCRIPTION
 
-Complete 0-10-0 Tank update for B99, with native quartering and oil-save fixes. Includes RearrangedS060 0.19.1 and both
-required 0.7.0 asset bundles in one UMM mod folder. Drag this ZIP directly into
+Two-truck Shay update for B99. Includes RearrangedS060 0.20.0, original Shay
+models and both required 0.7.0 asset bundles in one UMM mod folder. Drag this ZIP directly into
 UMM; no nested ZIPs or separate pack installs. Requires Loco Mesh Splitter and Custom Car Loader separately.
 Rearranged S282 is not required. See the description's beta notes before use.
 
@@ -168,6 +191,9 @@ Required Meyer geometry/asset pack for the radio-selected compound arrangement.
 
 RearrangedS060/assets/Dockside/ccl_bundle
 Required Franklin Dockside geometry/asset pack for the radio-selected arrangement.
+
+RearrangedS060/assets/Shay/shay_running_gear
+Original engine, transmission and truck meshes; wheelsets and sounds alias DV live.
 
 EDITOR NOTE - DO NOT PASTE AS A FEATURE
 

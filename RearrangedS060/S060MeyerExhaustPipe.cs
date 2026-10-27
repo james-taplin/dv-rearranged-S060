@@ -158,7 +158,7 @@ namespace RearrangedS060
             }
             result.Add(points[points.Length - 1]); return result.ToArray();
         }
-        private static Mesh Tube(Vector3[] centres, float[] radii)
+        internal static Mesh Tube(Vector3[] centres, float[] radii)
         {
             const int sides = 16;
             var vertices = new Vector3[centres.Length * sides + 2]; var normals = new Vector3[vertices.Length];

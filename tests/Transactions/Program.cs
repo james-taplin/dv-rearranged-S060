@@ -189,4 +189,6 @@ namespace RearrangedS060
     internal class S060FourCoupled : ProbeConversion {} internal class S060EightCoupled : ProbeConversion {}
     internal class S060SixTwo : ProbeConversion {} internal class S060Rescaled : ProbeConversion {}
     internal class S060Meyer : ProbeConversion {} internal class S060Dockside : ProbeConversion {}
+    internal class S060Shay : ProbeConversion {}
+    internal static class S060ShayAssets { internal static void Resolve() {} }
 }

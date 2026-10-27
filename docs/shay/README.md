@@ -1,5 +1,9 @@
 # S060 Shay feasibility and session briefs
 
+**27 October integration update:** the four R1 module sessions have been joined
+into the 0.20.0 candidate. See [integration decisions and validation](INTEGRATION.md).
+The feasibility notes below document the earlier planning baseline.
+
 Prepared for James on 25 October 2026. This is design preparation only. No Shay
 arrangement, model, physics or save entry is included in the 0.19.1 release.
 

@@ -27,9 +27,11 @@ if (-not $MeyerEvidence -or -not $DocksideEvidence) { throw 'Provide both fresh 
 & (Join-Path $repo 'Test.BundleEvidence.ps1') -Evidence $MeyerEvidence
 & (Join-Path $repo 'Test.BundleEvidence.ps1') -Evidence $DocksideEvidence
 & (Join-Path $repo 'tests\Installer\Run.ps1')
+& (Join-Path $repo 'Build.Shay.ps1')
 $started = [DateTime]::UtcNow
 & (Join-Path $repo 'Test.Runtime.ps1')
 $NativeEvidence = Get-FreshEvidence (Join-Path $repo "build\radio-$($config.Version)") 'runtime-audits-*' 'runtime-validation.json' $started
 & (Join-Path $repo 'Build.Radio.ps1') -DocksideEvidence $DocksideEvidence -NativeEvidence $NativeEvidence
 & (Join-Path $repo 'Package.Articulated.ps1') -MeyerEvidence $MeyerEvidence -DocksideEvidence $DocksideEvidence
-Write-Output 'Complete tested package staged. Installation is separate and requires the game closed.'
+& (Join-Path $repo 'Package.Nexus.ps1')
+Write-Output 'Single-folder release ZIP staged. Validate it with the native UMM and bundle-reopen fixtures before Install.Nexus.ps1; game must be closed.'

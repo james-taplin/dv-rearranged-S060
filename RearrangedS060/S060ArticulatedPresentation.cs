@@ -19,6 +19,7 @@ namespace RearrangedS060
         private readonly GameObject root;
         private readonly string engine;
         private readonly bool animated;
+        private readonly int cylinders;
         private readonly List<CylinderCockLayeredPortReader> audio = new List<CylinderCockLayeredPortReader>();
         private readonly List<ParticlesPortReadersController> particles = new List<ParticlesPortReadersController>();
         private readonly List<AnimatorPortReader> motion = new List<AnimatorPortReader>();
@@ -26,8 +27,8 @@ namespace RearrangedS060
         private S060CrankWheels wheels;
         private Port cockControl;
         private Coroutine pendingCockCheck;
-        internal S060ArticulatedPresentation(TrainCar car, GameObject root, string engine, bool animated)
-        { this.car = car; this.root = root; this.engine = engine; this.animated = animated; }
+        internal S060ArticulatedPresentation(TrainCar car, GameObject root, string engine, bool animated, int cylinders=2)
+        { this.car = car; this.root = root; this.engine = engine; this.animated = animated; this.cylinders=cylinders; }
         private string Remap(string value) => value?.Replace(MeyerRuntime.LpId + ".", engine + ".").Replace(MeyerRuntime.HpId + ".", engine + ".");
         internal void Bind()
         {
@@ -39,7 +40,7 @@ namespace RearrangedS060
                 motion.Add(reader); reader.Init(port);
             }
             if (animated && motion.Count != 1) throw new InvalidOperationException("Dockside bogie requires one native crank animation reader.");
-            if (!animated && motion.Count == 0)
+            if (!animated && motion.Count == 0 && cylinders == 2)
             {
                 wheels = root.AddComponent<S060CrankWheels>();
                 flow.TryGetPort(engine + ".CRANK_ROTATION", out var crank);
@@ -52,7 +53,7 @@ namespace RearrangedS060
                 reader.cylinderCockFlowNormalizedPortId = Remap(reader.cylinderCockFlowNormalizedPortId);
                 foreach (string id in new[] { reader.crankRotationPortId, reader.cylindersInletValveOpenPortId, reader.cylinderCockFlowNormalizedPortId, reader.cylinderCockControlPortId })
                     if (!flow.TryGetPort(id, out _)) throw new InvalidOperationException("Articulated cock audio port missing: " + id);
-                if (reader.cylCockAudio.Length != 2 || reader.cylCockAudio.Any(a => a == null)) throw new InvalidOperationException("Articulated cock audio aliases are unresolved.");
+                if (reader.cylCockAudio.Length != cylinders || reader.cylCockAudio.Any(a => a == null)) throw new InvalidOperationException("Articulated cock audio aliases are unresolved.");
                 audio.Add(reader); reader.Init(car, flow);
             }
             foreach (var controller in root.GetComponentsInChildren<ParticlesPortReadersController>(true))

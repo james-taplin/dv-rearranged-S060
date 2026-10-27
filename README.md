@@ -4,7 +4,18 @@ Change the S060's running gear through a dedicated comms-radio mode in Derail
 Valley. This project forks the Rearranged S282 B99/Re:Arranged branch, based on
 Peter Schinske / SatiricRug's original Rearranged S282.
 
-## Current candidate: S060 0.19.1, Meyer/Dockside packs 0.7.0
+## Current candidate: S060 0.20.0, Meyer/Dockside packs 0.7.0
+
+Version 0.20.0 adds a radio/UMM-selectable **two-truck Shay** using complete live
+DV S060 wheel meshes and distant LODs, stock gauge, fitted 1.14 m drivers, three
+vertical cylinders and a 43:19 reduction. Native DV steam simulation, traction
+and adhesion remain responsible for driving. The locomotive keeps its identity,
+cab, fuel, water and damage. Existing save and oil IDs remain stable; the Shay
+appends arrangement ID 7 and selection schema 4. No extra vehicle is spawned.
+
+The directly installable UMM ZIP contains both existing donor bundles and the
+original-only Shay model bundle. See [Shay integration](docs/shay/INTEGRATION.md)
+for mechanical decisions, test scope and in-game acceptance steps.
 
 Version 0.19.1 preserves native drivetrain phases while Meyer/Dockside hide the
 original mechanisms, then restores the original Animator settings on return.

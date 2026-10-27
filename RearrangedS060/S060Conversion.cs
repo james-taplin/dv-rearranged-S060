@@ -32,7 +32,7 @@ namespace RearrangedS060
 #if B99_S060_ARTICULATED
             this is S060Meyer ? S060Arrangement.Meyer : this is S060Dockside ? S060Arrangement.Dockside :
 #endif
-            this is S060TenCoupled ? S060Arrangement.TenCoupled :
+            this is S060Shay ? S060Arrangement.Shay : this is S060TenCoupled ? S060Arrangement.TenCoupled :
             this is S060FourCoupled ? S060Arrangement.FourCoupled :
             this is S060EightCoupled ? S060Arrangement.EightCoupled :
             this is S060SixTwo ? S060Arrangement.SixTwo : S060Arrangement.SixCoupled, requestedScale);
@@ -266,6 +266,7 @@ namespace RearrangedS060
                 S060Articulated.Preflight(selection.Arrangement == S060Arrangement.Meyer);
             }
 #endif
+            if (selection.Arrangement == S060Arrangement.Shay) { S060ArticulatedSimulation.Ensure(car); S060ShayAssets.Resolve(); S060Articulated.Preflight(false); }
             if (selection.Arrangement == S060Arrangement.SixTwo) S060PonyAssets.Resolve();
             if (Current(car) != null) Restore(car);
             try { ApplySelection(car, selection, restoring); }
@@ -295,6 +296,7 @@ namespace RearrangedS060
                 case S060Arrangement.TenCoupled: Convert<S060TenCoupled>(car, 1f, restoring); break;
                 case S060Arrangement.SixTwo: Convert<S060SixTwo>(car, selection.Scale, restoring); break;
 #if B99_S060_ARTICULATED
+                case S060Arrangement.Shay: Convert<S060Shay>(car, 1f, restoring); break;
                 case S060Arrangement.Meyer: Convert<S060Meyer>(car, 1f, restoring); break;
                 case S060Arrangement.Dockside: Convert<S060Dockside>(car, 1f, restoring); break;
 #endif

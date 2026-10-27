@@ -32,6 +32,7 @@ namespace RearrangedS060
 #if B99_S060_ARTICULATED
                 using (new GUILayout.HorizontalScope())
                 {
+                    if (GUILayout.Button("APPLY SHAY")) Apply(car, S060Arrangement.Shay);
                     if (GUILayout.Button("APPLY MEYER COMPOUND")) Apply(car, S060Arrangement.Meyer);
                     if (GUILayout.Button("APPLY FRANKLIN DOCKSIDE")) Apply(car, S060Arrangement.Dockside);
                 }

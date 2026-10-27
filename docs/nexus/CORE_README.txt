@@ -1,12 +1,11 @@
-REARRANGED S060 - 0.19.1 PUBLIC BETA
+REARRANGED S060 - 0.20.0 PUBLIC BETA
 
 Change the native S060's running gear through WHEEL REARRANGER on the comms
 radio, or the mod's UMM arrangement chooser. All arrangements remain attached
 to the same locomotive identity, cab and save ownership.
 
-0.19.1 fixes native crank quartering on return from articulated layouts and
-limits oil-save migration to known six/twelve-point formats. Existing saves,
-arrangement IDs, oil circuit IDs and vehicle targeting are unchanged.
+0.20.0 adds a two-truck, three-cylinder Shay conversion. Existing arrangements,
+oil circuit IDs and vehicle targeting retain their previous behaviour.
 
 ARRANGEMENTS
 
@@ -18,6 +17,18 @@ ARRANGEMENTS
   0-6-2 - stock-sized drivers and a trailing carrying axle.
   Meyer-style 0-4+4-0T - compound locomotive with an attached pannier steam bogie.
   Franklin Dockside 0-4-4-0T - two simple-expansion units beneath one tank body.
+  Two-truck Shay - three vertical cylinders, geared shafts and four driven axles.
+
+SHAY
+
+A fictional S060 conversion using the complete native DV wheelsets, fitted to
+1.14 m diameter without changing the gauge. Two swivelling trucks carry eight
+working axlebox oil cups. A vertical three-cylinder engine drives jointed,
+sliding shafts and bevel gears with a 43:19 reduction. Steam and exhaust pipes
+connect the side engine to the boiler and single chimney. The normal cab lever
+controls all three cylinder-cock channels; drips require actual cylinder water.
+Select it in the radio or UMM chooser. It is not in the random-spawn pool.
+This first Shay version needs gameplay acceptance, especially on tight curves.
 
 MEYER
 
@@ -46,6 +57,8 @@ Oil quantities and lid states survive arrangement changes and save/load.
 The 0-10-0 adds ten big-end cups; old oil and wheel-state slots retain their IDs.
 New fifth-wheel state uses mod save version 3. This version reads earlier saves;
 older mod versions cannot restore the new 0-10-0 arrangement.
+The new Shay selection uses version 4; previous mod versions cannot restore it.
+Original arrangement and oil circuit IDs retain their saved meanings.
 Arrangements use fixed, fitted wheel sizes; there is no driver-size slider.
 
 Switching preserves native identity, livery, fuel, water, damage and save state.
@@ -56,8 +69,8 @@ the rear assembly and restores the stock rear supports and coupling position.
 INSTALLATION
 
 Requires Derail Valley B99, UMM 0.27.3+, Loco Mesh Splitter and Custom Car Loader.
-Drag RearrangedS060-0.19.1-UMM.zip directly into UMM. One mod folder contains
-the runtime and both 0.7.0 asset bundles; there are no nested ZIPs. Earlier
+Drag RearrangedS060-0.20.0-UMM.zip directly into UMM. One mod folder contains
+the runtime, both 0.7.0 asset bundles and original Shay models; there are no nested ZIPs. Earlier
 three-part test installs must first uninstall the two old standalone asset
 packs in UMM, keeping RearrangedS060 and Settings.xml. See INSTALL.txt.
 Rearranged S282 is not a runtime dependency.

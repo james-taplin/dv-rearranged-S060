@@ -19,7 +19,8 @@ namespace RearrangedS060
                 case S060Arrangement.SixTwo: return 3;
                 case S060Arrangement.EightCoupled:
                 case S060Arrangement.Meyer:
-                case S060Arrangement.Dockside: return 4;
+                case S060Arrangement.Dockside:
+                case S060Arrangement.Shay: return 4;
                 default: throw new ArgumentOutOfRangeException(nameof(arrangement));
             }
         }
