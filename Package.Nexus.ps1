@@ -60,8 +60,18 @@ $expected = @('RearrangedS060.dll','Info.json','LICENSE','CREDITS.md','README.md
 $actual = @(Get-ChildItem -LiteralPath $stage -Recurse -File | ForEach-Object { $_.FullName.Substring($stage.Length + 1) })
 if (@(Compare-Object $expected $actual).Count -or @(Get-ChildItem $package -Force).Count -ne 1) { throw 'Unexpected files in the combined package.' }
 $archive = Join-Path $out "RearrangedS060-$Version-UMM.zip"
-Compress-Archive -LiteralPath $stage -DestinationPath $archive -Force
+# Windows PowerShell 5.1's Compress-Archive writes '\' separators, which UMM
+# and the check below reject; write '/' entry names explicitly in both hosts.
+Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem
+if (Test-Path -LiteralPath $archive) { Remove-Item -LiteralPath $archive }
+$zip = [IO.Compression.ZipFile]::Open($archive, [IO.Compression.ZipArchiveMode]::Create)
+try {
+    foreach ($file in Get-ChildItem -LiteralPath $stage -Recurse -File | Sort-Object FullName) {
+        $entry = 'RearrangedS060/' + $file.FullName.Substring($stage.Length + 1).Replace('\', '/')
+        [void][IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $file.FullName, $entry, [IO.Compression.CompressionLevel]::Optimal)
+    }
+} finally { $zip.Dispose() }
 $zip = [IO.Compression.ZipFile]::OpenRead($archive)
 try {
     if (@($zip.Entries | Where-Object { $_.FullName -match '(?i)\.(zip|7z|rar)$' -or -not $_.FullName.StartsWith('RearrangedS060/') }).Count -or

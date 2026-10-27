@@ -1,4 +1,13 @@
-# S060 radio 0.20.1 transition/effects candidate test
+# S060 radio 0.20.2 transition/effects candidate test
+
+## 0.20.2 Shay checks
+
+Check the cab steps and the body around the right-hand engine are whole, and
+that you cannot see through under the boiler or see the firebox fire from the
+side. The engine, cylinders and truck frames should look dark gunmetal, not
+the green S060 texture. Then drive the Shay with the regulator open for about
+30 seconds; the diagnostics trace now records the gear clock for the gears and
+U-joints report.
 
 ## Shay acceptance
 

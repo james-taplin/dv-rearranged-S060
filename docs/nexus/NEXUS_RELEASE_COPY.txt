@@ -2,7 +2,7 @@ MOD NAME
 Rearranged S060 - Re:Arranged
 
 VERSION / FILE CATEGORY
-0.20.1 - Shay effects hotfix / Main file
+0.20.2 - Shay body and finish fixes / Main file
 
 SHORT DESCRIPTION
 Give the S060 new wheel arrangements, a compound Meyer with an attached pannier
@@ -81,7 +81,7 @@ Install CCL's own requirements too, including DV Language Helper for the tested
 CCL 3.1.11. These dependencies are separate downloads. Rearranged S282 is not
 required to play this mod.
 
-Close the game, then drag [b]RearrangedS060-0.20.1-UMM.zip directly into UMM[/b].
+Close the game, then drag [b]RearrangedS060-0.20.2-UMM.zip directly into UMM[/b].
 One Rearranged S060 entry includes the runtime and both Meyer/Dockside bundles.
 There are no ZIPs inside the download and no separate asset-pack installs.
 
@@ -136,6 +136,15 @@ No original game DLLs, Verde audio/art or dependency mods are distributed here.
 [url=https://github.com/pjschinske/dv-rearranged-S282]Original S282 source[/url]
 [url=https://github.com/james-taplin/dv-rearranged-S282]JimTaplin's S282 fork[/url]
 [url=https://github.com/james-taplin/dv-rearranged-S060]S060 fork[/url]
+
+0.20.2 CHANGELOG - PLAIN TEXT
+
+- rebuilt the Shay's body cut-outs from whole parts: the cab steps and old
+  reverser are no longer cut in half, and frame sills and a belly plate close
+  the gap under the boiler that showed the firebox fire.
+- gave the Shay engine, cylinders and frames a dirty gunmetal finish and its
+  gears and shafts oily steel, instead of the stretched S060 texture.
+- added Shay gear-clock readings to the driving diagnostics trace.
 
 0.20.1 CHANGELOG - PLAIN TEXT
 

@@ -36,7 +36,8 @@ foreach($id in @('RS060_Meyer_0440','RS060_Franklin_Dockside_0440')){
     }
 }
 $protected=@(Join-Path $target 'Settings.xml')+@(Get-ChildItem -LiteralPath $mods -Directory | Where-Object {$_.Name -notin @('RearrangedS060','RS060_Meyer_0440','RS060_Franklin_Dockside_0440')} | ForEach-Object {Get-ChildItem -LiteralPath $_.FullName -File -Filter 'Info.json'})
-$before=@($protected | Where-Object {Test-Path -LiteralPath $_} | Get-FileHash | Select-Object Path,Hash)
+# Resolve strings and FileInfo alike; Windows PowerShell 5.1 cannot pipe a bare path string into Get-FileHash.
+$before=@($protected | ForEach-Object {if($_ -is [IO.FileInfo]){$_.FullName}else{[string]$_}} | Where-Object {Test-Path -LiteralPath $_} | ForEach-Object {Get-FileHash -LiteralPath $_} | Select-Object Path,Hash)
 $record=[ordered]@{utc=[DateTime]::UtcNow.ToString('o');packageReceipt=$receiptPath;gameClosed=$true;backupCreated=$false;legacyRemoved=$legacy;protected=$before;status='preflight verified'}
 $record | ConvertTo-Json -Depth 6 | Set-Content (Join-Path $output 'install-receipt-latest.json') -Encoding UTF8
 if(Get-Process -Name DerailValley -ErrorAction SilentlyContinue){throw 'Game started during preparation; installation cancelled.'}
