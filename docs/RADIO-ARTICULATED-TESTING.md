@@ -1,4 +1,9 @@
-# S060 radio 0.20.2 transition/effects candidate test
+# S060 radio 0.20.3 transition/effects candidate test
+
+## 0.20.3 Shay gear check
+
+Drive slowly: the pinions, line shafts, universal joints and bevel gear rings
+must turn with the crank and wheels, in both directions and on curves.
 
 ## 0.20.2 Shay checks
 

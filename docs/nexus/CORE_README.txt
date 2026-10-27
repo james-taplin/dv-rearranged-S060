@@ -1,10 +1,13 @@
-REARRANGED S060 - 0.20.2 PUBLIC BETA
+REARRANGED S060 - 0.20.3 PUBLIC BETA
 
 Change the native S060's running gear through WHEEL REARRANGER on the comms
 radio, or the mod's UMM arrangement chooser. All arrangements remain attached
 to the same locomotive identity, cab and save ownership.
 
-0.20.2 rebuilds the Shay's body cut-outs from whole parts, so the cab steps and
+0.20.3 makes the Shay's pinions, line shafts, universal joints and bevel gears
+turn with the engine; in 0.20.2 only the crank and wheels moved.
+
+0.20.2 rebuilt the Shay's body cut-outs from whole parts, so the cab steps and
 old reverser are no longer sliced and the boiler underside is closed, and gives
 the Shay engine and frames a dirty gunmetal finish. It also adds a gear-clock
 block to the driving trace.
@@ -75,7 +78,7 @@ the rear assembly and restores the stock rear supports and coupling position.
 INSTALLATION
 
 Requires Derail Valley B99, UMM 0.27.3+, Loco Mesh Splitter and Custom Car Loader.
-Drag RearrangedS060-0.20.2-UMM.zip directly into UMM. One mod folder contains
+Drag RearrangedS060-0.20.3-UMM.zip directly into UMM. One mod folder contains
 the runtime, both 0.7.0 asset bundles and original Shay models; there are no nested ZIPs. Earlier
 three-part test installs must first uninstall the two old standalone asset
 packs in UMM, keeping RearrangedS060 and Settings.xml. See INSTALL.txt.
