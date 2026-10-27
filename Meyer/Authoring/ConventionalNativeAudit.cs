@@ -251,6 +251,12 @@ public static class ConventionalNativeAudit
         Check(aliases.Length==8&&aliases.All(f=>f.sharedMesh!=null),"All eight complete DV wheel halves are aliased from live native references");
         foreach(var f in aliases)Check(Math.Abs(Math.Abs(f.transform.localScale.x)-1)<1e-6,"Native Shay gauge/mirror is never radially scaled");
         Check(bodyFilter.sharedMesh!=originalBody,"Measured tank and lower-frame relief is a per-car mesh copy");
+        ValidateShayRelief(body,bodyFilter.transform,originalBody,bodyFilter.sharedMesh);
+        Call(owner,"RefreshMaterials",(object)markers);
+        var finishes=markers.Where(t=>!t.name.Contains("_NATIVE_")&&t.name!="Native wheel distant").SelectMany(t=>t.GetComponents<MeshRenderer>()).Select(r=>r.sharedMaterial).Where(m=>m!=null).ToArray();
+        Check(!finishes.Any(m=>m==bodyFilter.GetComponent<MeshRenderer>().sharedMaterial),"No Shay part wears the S060 body atlas material");
+        Check(!finishes.Any(m=>m.name.Contains("PAINT")||m.name.Contains("painted")||m.name=="gear_steel"||m.name=="shaft_steel"||m.name=="S060_MACHINED"),"Shay painted and machined slots use the run-time gunmetal and steel finishes");
+        Check(finishes.Any(m=>m.name=="S060 Shay dirty gunmetal")&&finishes.Any(m=>m.name=="S060 Shay oily steel"),"Both Shay finishes are applied");
         var bank=New("S060EngineBank");var slot=System.Runtime.Serialization.FormatterServices.GetUninitializedObject(runtime.GetType("RearrangedS060.S060EngineSlot"));
         var engineType=runtime.GetType("RearrangedS060.S060ShayEngine");var engine=System.Runtime.Serialization.FormatterServices.GetUninitializedObject(engineType);
         var nativeEngine=engineType.BaseType;var engines=Array.CreateInstance(nativeEngine,4);engines.SetValue(engine,3);
@@ -274,6 +280,32 @@ public static class ConventionalNativeAudit
         Call(owner,"RestoreModels");Check(bodyFilter.sharedMesh==originalBody,"Leaving Shay restores the exact native body mesh");
         Check(detached.All(t=>t==null||!t.gameObject.activeSelf),"Leaving Shay retires every detached truck and transmission frame");
         Object.DestroyImmediate(root);bundle.Unload(true);
+    }
+
+    // Whole-piece relief: protected cab steps survive untouched, the outside reverser
+    // goes whole, and the trimmed frame is closed by belly, sills and the engine pocket.
+    private static void ValidateShayRelief(Transform body,Transform filter,Mesh original,Mesh relief)
+    {
+        Vector3[] Centroids(Mesh mesh)
+        {
+            var v=mesh.vertices.Select(p=>body.InverseTransformPoint(filter.TransformPoint(p))).ToArray();var t=mesh.triangles;
+            return Enumerable.Range(0,t.Length/3).Select(i=>(v[t[3*i]]+v[t[3*i+1]]+v[t[3*i+2]])/3).ToArray();
+        }
+        bool In(Vector3 p,Vector3 min,Vector3 max)=>p.x>min.x&&p.y>min.y&&p.z>min.z&&p.x<max.x&&p.y<max.y&&p.z<max.z;
+        var before=Centroids(original);var after=Centroids(relief);
+        foreach(float s in new[]{1f,-1f})
+        {
+            Vector3 min=new Vector3(s>0?1.10f:-1.36f,.40f,-3.45f),max=new Vector3(s>0?1.36f:-1.10f,1.32f,-2.78f);
+            int native=before.Count(p=>In(p,min,max));
+            Check(native>0&&after.Count(p=>In(p,min,max))==native,"Shay relief keeps every cab step/ladder triangle whole");
+        }
+        // Engine-side reverser parts only; the deck, tank strip and frame plate share the wider box.
+        Vector3 rMin=new Vector3(.90f,1.44f,-.51f),rMax=new Vector3(1.28f,1.555f,-.07f);
+        Check(before.Any(p=>In(p,rMin,rMax))&&!after.Any(p=>In(p,rMin,rMax)),"Shay relief removes the outside reverser whole, never half");
+        Check(after.Count(p=>Mathf.Abs(p.y-1.285f)<.001f&&Mathf.Abs(p.x)<.8f)>=2,"Shay relief closes the running-gear bay with a belly plate");
+        Check(after.Count(p=>Mathf.Abs(Mathf.Abs(p.x)-.8f)<.001f&&p.y>1.285f&&p.y<1.62f)>=4,"Shay relief adds side sills so the bay is not see-through");
+        Check(after.Count(p=>Mathf.Abs(p.x-1.035f)<.001f&&p.y>1.62f&&p.y<2.58f)>=2,"Shay relief lines the engine pocket in the right tank");
+        Check(!after.Any(p=>In(p,new Vector3(-.75f,.05f,-2.5f),new Vector3(.75f,1.20f,2.8f))),"No native body triangle remains inside the truck bay");
     }
 
     private static void Render(GameObject body,string name)

@@ -1,5 +1,49 @@
 # Rearranged S060 — handover
 
+## 0.20.2: Shay body relief and finishes — 27 October 2026 (Claude)
+
+Claude took the repository over from Codex at fa64f34 (shared board X121).
+James's 0.20.1 game report: the old reverser was cut in half, the front of the
+cab ladders was cut off, a lengthwise hole under the boiler showed the firebox
+fire, and the whole S060 texture sheet was wrapped over the Shay cylinders and
+engine block. The gears/U-joints not turning is a separate, still open report.
+
+Causes. S060ShayBody clipped every s060_body triangle against the R1 relief
+boxes, so any part crossing a box edge was sliced: the bay box's rear face at
+z=-2.82 runs through the cab steps and the tank notch through the reverser
+reach rod. Nothing replaced the removed frame below 1.285 m, leaving an open
+band up to the deck underside (1.62 m). S060Shay.RefreshMaterials swapped every
+PAINT/painted slot (engine, truck and transmission frames) to the live body
+material, whose texture is the S060 UV atlas the Shay meshes were not made for.
+
+Relief now works on whole native pieces (connected islands, welded across UV
+seams). A piece overlapping the cab doorway/step exclusions is kept whole; the
+outside reverser and the conventional cylinder blocks are removed whole; a
+piece inside a relief, reaching less than 0.25 m beyond it or smaller than
+0.3 m² is removed whole; only larger structural plates (frames, deck, tank
+side, saddle) are trimmed. Closures are added to the per-car copy: a belly
+plate at y=1.285, x ±0.80 from z -2.82 to 3.10, side sills at x ±0.80 from the
+belly up to the deck underside between the cab front and the front end, and a
+four-face pocket lining the engine notch. With the cylinders gone, trimmed
+plates also lose their foot below the belly as far as z=3.55 (the saddle
+would otherwise hang in front of the front truck), the belly runs to 3.55, and
+the cylinder drain-cock fittings go with the cylinders. The reverser box was
+widened to z=-0.52 after the audit showed one 16-triangle reverser part
+reaching 4 mm past it. Their UVs sample the centre of the
+largest deck-underside and tank-side faces, so they carry the current livery.
+Offline, against the native body dump and the shipping bundle swept through
+the contract's 49 truck poses, no kept or trimmed triangle meets the swept
+trucks, transmission or engine; the swept volume tops out at 1.28 m under the
+belly. ConventionalNativeAudit gained relief checks (ladders whole, reverser
+gone whole, belly/sills/pocket present, nothing left inside the truck bay).
+
+Finishes: painted Shay slots now use a shared run-time "dirty gunmetal"
+(Standard, metallic .55, smoothness .28) and gear/shaft/machined slots an
+"oily steel" (.75/.42); both multiply a generated tileable grime texture.
+The bundle's brass-coloured gear_steel is no longer visible. Pipes keep the
+body material because their tube UVs point at a fixed atlas spot. No asset
+bundle, save, arrangement ID, oil circuit or simulation change.
+
 ## 0.20.1: processed-CCL Shay effects hotfix — 27 October 2026
 
 James's radio screenshot reports "Native Shay drip templates missing". The

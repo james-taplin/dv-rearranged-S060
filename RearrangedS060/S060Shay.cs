@@ -108,8 +108,14 @@ namespace RearrangedS060
         private void RefreshMaterials(Transform[] parts)
         {
             lastMaterial=materialSource.sharedMaterial;
+            // The Shay meshes have their own UVs, not the S060 body atlas, so painted
+            // and machined slots get working finishes rather than the livery sheet.
             foreach(var renderer in parts.SelectMany(t=>t.GetComponents<MeshRenderer>()))
-                if(renderer.sharedMaterial!=null && (renderer.sharedMaterial.name.Contains("PAINT")||renderer.sharedMaterial.name.Contains("painted"))) renderer.sharedMaterial=lastMaterial;
+            {
+                var material=renderer.sharedMaterial; if(material==null) continue;
+                if(material.name.Contains("PAINT")||material.name.Contains("painted")) renderer.sharedMaterial=S060ShayFinish.Gunmetal(material);
+                else if(material.name=="gear_steel"||material.name=="shaft_steel"||material.name=="S060_MACHINED") renderer.sharedMaterial=S060ShayFinish.Steel(material);
+            }
             Root.AddComponent<S060ShayMaterials>().Bind(materialSource,parts);
         }
         private void Hide(GameObject part){hidden.Add((part,part.activeSelf));part.SetActive(false);}
@@ -133,6 +139,44 @@ namespace RearrangedS060
             Parts.FrontBogie.axles=Parts.RearBogie.axles=null;
         }
         protected override void ReleasePresentationMeshes(){plumbing?.Dispose();body?.Dispose();}
+    }
+
+    // Shared run-time finishes built from the bundle's own Standard materials.
+    internal static class S060ShayFinish
+    {
+        private static Material gunmetal, steel;
+        private static Texture2D grime;
+        internal static Material Gunmetal(Material template)=>gunmetal!=null?gunmetal:gunmetal=Make(template,"S060 Shay dirty gunmetal",new Color(.21f,.215f,.22f),.55f,.28f);
+        internal static Material Steel(Material template)=>steel!=null?steel:steel=Make(template,"S060 Shay oily steel",new Color(.34f,.34f,.33f),.75f,.42f);
+        private static Material Make(Material template,string name,Color color,float metallic,float gloss)
+        {
+            var m=new Material(template){name=name,color=color,mainTexture=Grime(),mainTextureScale=new Vector2(2,2)};
+            m.SetTexture("_MetallicGlossMap",null);m.DisableKeyword("_METALLICGLOSSMAP");
+            m.SetFloat("_Metallic",metallic);m.SetFloat("_Glossiness",gloss);
+            return m;
+        }
+        // Tileable soot/oil mottling used as an albedo multiplier; generated, so nothing is shipped.
+        internal static Texture2D Grime()
+        {
+            if(grime!=null) return grime;
+            const int size=128; var pixels=new Color32[size*size];
+            float Lattice(int x,int y,int period){x=((x%period)+period)%period;y=((y%period)+period)%period;uint h=unchecked((uint)(x*374761393+y*668265263+period*69069));h=unchecked((h^(h>>13))*1274126177u);return (h^(h>>16))/(float)uint.MaxValue;}
+            float Noise(float u,float v,int period)
+            {
+                float x=u*period,y=v*period;int ix=Mathf.FloorToInt(x),iy=Mathf.FloorToInt(y);float fx=x-ix,fy=y-iy;fx=fx*fx*(3-2*fx);fy=fy*fy*(3-2*fy);
+                return Mathf.Lerp(Mathf.Lerp(Lattice(ix,iy,period),Lattice(ix+1,iy,period),fx),Mathf.Lerp(Lattice(ix,iy+1,period),Lattice(ix+1,iy+1,period),fx),fy);
+            }
+            for(int y=0;y<size;y++)
+                for(int x=0;x<size;x++)
+                {
+                    float u=x/(float)size,v=y/(float)size;
+                    float n=.5f*Noise(u,v,4)+.3f*Noise(u,v,12)+.2f*Noise(u,v,40);
+                    float shade=Mathf.Lerp(.72f,1.08f,n),rust=Mathf.Clamp01((Noise(u,v,7)-.62f)*4);
+                    pixels[y*size+x]=new Color(Mathf.Clamp01(shade*(1+.10f*rust)),Mathf.Clamp01(shade*(1+.02f*rust)),Mathf.Clamp01(shade*(1-.08f*rust)),1);
+                }
+            grime=new Texture2D(size,size,TextureFormat.RGBA32,true){name="S060 Shay grime",wrapMode=TextureWrapMode.Repeat,filterMode=FilterMode.Trilinear,anisoLevel=4};
+            grime.SetPixels32(pixels);grime.Apply(true,true);return grime;
+        }
     }
 
     internal sealed class S060ShayMaterials:MonoBehaviour
