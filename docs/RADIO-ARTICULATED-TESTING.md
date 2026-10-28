@@ -1,4 +1,11 @@
-# S060 radio 0.22.1 transition/effects candidate test
+# S060 radio 0.22.2 transition/effects candidate test
+
+## 0.22.2 Meyer checks
+
+Rear tanks/hopper/bulkhead show the S060 skin's texture (try a second skin too); the
+hopper shows real coal (stock tender pile; flat black means it was not found - check
+Player.log); the LP exhaust runs low along the cab roof and left tank top and still
+flexes at the rear joint on curves.
 
 ## 0.22.1 checks
 

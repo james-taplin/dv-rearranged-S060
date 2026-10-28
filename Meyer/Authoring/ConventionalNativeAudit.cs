@@ -358,6 +358,10 @@ public static class ConventionalNativeAudit
             var wheel=Mesh(data.meshes.Single(m=>m.name=="s060_Wheels_02"));
             foreach(var f in copy.GetComponentsInChildren<MeshFilter>(true).Where(f=>f.sharedMesh==null&&f.name.Contains("driver"))){f.sharedMesh=wheel;var r=f.GetComponent<MeshRenderer>();if(r!=null)r.sharedMaterial=material;}
             foreach(var c in copy.GetComponentsInChildren<Component>(true).Where(c=>c is Collider||c is MonoBehaviour).ToArray())Object.DestroyImmediate(c);
+            // The runtime's own LP exhaust return, bound to the donor rear frame, for the picture.
+            var rearFrame=copy.GetComponentsInChildren<Transform>(true).First(t=>t.name=="bogie_car"&&t.parent!=null&&t.parent.name=="BogieR");
+            var pipeType=runtime.GetType("RearrangedS060.S060MeyerExhaustPipe",true);
+            var pipe=pipeType.GetMethod("Bind",All).Invoke(null,new object[]{body,rearFrame,body});
             RenderWide(root,"meyer-r2-side",new Vector3(12,2.0f,-2.2f),new Vector3(0,2.0f,-2.2f),4.3f);
             RenderWide(root,"meyer-r2-rear",new Vector3(9,4.5f,-12),new Vector3(0,1.9f,-4.5f),3.6f);
         }

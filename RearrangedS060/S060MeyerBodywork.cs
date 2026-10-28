@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using DV.ThingTypes.TransitionHelpers;
 using UnityEngine;
 
 namespace RearrangedS060
@@ -26,12 +27,13 @@ namespace RearrangedS060
         private sealed class Builder
         {
             internal readonly List<Vector3> V = new List<Vector3>(); internal readonly List<int> T = new List<int>(); internal readonly List<Vector2> UV = new List<Vector2>();
-            internal Vector2 Paint; internal bool Planar;
+            internal Vector2 Paint; internal Func<Vector3, Vector3, Vector2> Map;
             internal void Tri(Vector3 a, Vector3 b, Vector3 c, Vector3 outward)
             {
                 if (Vector3.Dot(Vector3.Cross(b - a, c - a), outward) < 0) { var t = b; b = c; c = t; }
                 int i = V.Count; V.Add(a); V.Add(b); V.Add(c);
-                foreach (var p in new[] { a, b, c }) UV.Add(Planar ? new Vector2(p.x + p.z, p.y + p.z) * .5f : Paint);
+                var n = Vector3.Cross(b - a, c - a).normalized;
+                foreach (var p in new[] { a, b, c }) UV.Add(Map != null ? Map(p, n) : Paint);
                 T.Add(i); T.Add(i + 1); T.Add(i + 2);
             }
             internal void Quad(Vector3 a, Vector3 b, Vector3 c, Vector3 d, Vector3 outward) { Tri(a, b, c, outward); Tri(a, c, d, outward); }
@@ -126,17 +128,18 @@ namespace RearrangedS060
                 var green = Sample((p, n) => Mathf.Abs(n.x) > .9f && p.x < -1.1f && p.y > 1.8f && p.y < 2.5f);
                 var black = Sample((p, n) => Mathf.Abs(n.y) > .9f && p.y > 1.55f && p.y < 1.70f && Mathf.Abs(p.x) < 1.3f);
                 var red = Sample((p, n) => Mathf.Abs(n.z) > .9f && p.z > 3.85f && p.y > .8f && p.y < 1.3f && Mathf.Abs(p.x) < 1.2f);
-                var coalRenderer = car.GetComponentsInChildren<MeshRenderer>(true).FirstOrDefault(r => r.sharedMaterial != null &&
-                    r.sharedMaterial.name.IndexOf("coal", StringComparison.OrdinalIgnoreCase) >= 0);
 
                 owner.Root = new GameObject("[Meyer R2 bodywork]").transform; owner.owned.Add(owner.Root.gameObject);
                 owner.Root.SetParent(car, false);
-                var paint = new Builder { Paint = green }; var dark = new Builder { Paint = black }; var beam = new Builder { Paint = red }; var coal = coalRenderer != null ? new Builder { Planar = true } : new Builder { Paint = black };  // without the native coal material, plain black, never atlas noise
+                // The applied skin's own tank-side texture (weathering, panels, rivets) is projected onto
+                // the new paintwork; a flat sample of it is the fallback. Coal: the stock tender pile.
+                var paint = new Builder { Paint = green, Map = SkinMap(local, uv, tris) }; var dark = new Builder { Paint = black }; var beam = new Builder { Paint = red };
+                var coal = new Builder { Paint = black };  // fallback heap only, never atlas noise
                 Build(paint, dark, beam, coal);
                 owner.Add("Meyer R2 paintwork", paint, bodyMaterial);
                 owner.Add("Meyer R2 ironwork", dark, bodyMaterial);
                 owner.Add("Meyer R2 buffer beam", beam, bodyMaterial);
-                owner.Add("Meyer R2 hopper coal", coal, coalRenderer != null ? coalRenderer.sharedMaterial : bodyMaterial);
+                if (!owner.StockCoal()) owner.Add("Meyer R2 hopper coal", coal, bodyMaterial);
                 return owner;
             }
             catch { owner.Dispose(); throw; }
@@ -205,6 +208,80 @@ namespace RearrangedS060
             beam.Box(new Vector3(-1.25f, .90f, BeamRear), new Vector3(1.25f, 1.25f, BeamFront));
             foreach (float s in new[] { -1f, 1f })
                 dark.Box(new Vector3(s * .70f - .07f, 1.0f, BeamRear), new Vector3(s * .70f + .07f, PlateY, BeamFront + .01f));
+        }
+
+        // Affine (z,y) -> uv fitted to the S060's own left tank side; null when that face set
+        // does not map linearly (then the flat paint sample is used).
+        private static Func<Vector3, Vector3, Vector2> SkinMap(Vector3[] local, Vector2[] uv, int[] tris)
+        {
+            var used = new HashSet<int>();
+            for (int i = 0; i < tris.Length; i += 3)
+            {
+                Vector3 a = local[tris[i]], b = local[tris[i + 1]], c = local[tris[i + 2]], m = (a + b + c) / 3;
+                var cross = Vector3.Cross(b - a, c - a); float area = cross.magnitude / 2;
+                // Only the main outer tank-side panel (x -1.28): fittings and plates are separate atlas islands.
+                if (area < .02f || Mathf.Abs(cross.normalized.x) < .95f || m.x < -1.285f || m.x > -1.275f || m.y < 1.70f || m.y > 2.78f || m.z < -1.25f || m.z > 2.70f) continue;
+                used.Add(tris[i]); used.Add(tris[i + 1]); used.Add(tris[i + 2]);
+            }
+            if (used.Count < 6) return null;
+            double[,] ata = new double[3, 3]; double[] atu = new double[3], atv = new double[3];
+            foreach (int k in used)
+            {
+                double[] r = { local[k].z, local[k].y, 1 };
+                for (int i = 0; i < 3; i++) { atu[i] += r[i] * uv[k].x; atv[i] += r[i] * uv[k].y; for (int j = 0; j < 3; j++) ata[i, j] += r[i] * r[j]; }
+            }
+            double[] Solve(double[] rhs)
+            {
+                var m = (double[,])ata.Clone(); var x = (double[])rhs.Clone();
+                for (int c = 0; c < 3; c++)
+                {
+                    int p = c; for (int r = c + 1; r < 3; r++) if (Math.Abs(m[r, c]) > Math.Abs(m[p, c])) p = r;
+                    for (int j = 0; j < 3; j++) { var t = m[c, j]; m[c, j] = m[p, j]; m[p, j] = t; }
+                    { var t = x[c]; x[c] = x[p]; x[p] = t; }
+                    if (Math.Abs(m[c, c]) < 1e-12) return null;
+                    for (int r = 0; r < 3; r++) if (r != c) { double f = m[r, c] / m[c, c]; for (int j = 0; j < 3; j++) m[r, j] -= f * m[c, j]; x[r] -= f * x[c]; }
+                }
+                return new[] { x[0] / m[0, 0], x[1] / m[1, 1], x[2] / m[2, 2] };
+            }
+            var cu = Solve(atu); var cv = Solve(atv);
+            if (cu == null || cv == null) return null;
+            Vector2 At(float z, float y) => new Vector2((float)(cu[0] * z + cu[1] * y + cu[2]), (float)(cv[0] * z + cv[1] * y + cv[2]));
+            double err = used.Average(k => (double)(At(local[k].z, local[k].y) - uv[k]).sqrMagnitude);
+            if (err > 1e-5) return null;  // one clean linear island required
+            float z0 = used.Min(k => local[k].z), z1 = used.Max(k => local[k].z), y0 = used.Min(k => local[k].y), y1 = used.Max(k => local[k].y);
+            float Y(float y) => y <= y1 ? Mathf.Max(y, y0) : y1 - Mathf.Repeat(y - y1, Mathf.Max(.1f, y1 - y0 - .2f));
+            float Z(float z) => Mathf.Clamp(z0 + (z - TankRear), z0, z1);
+            return (p, n) =>
+            {
+                if (Mathf.Abs(n.y) > .7f) return At(Z(p.z), Mathf.Clamp(y0 + (p.x + 1.40f) * .35f, y0, y1));
+                if (Mathf.Abs(n.z) > .7f) return At(Mathf.Clamp(z0 + (p.x + 1.40f), z0, z1), Y(p.y));
+                return At(Z(p.z), Y(p.y));
+            };
+        }
+
+        // The stock S282 tender's own fullest coal pile (mesh + material), scaled into the
+        // hopper opening. False when the vanilla tender is unavailable (Editor audits).
+        private bool StockCoal()
+        {
+            try
+            {
+                var tender = DV.ThingTypes.TrainCarType.Tender.ToV2()?.prefab;
+                var pile = tender?.GetComponentsInChildren<MeshFilter>(true).Where(f => f.sharedMesh != null && f.sharedMesh.name.Length > 4
+                        && f.sharedMesh.name.StartsWith("coal", StringComparison.OrdinalIgnoreCase) && char.IsDigit(f.sharedMesh.name[4])
+                        && f.GetComponent<MeshRenderer>() != null && f.GetComponent<MeshRenderer>().sharedMaterial != null)
+                    .OrderByDescending(f => f.sharedMesh.bounds.size.y).FirstOrDefault();
+                if (pile == null) return false;
+                var b = pile.sharedMesh.bounds;
+                float back = HopperBack + .30f, front = HopperFront - .08f;
+                float sx = 2.36f / b.size.x, sz = (front - back) / b.size.z, sy = Mathf.Min(Mathf.Min(sx, sz), .30f / Mathf.Max(.01f, b.size.y));
+                var part = new GameObject("Meyer R2 hopper coal (stock tender pile)"); part.transform.SetParent(Root, false);
+                part.transform.localScale = new Vector3(sx, sy, sz);
+                part.transform.localPosition = new Vector3(-b.center.x * sx, HopperTop - .06f - b.min.y * sy, (front + back) / 2 - b.center.z * sz);
+                part.AddComponent<MeshFilter>().sharedMesh = pile.sharedMesh;
+                part.AddComponent<MeshRenderer>().sharedMaterial = pile.GetComponent<MeshRenderer>().sharedMaterial;
+                return true;
+            }
+            catch (Exception) { return false; }
         }
 
         // Static bodywork belongs to the car body's own collision compound (it is part of

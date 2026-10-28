@@ -10,7 +10,7 @@ namespace RearrangedS060
     // chimney already carry LP exhaust; this introduces no ports or readers.
     internal sealed class S060MeyerExhaustPipe : IDisposable
     {
-        internal const float Radius = .09f, HeaderY = 1.68f, BodyRunY = 2f, RoofY = 3.85f, SleeveLength = 1.18f;
+        internal const float Radius = .09f, HeaderY = 1.68f, SleeveLength = 1.18f;
         internal static readonly Vector3 RearBallPosition = new Vector3(-1.75f, HeaderY, .85f);
         internal static readonly Vector3 BodyBallPosition = new Vector3(-1.63f, 3.05f, -4.6f);
         internal static readonly Vector3 SmokeboxPosition = new Vector3(-.656f, 2.25f, 3.7f);
@@ -56,33 +56,23 @@ namespace RearrangedS060
                     new[] { new Vector3(1.03f, HeaderY, .85f), RearBallPosition });
                 owner.RearJoint = owner.Ball(owner.RearRoot, "[LP rear ball joint]", RearBallPosition, .145f);
                 owner.BodyJoint = owner.Ball(owner.BodyRoot, "[LP body ball joint]", BodyBallPosition, .145f);
-                owner.Pipe(owner.BodyRoot, "LP smokebox return", Radius,
-                    new[] { BodyBallPosition, new Vector3(-1.63f, RoofY, -4.6f),
-                        new Vector3(-1.63f, RoofY, -.85f), new Vector3(-1.63f, BodyRunY, -.85f),
-                        new Vector3(-1.63f, BodyRunY, 3.7f), new Vector3(-1.63f, 2.25f, 3.7f), SmokeboxPosition });
+                // Meyer R2: the return hugs the bodywork instead of arching above the cab and
+                // hanging outside the tanks: up beside the hopper, low along the cab roof
+                // (3.715 m at x -1.0), down ahead of the cab front (z -1.21), along the left tank
+                // top (2.83 m, falling to 2.56 m at the front) and into the smokebox socket.
+                var route = new[] { BodyBallPosition, new Vector3(-1.63f, 3.55f, -4.6f), new Vector3(-1.20f, 3.84f, -4.30f),
+                    new Vector3(-.95f, 3.84f, -3.95f), new Vector3(-.95f, 3.84f, -1.40f), new Vector3(-.95f, 3.05f, -1.02f),
+                    new Vector3(-.95f, 3.05f, .80f), new Vector3(-.95f, 2.85f, 2.40f), new Vector3(-.95f, 2.72f, 2.95f),
+                    new Vector3(-.90f, 2.45f, 3.40f), SmokeboxPosition };
+                owner.Pipe(owner.BodyRoot, "LP smokebox return", Radius, route);
                 owner.SmokeboxJoint = owner.Marker(owner.BodyRoot, "[LP smokebox socket]", SmokeboxPosition);
                 owner.Pipe(owner.BodyRoot, "LP smokebox flange", .145f,
                     new[] { SmokeboxPosition - Vector3.right * .07f, SmokeboxPosition + Vector3.right * .02f }, false);
-                // Three connected brackets attach the external run to the
-                // existing footplate/frame edge; no free-floating long pipe.
-                foreach (float z in new[] { 0f, 2.75f })
+                // Short clips onto the cab roof and tank top; nothing hangs outside the body.
+                foreach (var (z, y, surface) in new[] { (-3.3f, 3.84f, 3.715f), (-2.0f, 3.84f, 3.715f), (-.30f, 3.05f, 2.83f), (1.60f, 2.94f, 2.74f) })
                 {
-                    // Leave the native plate from its underside, then rise
-                    // outside it. The front foot is ahead of the low manifold.
-                    owner.Pipe(owner.BodyRoot, "LP body support " + z, .025f, new[] {
-                        new Vector3(-1.29f, 1.62f, z), new Vector3(-1.38f, 1.55f, z),
-                        new Vector3(-1.63f, 1.55f, z), new Vector3(-1.63f, BodyRunY - Radius, z) });
-                    owner.Pipe(owner.BodyRoot, "LP support collar " + z, .105f, new[] {
-                        new Vector3(-1.63f, BodyRunY, z - .035f), new Vector3(-1.63f, BodyRunY, z + .035f) }, false);
-                }
-                // Cab roof-edge brackets start on measured native roof faces.
-                // The entry and steps remain clear below the elevated return.
-                foreach (float z in new[] { -1.6f, -2.7f })
-                {
-                    owner.Pipe(owner.BodyRoot, "LP roof support " + z, .025f, new[] {
-                        new Vector3(-1.15f, 3.6356f, z), new Vector3(-1.63f, RoofY - .105f, z) });
-                    owner.Pipe(owner.BodyRoot, "LP roof collar " + z, .105f, new[] {
-                        new Vector3(-1.63f, RoofY, z - .035f), new Vector3(-1.63f, RoofY, z + .035f) }, false);
+                    owner.Pipe(owner.BodyRoot, "LP clip " + z, .022f, new[] { new Vector3(-.95f, surface - .01f, z), new Vector3(-.95f, y - Radius, z) }, false);
+                    owner.Pipe(owner.BodyRoot, "LP clip collar " + z, .105f, new[] { new Vector3(-.95f, y, z - .035f), new Vector3(-.95f, y, z + .035f) }, false);
                 }
                 owner.InnerSleeve = owner.Pipe(owner.BodyRoot, "[LP telescopic inner]", Radius, new[] { Vector3.zero, Vector3.forward }, false);
                 owner.OuterSleeve = owner.Pipe(owner.BodyRoot, "[LP telescopic outer]", .11f, new[] { Vector3.zero, Vector3.forward }, false);

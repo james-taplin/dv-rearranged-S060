@@ -1,6 +1,6 @@
 {
   "Id": "RearrangedS060",
-  "Version": "0.22.1",
+  "Version": "0.22.2",
   "DisplayName": "Rearranged S060",
   "Author": "james-taplin, forked from SatiricRug's Rearranged S282",
   "EntryMethod": "RearrangedS060.Main.Load",

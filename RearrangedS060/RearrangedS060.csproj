@@ -5,7 +5,7 @@
     <LangVersion>9.0</LangVersion>
     <GamePath Condition="'$(GamePath)' == ''">B:\SteamLibrary\steamapps\common\Derail Valley</GamePath>
     <ManagedPath>$(GamePath)\DerailValley_Data\Managed</ManagedPath>
-    <Version>0.22.1</Version>
+    <Version>0.22.2</Version>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
     <NuGetAudit>false</NuGetAudit>
     <RestoreIgnoreFailedSources>true</RestoreIgnoreFailedSources>
