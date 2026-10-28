@@ -2,7 +2,7 @@ MOD NAME
 Rearranged S060 - Re:Arranged
 
 VERSION / FILE CATEGORY
-0.20.3 - Shay gear motion fix / Main file
+0.21.0 - Shay rebuild / Main file
 
 SHORT DESCRIPTION
 Give the S060 new wheel arrangements, a compound Meyer with an attached pannier
@@ -81,7 +81,7 @@ Install CCL's own requirements too, including DV Language Helper for the tested
 CCL 3.1.11. These dependencies are separate downloads. Rearranged S282 is not
 required to play this mod.
 
-Close the game, then drag [b]RearrangedS060-0.20.3-UMM.zip directly into UMM[/b].
+Close the game, then drag [b]RearrangedS060-0.21.0-UMM.zip directly into UMM[/b].
 One Rearranged S060 entry includes the runtime and both Meyer/Dockside bundles.
 There are no ZIPs inside the download and no separate asset-pack installs.
 
@@ -136,6 +136,18 @@ No original game DLLs, Verde audio/art or dependency mods are distributed here.
 [url=https://github.com/pjschinske/dv-rearranged-S282]Original S282 source[/url]
 [url=https://github.com/james-taplin/dv-rearranged-S282]JimTaplin's S282 fork[/url]
 [url=https://github.com/james-taplin/dv-rearranged-S060]S060 fork[/url]
+
+0.21.0 CHANGELOG - PLAIN TEXT
+
+- rebuilt the Shay on smaller stock S282 pony wheels, lowering both trucks.
+- made the line shafts, universal joints, bevel gears, rods, pistons and crank
+  full size, with visible gear teeth.
+- moved the engine down and inboard so its crankshaft lines up with the line
+  shafts.
+- kept the S060's own frame and springs above the trucks instead of cutting
+  them away, so the boiler underside and firebox are closed.
+- replaced the Shay's oil cups with six upright cups: three on the gear-side
+  shaft bearings, two on the off-side truck frames and one on the crank.
 
 0.20.3 CHANGELOG - PLAIN TEXT
 

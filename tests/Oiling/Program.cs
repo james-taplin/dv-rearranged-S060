@@ -148,7 +148,7 @@ internal static class Program
         foreach (S060Arrangement arrangement in Enum.GetValues(typeof(S060Arrangement)))
         {
             var selection = new S060Selection(arrangement, 1);
-            int expected = 4 + 2 * S060OilingTopology.DrivenAxles(arrangement);
+            int expected = arrangement == S060Arrangement.Shay ? S060OilingTopology.NativePoints : 4 + 2 * S060OilingTopology.DrivenAxles(arrangement);
             Check(S060OilingTopology.ActiveMask(selection).Count(x => x) == expected,
                 arrangement + " topology has four original guide/crosshead circuits plus two big ends per driven axle");
             for (int empty = 0; empty < 14; empty++)

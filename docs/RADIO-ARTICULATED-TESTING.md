@@ -1,4 +1,12 @@
-# S060 radio 0.20.3 transition/effects candidate test
+# S060 radio 0.21.0 transition/effects candidate test
+
+## 0.21.0 Shay R2 checks
+
+The Shay should sit on small disc wheels with the S060 frame and springs above
+the trucks and no gap showing the firebox. Drive both ways and through curves:
+gears, shafts and joints turn and clear everything. Six upright oil cups: three
+on the gear-side shaft bearings, two on the off-side truck frames, one on the
+crank bearing under the engine. Fill each, save and reload.
 
 ## 0.20.3 Shay gear check
 

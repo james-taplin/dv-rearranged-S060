@@ -38,6 +38,8 @@ namespace RearrangedS060
         {
             var active = new bool[TotalPoints];
             for (int i = 0; i < NativePoints; i++) active[i] = true;
+            // Shay R2: six upright cups serve exactly the six native circuits; extras stay dormant.
+            if (selection.Arrangement == S060Arrangement.Shay) return active;
             int extra = DrivenAxles(selection.Arrangement) - 1;
             for (int slot = 0; slot < extra; slot++)
                 active[ExtraIndex(true, slot)] = active[ExtraIndex(false, slot)] = true;

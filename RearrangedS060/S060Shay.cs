@@ -206,3 +206,36 @@ namespace RearrangedS060
         private void LateUpdate(){if(source==null||source.sharedMaterial==current)return;current=source.sharedMaterial;foreach(var r in targets)if(r!=null)r.sharedMaterial=current;}
     }
 }
+
+namespace RearrangedS060
+{
+    // R2 oil-cup seats (James, 2026-10-28): three on the gear-side line-shaft bearing arms,
+    // two on the off-side truck frame top flanges, one on top of the middle crank bearing.
+    // Native circuit index -> seat. Every seat is upright and owned by the Shay root/frames.
+    internal static class S060ShaySeats
+    {
+        internal static Dictionary<int,Transform> Build(S060Shay shay)
+        {
+            Transform Find(string name)=>shay.Markers.Single(t=>t!=null&&t.name==name);
+            Transform Seat(Transform parent,string name,Vector3 local)
+            {
+                var seat=new GameObject("[S060 oil seat] "+name).transform;seat.SetParent(parent,false);
+                seat.localPosition=local;seat.localRotation=Quaternion.identity;return seat;
+            }
+            const float flangeTop=.806f, apex=1.0325581f, axleY=S060ShayWheelset.RollingRadius;
+            Vector3 OnBearingArm(string bearing)
+            {
+                var b=Find(bearing+"__AXIS").localPosition;return new Vector3(apex-.10f,flangeTop,b.z);
+            }
+            return new Dictionary<int,Transform>
+            {
+                [3]=Seat(Find("TRUCK_REAR_PIVOT"),"gear rear outer bearing",OnBearingArm("bearing_1")),
+                [4]=Seat(Find("TRUCK_FRONT_PIVOT"),"gear front inner bearing",OnBearingArm("bearing_3")),
+                [5]=Seat(Find("TRUCK_FRONT_PIVOT"),"gear front outer bearing",OnBearingArm("bearing_4")),
+                [0]=Seat(Find("TRUCK_REAR"),"off-side rear frame",new Vector3(-.52f,flangeTop,-1.98f+1.4f)),
+                [1]=Seat(Find("TRUCK_FRONT"),"off-side front frame",new Vector3(-.52f,flangeTop,2.24f-.925f)),
+                [2]=Seat(Find("Engine"),"crank bearing",new Vector3(0,.09f,.06f)),
+            };
+        }
+    }
+}

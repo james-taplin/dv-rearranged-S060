@@ -170,26 +170,18 @@ namespace RearrangedS060
         }
         private void BuildShay(S060Shay shay, OilingPointPortFeederReader[] readers)
         {
-            var markers=shay.Markers;
-            var names=new Dictionary<int,string> { [0]="LUBE_BIG_END_C1",[1]="LUBE_BIG_END_C2",[3]="LUBE_BIG_END_C3",[4]="LUBE_MAIN_2" };
-            foreach(bool left in new[]{true,false})
-                for(int axle=1;axle<=4;axle++) names[axle==1?S060OilingTopology.NativeBigEndIndex(left):S060OilingTopology.ExtraIndex(left,axle-2)]="OIL_CUP_"+axle+(left?"_L":"_R");
-            foreach(var pair in names)
+            // R2 (James, 2026-10-28): six upright cups on the six native circuits, extras dormant.
+            // Seats are plain unrotated children of yaw-only frames, so no cup can lie sideways.
+            foreach(var seat in S060ShaySeats.Build(shay))
             {
-                var marker=markers.Single(t=>t.name==pair.Value);bool native=pair.Key<S060OilingTopology.NativePoints;
-                int template=pair.Value.EndsWith("_L",StringComparison.Ordinal)?2:5;
-                var cup=native?S060OilCupInteractables.Consumer(readers[pair.Key]):interactables.Clone(readers[template],pair.Key,template);
-                var mount=NewMount(new Site{Frame=marker},cup,cup.syncTag);mount.Fixed=marker;mount.FixedPoint=Vector3.zero;
-                mount.CupOrientation=pair.Value.StartsWith("OIL_CUP",StringComparison.Ordinal)?Quaternion.identity:Quaternion.FromToRotation(Vector3.up,Vector3.forward);
-                if(native)
-                {
-                    mount.Original=car.GetComponentsInChildren<PositionSyncProvider>(true).Single(p=>p.syncTag==cup.syncTag&&!p.name.StartsWith("[S060 oil",StringComparison.Ordinal));
-                    mount.OriginalRotation=cup.transform.localRotation;
-                }
-                else interactables.Register(cup);
+                var cup=S060OilCupInteractables.Consumer(readers[seat.Key]);
+                var mount=NewMount(new Site{Frame=seat.Value},cup,cup.syncTag);mount.Fixed=seat.Value;mount.FixedPoint=Vector3.zero;
+                mount.CupOrientation=Quaternion.identity;
+                mount.Original=car.GetComponentsInChildren<PositionSyncProvider>(true).Single(p=>p.syncTag==cup.syncTag&&!p.name.StartsWith("[S060 oil",StringComparison.Ordinal));
+                mount.OriginalRotation=cup.transform.localRotation;
             }
-            BigEndCount=8;LateUpdate();ServicingReady=true;
-            Main.Logger.Log("S060 Shay oiling: eight axlebox cups, three engine big ends and one common bearing lubricator; existing circuit IDs retained.");
+            BigEndCount=S060OilingTopology.NativePoints;LateUpdate();ServicingReady=true;
+            Main.Logger.Log("S060 Shay oiling: six upright cups (three line-shaft bearings, two off-side truck frames, one crank bearing) on the native circuits.");
         }
 
         private void FitNative(PositionSyncConsumer cup, Site site, int kind)
