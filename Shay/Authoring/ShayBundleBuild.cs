@@ -24,7 +24,7 @@ public static class ShayBundleBuild
                 var item = UnityEngine.Object.Instantiate(prefab, root.transform); item.name = name; return item;
             }
             var engine = Load("Assets/ShaySources/Engine/S060_SHAY_ENGINE_R1.prefab", "Engine");
-            engine.transform.localPosition = new Vector3(1.3f,.77f,.26f); engine.transform.localRotation = Quaternion.identity;
+            engine.transform.localPosition = new Vector3(1.10f,.52f,.11f); engine.transform.localRotation = Quaternion.identity; // R2 engine origin
             var trucks = Load("Assets/ShaySources/Trucks/Prefabs/S060-Shay-Trucks.prefab", "Trucks");
             var transmission = Load("Assets/ShaySources/Transmission/S060-Shay-Transmission-STUDY.prefab", "Transmission");
             var preview = transmission.GetComponent<ShayTransmissionPreview>();
@@ -42,7 +42,7 @@ public static class ShayBundleBuild
             }
             // Native wheel aliases must remain empty until the real S060 is bound.
             var aliases = trucks.GetComponentsInChildren<MeshFilter>(true).Where(f => f.sharedMesh == null).ToArray();
-            if (aliases.Length < 8) throw new InvalidOperationException("Native wheel placeholders missing.");
+            if (aliases.Length != 4) throw new InvalidOperationException("R2 needs one native pony wheelset placeholder per axle.");
             var prefabPath = destination + "/S060Shay.prefab";
             PrefabUtility.SaveAsPrefabAsset(root, prefabPath); AssetDatabase.SaveAssets(); AssetDatabase.Refresh();
             var build = new AssetBundleBuild { assetBundleName = "shay_running_gear", assetNames = new[] { prefabPath, destination + "/motion.json" } };

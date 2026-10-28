@@ -1,4 +1,4 @@
-"""Read original R1 modules in place; never export DV geometry.
+"""Read original R2 modules in place; never export DV geometry.
 
 Checks the previously separate transmission against the finished truck frames.
 The original module audits cover body, native wheels, bevels and joint forks.
@@ -13,6 +13,9 @@ output = Path(sys.argv[2])
 C = json.loads((source / 'shared/fit-contract.json').read_text())
 recipe = json.loads((source / 'transmission/unity/Assets/Transmission/recipe.json').read_text())
 meshes = {m['name']: m for m in recipe['meshes']}
+# R2: the borrowed solver reads member length, yoke allowance and apex as globals.
+K = json.loads((source / 'transmission/kinematic-markers.json').read_text())['kinematics']
+MEMBER, ALLOW, APEX = K['memberLength'], K['jointEndAllowance'], C['bevelGears']['coneApexX']
 for node in ast.parse((source / 'transmission/source/validate.py').read_text()).body:
     if isinstance(node, ast.FunctionDef):
         exec(compile(ast.Module(body=[node], type_ignores=[]), 'R1 solver', 'exec'))

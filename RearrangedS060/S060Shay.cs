@@ -43,16 +43,17 @@ namespace RearrangedS060
             var prefab=S060ShayAssets.Resolve(); simulation=S060ArticulatedSimulation.Ensure(Parts.Car);
             quartering=new S060NativeQuartering(Parts.MechanismLeft,Parts.MechanismRight); quartering.Retain();
             stockCocks=new S060StockCocks(Parts.Car); stockCocks.Mute();
-            var powered=BuildModels(prefab);
-            Physics.Apply(S060Parts.DriverRadius*.8f,powered,4,1);
+            var powered=BuildModels(prefab,S060ShayWheelset.FromStock());
+            Physics.Apply(S060ShayWheelset.RollingRadius,powered,4,1);
             Parts.FrontBogie.axles=Parts.RearBogie.axles=null;
             simulation.Select(S060EngineMode.Shay);
             var motion=Root.AddComponent<S060ShayMotion>();motion.Bind(simulation.Bank,Root.transform,S060ShayAssets.Motion,Markers);
             effects=S060ShayEffects.Bind(Parts.Car,Root,name=>Markers.Single(t=>t.name==name));
             RefreshMaterials(Markers);
         }
-        internal PoweredWheel[] BuildModels(GameObject prefab)
+        internal PoweredWheel[] BuildModels(GameObject prefab,S060ShayWheelset pony)
         {
+            if(pony?.Near==null||pony.Material==null) throw new InvalidOperationException("Stock S282 pony wheelset unavailable for the Shay.");
             Root=UnityEngine.Object.Instantiate(prefab,Parts.Car.transform); added.Add(Root); Root.name="[S060 Shay]"; Root.SetActive(false);
             Root.transform.localPosition=Vector3.zero; Root.transform.localRotation=Quaternion.identity; Root.transform.localScale=Vector3.one;
             body=S060ShayBody.Apply(Parts.Body);
@@ -75,19 +76,16 @@ namespace RearrangedS060
             string[] axleNames={"REAR_AXLE_1","REAR_AXLE_2","FRONT_AXLE_3","FRONT_AXLE_4"};
             for(int i=0;i<4;i++)
             {
-                var axle=Find(axleNames[i]); int native=i==0?1:i==3?3:2;
-                foreach(var filter in axle.GetComponentsInChildren<MeshFilter>(true).Where(f=>f.sharedMesh==null))
+                var axle=Find(axleNames[i]);
+                // R2: one complete vanilla S282 pony wheelset per axle, live and unscaled.
+                var filter=axle.GetComponentsInChildren<MeshFilter>(true).Single(f=>f.sharedMesh==null&&f.name.EndsWith("_NATIVE_SET",StringComparison.Ordinal));
+                filter.transform.localRotation=pony.Rotation;filter.transform.localScale=pony.Scale;
+                filter.sharedMesh=pony.Near;filter.GetComponent<MeshRenderer>().sharedMaterial=pony.Material;
+                if(pony.Far!=null)
                 {
-                    bool left=filter.name.EndsWith("_L",StringComparison.Ordinal);
-                    var source=Parts.Wheels(native).Single(t=>t.parent==(left?Parts.MechanismLeft:Parts.MechanismRight));
-                    filter.sharedMesh=source.GetComponent<MeshFilter>().sharedMesh;
-                    filter.GetComponent<MeshRenderer>().sharedMaterial=source.GetComponent<MeshRenderer>().sharedMaterial;
-                    var nativeLod=source.Find(source.name+"_LOD1");
-                    if(nativeLod==null || nativeLod.GetComponent<MeshFilter>()?.sharedMesh==null)
-                        throw new InvalidOperationException("Native Shay distant wheel alias missing: "+source.name);
                     var distant=new GameObject("Native wheel distant");distant.transform.SetParent(filter.transform,false);
-                    distant.AddComponent<MeshFilter>().sharedMesh=nativeLod.GetComponent<MeshFilter>().sharedMesh;
-                    var distantRenderer=distant.AddComponent<MeshRenderer>();distantRenderer.sharedMaterial=filter.GetComponent<MeshRenderer>().sharedMaterial;
+                    distant.AddComponent<MeshFilter>().sharedMesh=pony.Far;
+                    var distantRenderer=distant.AddComponent<MeshRenderer>();distantRenderer.sharedMaterial=pony.Material;
                     var lod=filter.gameObject.AddComponent<LODGroup>();
                     lod.SetLODs(new[]{new LOD(.10f,new Renderer[]{filter.GetComponent<MeshRenderer>()}),new LOD(.015f,new Renderer[]{distantRenderer})});lod.RecalculateBounds();
                 }
@@ -95,7 +93,7 @@ namespace RearrangedS060
                 var live=UnityEngine.Object.Instantiate(Parts.AxleFor(1).gameObject,parent); added.Add(live);live.name="[axle] S060 Shay "+i;
                 live.transform.position=axle.position;live.transform.localRotation=Quaternion.identity;
                 foreach(var renderer in live.GetComponentsInChildren<Renderer>(true)) renderer.enabled=false;
-                var pw=live.GetComponent<PoweredWheel>();pw.wheelTransform=axle.GetComponentsInChildren<MeshFilter>(true).Single(f=>f.name.EndsWith("_R",StringComparison.Ordinal)).transform;
+                var pw=live.GetComponent<PoweredWheel>();pw.wheelTransform=filter.transform;
                 powered.Add(pw);live.SetActive(true);
             }
             Root.SetActive(true);
@@ -139,6 +137,27 @@ namespace RearrangedS060
             Parts.FrontBogie.axles=Parts.RearBogie.axles=null;
         }
         protected override void ReleasePresentationMeshes(){plumbing?.Dispose();body?.Dispose();}
+    }
+
+    // R2 truck wheels: the stock S282 pony wheelset, aliased live (never copied).
+    internal sealed class S060ShayWheelset
+    {
+        // Fit contract R2: tread radius at the S060's own contact line (x .7575).
+        internal const float RollingRadius=.3552532f;
+        internal Mesh Near, Far; internal Material Material;
+        internal Quaternion Rotation=Quaternion.identity; internal Vector3 Scale=Vector3.one;
+        internal static S060ShayWheelset FromStock()
+        {
+            var donor=S060PonyAssets.Resolve();
+            var filters=donor.Axle.GetComponentsInChildren<MeshFilter>(true).Where(f=>f.sharedMesh!=null&&f.sharedMesh.name.StartsWith("s282_wheels_front",StringComparison.OrdinalIgnoreCase)).ToArray();
+            var near=filters.FirstOrDefault(f=>f.sharedMesh.name.IndexOf("LOD",StringComparison.OrdinalIgnoreCase)<0)??filters.FirstOrDefault();
+            var far=filters.FirstOrDefault(f=>f!=near&&f.sharedMesh.name.IndexOf("LOD1",StringComparison.OrdinalIgnoreCase)>=0);
+            if(near==null) throw new InvalidOperationException("Stock S282 pony wheelset mesh unavailable.");
+            // Keep the donor's mesh orientation/scale relative to its own axle.
+            var rel=donor.Axle.worldToLocalMatrix*near.transform.localToWorldMatrix;
+            return new S060ShayWheelset{Near=near.sharedMesh,Far=far?.sharedMesh,Material=near.GetComponent<MeshRenderer>()?.sharedMaterial,
+                Rotation=rel.rotation,Scale=rel.lossyScale};
+        }
     }
 
     // Shared run-time finishes built from the bundle's own Standard materials.

@@ -30,8 +30,8 @@ internal sealed class S060ShayTransmission : MonoBehaviour
             Transform truck = j==0 ? rearTruck : frontTruck;
             double input = (j==0 ? 1 : -1) * engineTurns;
             double theta = (input % 1) * Tau;
-            a[j] = transform.TransformPoint(j==0 ? new Vector3(1.3f,.77f,-.04f) : new Vector3(1.3f,.92f,.57f));
-            b[j] = truck.TransformPoint(j==0 ? new Vector3(1.2f,.569703698158f,.599999976158f) : new Vector3(1.2f,.569703698158f,.366999988079f));
+            a[j] = transform.TransformPoint(j==0 ? new Vector3(1.10f,.52f,-.19f) : new Vector3(1.10f,.37f,.42f));
+            b[j] = truck.TransformPoint(j==0 ? new Vector3(1.0325581f,.3552532f,.42f) : new Vector3(1.0325581f,.3552532f,.315f));
             Vector3 axis = (b[j]-a[j]).normalized;
             // Work with the link's positive-Z direction, irrespective of endpoint order.
             d[j] = axis * (j==0 ? -1 : 1);
@@ -41,7 +41,7 @@ internal sealed class S060ShayTransmission : MonoBehaviour
             double principal = Math.Atan2(Vector3.Dot(w[j],truck.up),Vector3.Dot(w[j],truck.right))/Tau;
             output[j] = input + Wrap(principal - input);
             middle[j] = Frame(v[j], d[j]);
-            engagement[j] = (3*(j==0?.38f:.39f) - (Vector3.Distance(a[j],b[j])-.09f))/2;
+            engagement[j] = (3*.34f - (Vector3.Distance(a[j],b[j])-.204f))/2;
             float bend = Mathf.Max(Vector3.Angle(d[j],transform.forward), Vector3.Angle(d[j],truck.forward));
             if(j==0) { rearEngagement=engagement[j];rearJointAngle=bend;rearPhaseErrorDegrees=(output[j]-input)*360; }
             else { frontEngagement=engagement[j];frontJointAngle=bend;frontPhaseErrorDegrees=(output[j]-input)*360; }
@@ -60,9 +60,9 @@ internal sealed class S060ShayTransmission : MonoBehaviour
             }
             else if(p.role=="member")
             {
-                j=p.index/3; int member=p.index%3; float length=j==0?.38f:.39f;
+                j=p.index/3; int member=p.index%3; float length=.34f;
                 Vector3 direction=(b[j]-a[j]).normalized;
-                p.transform.position=a[j]+direction*(.045f+member*(length-engagement[j]));
+                p.transform.position=a[j]+direction*(.102f+member*(length-engagement[j]));
                 // Local +Z goes from body to truck. Cross sections share one rigid phase.
                 p.transform.rotation=Frame(v[j],direction);
             }

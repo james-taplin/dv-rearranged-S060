@@ -14,17 +14,18 @@ namespace RearrangedS060
         private readonly List<(MeshFilter filter,Mesh original,Mesh copy)> owned=new List<(MeshFilter,Mesh,Mesh)>();
         private struct Vertex { internal Vector3 p; internal Vector2 uv; internal Vertex(Vector3 p,Vector2 uv){this.p=p;this.uv=uv;} }
         internal enum Piece { Keep, Remove, Trim }
-        // Fit contract R1 reliefs and keep-outs (body metres, +X right, +Z smokebox).
-        internal static readonly Bounds Bay=FromTo(new Vector3(-1.5f,-.1f,-2.82f),new Vector3(1.5f,1.285f,3.10f));
-        internal static readonly Bounds Notch=FromTo(new Vector3(1.035f,1.0f,-.44f),new Vector3(1.405f,2.58f,.66f));
+        // Fit contract R2 reliefs (body metres, +X right, +Z smokebox). The pony-wheel trucks
+        // sweep to 0.85-1.01 m, so native structure stays down to 1.085 m (R1: 1.285 m).
+        internal static readonly Bounds Bay=FromTo(new Vector3(-1.5f,-.1f,-2.68f),new Vector3(1.5f,1.085f,2.94f));
+        internal static readonly Bounds Notch=FromTo(new Vector3(.835f,1.0f,-.62f),new Vector3(1.55f,2.36f,.50f));
         private static readonly Bounds[] Protected={FromTo(new Vector3(.72f,1.285f,-2.7f),new Vector3(1.65f,3.37f,-1.3f)),FromTo(new Vector3(.72f,.2f,-3.65f),new Vector3(1.65f,1.285f,-2.82f))};
         // Outside reverser reach rod and the conventional cylinder blocks: always whole.
         private static readonly Bounds Reverser=FromTo(new Vector3(.25f,1.40f,-.52f),new Vector3(1.30f,1.66f,-.05f));
         private static readonly Bounds Cylinder=FromTo(new Vector3(.70f,.30f,2.55f),new Vector3(1.40f,1.60f,3.75f));
         // Trimmed plates also lose the saddle foot left in front of the bay once the cylinders go.
-        internal static readonly Bounds Apron=FromTo(new Vector3(-.85f,-.1f,3.10f),new Vector3(.85f,1.285f,3.55f));
+        internal static readonly Bounds Apron=FromTo(new Vector3(-.85f,-.1f,2.94f),new Vector3(.85f,1.085f,3.55f));
         private const float TrimReach=.25f, TrimArea=.3f;
-        private const float SillX=.80f, DeckUnderside=1.62f, CabFront=-1.30f;
+        private const float SillX=.80f, DeckUnderside=1.62f;
         internal static Bounds FromTo(Vector3 min,Vector3 max){var b=new Bounds();b.SetMinMax(min,max);return b;}
 
         internal static S060ShayBody Apply(Transform body)
@@ -69,11 +70,10 @@ namespace RearrangedS060
                         int start=vertices.Count;vertices.AddRange(q);coords.AddRange(Enumerable.Repeat(paint,4));
                         submeshes[sub].AddRange(new[]{start,start+1,start+2,start,start+2,start+3});
                     }
-                    // Running-gear frame: belly plate and side sills between cab front and front end.
-                    float zf=Apron.max.z,zs=Bay.max.z,zr=Bay.min.z,yb=Bay.max.y;
+                    // Belly plate under the trimmed native frame/firebox (the frame plates themselves
+                    // now close the sides down to 1.085 m, so R1's side sills are gone).
+                    float zf=Apron.max.z,zr=Bay.min.z,yb=Bay.max.y;
                     Quad(deck.sub,deck.uv,Vector3.down,new Vector3(-SillX,yb,zr),new Vector3(SillX,yb,zr),new Vector3(SillX,yb,zf),new Vector3(-SillX,yb,zf));
-                    foreach(float s in new[]{1f,-1f})
-                        Quad(deck.sub,deck.uv,new Vector3(s,0,0),new Vector3(s*SillX,yb,CabFront),new Vector3(s*SillX,DeckUnderside,CabFront),new Vector3(s*SillX,DeckUnderside,zs),new Vector3(s*SillX,yb,zs));
                     Quad(deck.sub,deck.uv,Vector3.forward,new Vector3(-SillX,yb,zf),new Vector3(SillX,yb,zf),new Vector3(SillX,yb+.12f,zf),new Vector3(-SillX,yb+.12f,zf));
                     // Engine pocket in the right tank, open to the side, painted like the tank.
                     float x0=Notch.min.x,x1=1.31f,y0=DeckUnderside,y1=Notch.max.y,z0=Notch.min.z,z1=Notch.max.z;

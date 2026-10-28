@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'Build.Config.ps1')
 $config=Get-S060BuildConfig
 $contract=(Get-FileHash (Join-Path $SourcesRoot 'shared\fit-contract.json')).Hash
-if($contract -ne '3A6A104D1F12C49C3E399001E67F9F095C10EECD5AF2F39677AC44D70F37E8A7'){throw 'Runtime geometry is calibrated to the frozen R1 fit contract. Review a contract change before rebuilding.'}
+if($contract -ne '5D8C009809CBBE4481720359F8EABA5FC23B3448D345BEF7BF97DA3876C40264'){throw 'Runtime geometry is calibrated to the frozen R2 fit contract. Review a contract change before rebuilding.'}
 $contacts=Join-Path $PSScriptRoot 'build\shay\combined-contact.json'
 & $config.Python (Join-Path $PSScriptRoot 'Shay\tools\Check.Assembly.py') $SourcesRoot $contacts
 if($LASTEXITCODE -ne 0){throw 'Combined Shay transmission/truck geometry failed.'}

@@ -243,13 +243,18 @@ public static class ConventionalNativeAudit
         Check(prefab!=null,"Shipping Shay prefab loads by its verified asset path");
         var owner=New("S060Shay");Set(owner,"Parts",parts);root.SetActive(true);
         var bodyFilter=body.GetComponentsInChildren<MeshFilter>(true).Single(f=>f.name=="s060_body");var originalBody=bodyFilter.sharedMesh;
-        var returned=(Array)Call(owner,"BuildModels",prefab);
+        // R2 wheels: the stock S282 pony wheelset, from a private QA fixture in place of the live prefab.
+        var ponyData=JsonUtility.FromJson<Data>(File.ReadAllText(Path.Combine(Path.GetDirectoryName(Environment.GetEnvironmentVariable("S060_CONVENTIONAL_NATIVE")),"s282-pony-native.json"))).meshes.Single(m=>m.name=="s282_wheels_front");
+        var ponyType=runtime.GetType("RearrangedS060.S060ShayWheelset");var pony=Activator.CreateInstance(ponyType,true);
+        ponyType.GetField("Near",All).SetValue(pony,Mesh(ponyData));ponyType.GetField("Material",All).SetValue(pony,material);
+        var returned=(Array)Call(owner,"BuildModels",prefab,pony);
         Check(returned.Length==4,"Shay geometry returns four real native PoweredWheel objects");
         var markers=(Transform[])owner.GetType().GetProperty("Markers",All).GetValue(owner,null);
         var model=(GameObject)owner.GetType().GetProperty("Root",All).GetValue(owner,null);
         var aliases=markers.SelectMany(t=>t.GetComponents<MeshFilter>()).Where(f=>f.name.Contains("_NATIVE_")).ToArray();
-        Check(aliases.Length==8&&aliases.All(f=>f.sharedMesh!=null),"All eight complete DV wheel halves are aliased from live native references");
-        foreach(var f in aliases)Check(Math.Abs(Math.Abs(f.transform.localScale.x)-1)<1e-6,"Native Shay gauge/mirror is never radially scaled");
+        Check(aliases.Length==4&&aliases.All(f=>f.sharedMesh!=null&&f.sharedMesh.name=="s282_wheels_front"),"All four axles alias one complete stock S282 pony wheelset");
+        foreach(var f in aliases)Check(f.transform.localScale==Vector3.one,"Pony wheelsets keep stock size and gauge (unscaled)");
+        foreach(var f in aliases)Check(Mathf.Abs(f.transform.position.y-root.transform.TransformPoint(0,.3552532f,0).y)<.002f,"Pony wheelset axle sits at the R2 rolling radius");
         Check(bodyFilter.sharedMesh!=originalBody,"Measured tank and lower-frame relief is a per-car mesh copy");
         ValidateShayRelief(body,bodyFilter.transform,originalBody,bodyFilter.sharedMesh);
         Call(owner,"RefreshMaterials",(object)markers);
@@ -311,10 +316,12 @@ public static class ConventionalNativeAudit
         // Engine-side reverser parts only; the deck, tank strip and frame plate share the wider box.
         Vector3 rMin=new Vector3(.90f,1.44f,-.51f),rMax=new Vector3(1.28f,1.555f,-.07f);
         Check(before.Any(p=>In(p,rMin,rMax))&&!after.Any(p=>In(p,rMin,rMax)),"Shay relief removes the outside reverser whole, never half");
-        Check(after.Count(p=>Mathf.Abs(p.y-1.285f)<.001f&&Mathf.Abs(p.x)<.8f)>=2,"Shay relief closes the running-gear bay with a belly plate");
-        Check(after.Count(p=>Mathf.Abs(Mathf.Abs(p.x)-.8f)<.001f&&p.y>1.285f&&p.y<1.62f)>=4,"Shay relief adds side sills so the bay is not see-through");
-        Check(after.Count(p=>Mathf.Abs(p.x-1.035f)<.001f&&p.y>1.62f&&p.y<2.58f)>=2,"Shay relief lines the engine pocket in the right tank");
-        Check(!after.Any(p=>In(p,new Vector3(-.75f,.05f,-2.5f),new Vector3(.75f,1.20f,2.8f))),"No native body triangle remains inside the truck bay");
+        Check(after.Count(p=>Mathf.Abs(p.y-1.085f)<.001f&&Mathf.Abs(p.x)<.8f)>=2,"Shay R2 relief closes the trimmed frame with a belly plate at 1.085 m");
+        // R2: the native frame plates stay down to the belly, so they close the sides themselves.
+        Vector3 fMin=new Vector3(.40f,1.10f,-1.0f),fMax=new Vector3(.62f,1.60f,2.5f);
+        Check(after.Count(p=>In(p,fMin,fMax))>=before.Count(p=>In(p,fMin,fMax))*.9f,"Shay R2 relief keeps the native frame band above the trucks");
+        Check(after.Count(p=>Mathf.Abs(p.x-.835f)<.001f&&p.y>1.62f&&p.y<2.36f)>=2,"Shay relief lines the engine pocket in the right tank");
+        Check(!after.Any(p=>In(p,new Vector3(-.75f,.05f,-2.5f),new Vector3(.75f,1.05f,2.8f))),"No native body triangle remains inside the R2 truck bay");
     }
 
     private static void Render(GameObject body,string name)
