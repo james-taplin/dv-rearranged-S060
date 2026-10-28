@@ -5,11 +5,11 @@ discovers this bundle inside RearrangedS060/assets/Meyer. It has no separate
 UMM entry. Normal play selects Meyer through the native S060's
 WHEEL REARRANGER radio or the Rearranged S060 UMM panel.
 
-Meyer-style 0-4+4-0T: two driven axles beneath the S060 and two beneath an
-attached pannier steam bogie. It remains one locomotive identity and save,
+Meyer-style 0-4+4-0T: two driven axles beneath the S060 and two on a
+swinging rear engine unit. It remains one locomotive identity and save,
 with shared cab controls, a compound HP -> receiver -> LP steam circuit and
-one chimney. Panniers are visual, without extra water capacity. Rear lamps,
-fittings and jointed exhaust return follow the attached section.
+one chimney. The runtime adds rear
+bodywork with extra water and coal capacity; see the main README.
 
 Stop and close the regulator before switching. Before adding/removing Meyer,
 uncouple its rear, disconnect the hose and leave clear track behind. Native

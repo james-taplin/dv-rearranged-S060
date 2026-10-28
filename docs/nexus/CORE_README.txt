@@ -42,15 +42,15 @@ ARRANGEMENTS
   0-8-0 - four powered axles with fitted 1.14 m drivers.
   0-10-0 Tank - five powered axles with fitted 1.00 m drivers.
   0-6-2 - stock-sized drivers and a trailing carrying axle.
-  Meyer-style 0-4+4-0T - compound locomotive with an attached pannier steam bogie.
+  Meyer-style 0-4+4-0T - compound locomotive with a swinging rear engine unit.
   Franklin Dockside 0-4-4-0T - two simple-expansion units beneath one tank body.
   Two-truck Shay - three vertical cylinders, geared shafts and four driven axles.
 
 SHAY
 
-A fictional S060 conversion using the complete native DV wheelsets, fitted to
-1.14 m diameter without changing the gauge. Two swivelling trucks carry eight
-working axlebox oil cups. A vertical three-cylinder engine drives jointed,
+A fictional S060 conversion on stock S282 pony wheelsets at the stock gauge.
+Six upright oil cups serve the gear-side shaft bearings, the off-side truck
+frames and the crank. A vertical three-cylinder engine drives jointed,
 sliding shafts and bevel gears with a 43:19 reduction. Steam and exhaust pipes
 connect the side engine to the boiler and single chimney. The normal cab lever
 controls all three cylinder-cock channels; drips require actual cylinder water.
@@ -59,13 +59,14 @@ This first Shay version needs gameplay acceptance, especially on tight curves.
 
 MEYER
 
-Two driven axles remain beneath the S060 and two beneath the attached rear
-pannier section. It is one locomotive, with no separate companion vehicle.
+Two driven axles remain beneath the S060 and two on a rear engine unit that
+swings under new bodywork: a high coal hopper, side and well tanks and a rear end. It is one locomotive, with no separate companion vehicle.
 Steam passes through HP cylinders, a finite receiver and LP cylinders. LP
-exhaust and chuffs feed one chimney. A jointed return pipe follows the cab
-roofline to leave the entry clear. Panniers are visual and add no water capacity.
-Front cylinders retain the full-sized native S060 castings. Two lower rear
-lamps move with the rear section; the upper lamp stays on the cab.
+exhaust and chuffs feed one chimney. A jointed return pipe runs low along the
+cab roof and left tank top. The Meyer carries about 8,800 L of water and
+3,500 kg of coal (stock 4,500 L and 1,200 kg).
+Front cylinders retain the full-sized native S060 castings. All three rear
+lamps move to the new rear end.
 
 DOCKSIDE
 
