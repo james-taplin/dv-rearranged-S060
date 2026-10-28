@@ -4,35 +4,16 @@ Change the native S060's running gear through WHEEL REARRANGER on the comms
 radio, or the mod's UMM arrangement chooser. All arrangements remain attached
 to the same locomotive identity, cab and save ownership.
 
-0.22.2 carries the applied S060 skin onto the Meyer's rear tanks and hopper, fills the
-hopper with the stock tender's coal and tidies the LP exhaust pipe along the cab roof
-and tank top.
+NEW SINCE 0.19.1
 
-0.22.1 fixed the Meyer's rear buffers and lamp seating and closes the gap between the
-Shay's frame and trucks with deep frame sills.
+A two-truck Shay: a three-cylinder side engine drives two swivelling trucks on
+stock S282 pony wheels through animated line shafts, universal joints and bevel
+gears, with cab-controlled cylinder cocks and six upright oil cups.
 
-0.22.0 rebuilt the Meyer's rear as one long articulated tank engine: a high coal
-hopper behind the cab, long side and well tanks in line with the S060's own, and a
-proper rear end with all three rear lamps, carried on the locomotive body while the
-rear engine unit swings underneath. The Meyer now holds about 8,800 L of water and
-3,500 kg of coal.
-
-0.21.0 rebuilt the Shay: smaller stock S282 pony wheels on lower trucks, full-size
-shafts, universal joints, toothed bevel gears, rods and pistons, the engine moved
-down and inboard, the S060's own frame and springs kept above the trucks, and six
-upright oil cups.
-
-0.20.3 made the Shay's pinions, line shafts, universal joints and bevel gears
-turn with the engine; in 0.20.2 only the crank and wheels moved.
-
-0.20.2 rebuilt the Shay's body cut-outs from whole parts, so the cab steps and
-old reverser are no longer sliced and the boiler underside is closed, and gives
-the Shay engine and frames a dirty gunmetal finish. It also adds a gear-clock
-block to the driving trace.
-
-0.20.1 fixed Shay selection with CCL's native water-drip aliases and prevents
-duplicate Doppler/ECS initialization while assembling its audio. Existing
-arrangements, oil circuit IDs and vehicle targeting retain their behaviour.
+A rebuilt Meyer rear: a high coal hopper, side and well tanks and a full rear end
+with all three rear lamps sit on the locomotive while the rear engine unit swings
+underneath. The Meyer carries about 8,800 L of water and 3,500 kg of coal, and its
+rear bodywork takes its paint from the applied S060 skin.
 
 ARRANGEMENTS
 
