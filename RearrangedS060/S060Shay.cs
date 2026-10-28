@@ -222,7 +222,7 @@ namespace RearrangedS060
                 var seat=new GameObject("[S060 oil seat] "+name).transform;seat.SetParent(parent,false);
                 seat.localPosition=local;seat.localRotation=Quaternion.identity;return seat;
             }
-            const float flangeTop=.806f, apex=1.0325581f, axleY=S060ShayWheelset.RollingRadius;
+            const float flangeTop=.806f, apex=1.0325581f;
             Vector3 OnBearingArm(string bearing)
             {
                 var b=Find(bearing+"__AXIS").localPosition;return new Vector3(apex-.10f,flangeTop,b.z);

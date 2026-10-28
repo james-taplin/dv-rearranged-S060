@@ -21,7 +21,11 @@ namespace RearrangedS060
         private readonly List<(MeshFilter filter, Mesh source, Mesh copy)> meshes = new List<(MeshFilter, Mesh, Mesh)>();
         private readonly List<GameObject> added = new List<GameObject>();
         private readonly List<(LODGroup group, LOD[] lods, Vector3 point, float size)> lods = new List<(LODGroup, LOD[], Vector3, float)>();
-        internal static S060MeyerLights Bind(Transform car, Transform body, Transform rearFrame, Vector3 rearOffset)
+        // Meyer R2: lamps go to the new body-mounted rear bulkhead (face z -8.11), the
+        // upper cab-back lamp too (the coal hopper hides it). Frame-local = car - (0,0,RearCentre).
+        internal const float BodyRearGlassZ = S060MeyerBodywork.BulkheadRear - .03f - MeyerPlan.RearCentre;
+        internal const float NativeUpperGlassZ = -4.30f;
+        internal static S060MeyerLights Bind(Transform car, Transform body, Transform rearFrame, Vector3 rearOffset, bool bodyMounted = false)
         {
             var owner = new S060MeyerLights();
             try
@@ -34,6 +38,15 @@ namespace RearrangedS060
                 if (rear == null) throw new InvalidOperationException("Native rear headlight controller group is missing.");
                 var parts = meshes.Concat(new[] { rear.Find("s060_headlight_glass_R_LO"), rear.Find("HeadlightsLowLeft"), rear.Find("HeadlightsLowRight") }).ToArray();
                 if (parts.Any(t => t == null)) throw new InvalidOperationException("Native lower rear glass or controlled lamp effects are missing.");
+                var upper = new Transform[0];
+                if (bodyMounted)
+                {
+                    upper = body.GetComponentsInChildren<Transform>(true).Where(t => t.name == "s060_taillight_upper")
+                        .Concat(rear.Cast<Transform>().Where(t => t.name == "HeadlightHigh" ||
+                            (t.name.StartsWith("s060_headlight_glass", StringComparison.Ordinal) && t.name != "s060_headlight_glass_R_LO"))).ToArray();
+                    if (upper.Length < 3) throw new InvalidOperationException("Native upper rear lamp housing, glass or controlled effect is missing.");
+                    parts = parts.Concat(upper).ToArray();
+                }
                 foreach (var part in parts)
                     owner.homes.Add(new Home { Part = part, Parent = part.parent, Position = part.localPosition,
                         Rotation = part.localRotation, Scale = part.localScale, Sibling = part.GetSiblingIndex() });
@@ -45,7 +58,9 @@ namespace RearrangedS060
                     part.SetParent(rearFrame, false);
                     // Native mesh vertices and effect children are authored in
                     // car coordinates. The new rear datum is in frame space.
-                    part.localPosition = local + new Vector3(0, 0, MeyerPlan.RearLampGlassZ - MeyerPlan.NativeRearLampGlassZ);
+                    float target = bodyMounted ? BodyRearGlassZ : MeyerPlan.RearLampGlassZ;
+                    float native = upper.Contains(part) ? NativeUpperGlassZ : MeyerPlan.NativeRearLampGlassZ;
+                    part.localPosition = local + new Vector3(0, 0, target - native);
                     part.localRotation = rotation; part.localScale = matrix.lossyScale;
                 }
                 var plate = car.Find("[buffers]/HookPlate_R");
@@ -77,7 +92,9 @@ namespace RearrangedS060
                         rearVertices[i] = rearMask[i] ? local + rearOffset - new Vector3(0, 0, MeyerPlan.RearCentre) : Vector3.zero;
                         if (rearMask[i]) flangeZ = Mathf.Max(flangeZ, rearVertices[i].z);
                     }
-                    float flangeCorrection = MeyerPlan.RearBeamCentreZ + MeyerPlan.RearBeamDepth / 2 - flangeZ;
+                    // R2: the buffer flanges sit on the body-mounted beam's rear face (z -8.27).
+                    float flangeTarget = bodyMounted ? S060MeyerBodywork.BeamRear - MeyerPlan.RearCentre : MeyerPlan.RearBeamCentreZ + MeyerPlan.RearBeamDepth / 2;
+                    float flangeCorrection = flangeTarget - flangeZ;
                     for (int i = 0; i < rearVertices.Length; i++) if (rearMask[i]) rearVertices[i].z += flangeCorrection;
                     var rearCopy = UnityEngine.Object.Instantiate(source); rearCopy.name = source.name + " (Meyer articulated rear only)";
                     var rearObject = new GameObject("[Meyer native rear buffer stems]"); owner.added.Add(rearObject); rearObject.layer = filter.gameObject.layer; rearObject.transform.SetParent(rearFrame, false);

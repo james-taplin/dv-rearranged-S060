@@ -1,10 +1,16 @@
-REARRANGED S060 - 0.21.0 PUBLIC BETA
+REARRANGED S060 - 0.22.0 PUBLIC BETA
 
 Change the native S060's running gear through WHEEL REARRANGER on the comms
 radio, or the mod's UMM arrangement chooser. All arrangements remain attached
 to the same locomotive identity, cab and save ownership.
 
-0.21.0 rebuilds the Shay: smaller stock S282 pony wheels on lower trucks, full-size
+0.22.0 rebuilds the Meyer's rear as one long articulated tank engine: a high coal
+hopper behind the cab, long side and well tanks in line with the S060's own, and a
+proper rear end with all three rear lamps, carried on the locomotive body while the
+rear engine unit swings underneath. The Meyer now holds about 8,800 L of water and
+3,500 kg of coal.
+
+0.21.0 rebuilt the Shay: smaller stock S282 pony wheels on lower trucks, full-size
 shafts, universal joints, toothed bevel gears, rods and pistons, the engine moved
 down and inboard, the S060's own frame and springs kept above the trucks, and six
 upright oil cups.
@@ -83,7 +89,7 @@ the rear assembly and restores the stock rear supports and coupling position.
 INSTALLATION
 
 Requires Derail Valley B99, UMM 0.27.3+, Loco Mesh Splitter and Custom Car Loader.
-Drag RearrangedS060-0.21.0-UMM.zip directly into UMM. One mod folder contains
+Drag RearrangedS060-0.22.0-UMM.zip directly into UMM. One mod folder contains
 the runtime, both 0.7.0 asset bundles and original Shay models; there are no nested ZIPs. Earlier
 three-part test installs must first uninstall the two old standalone asset
 packs in UMM, keeping RearrangedS060 and Settings.xml. See INSTALL.txt.

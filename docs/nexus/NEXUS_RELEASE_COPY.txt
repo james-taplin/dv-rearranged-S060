@@ -2,7 +2,7 @@ MOD NAME
 Rearranged S060 - Re:Arranged
 
 VERSION / FILE CATEGORY
-0.21.0 - Shay rebuild / Main file
+0.22.0 - Meyer rear rebuild / Main file
 
 SHORT DESCRIPTION
 Give the S060 new wheel arrangements, a compound Meyer with an attached pannier
@@ -81,7 +81,7 @@ Install CCL's own requirements too, including DV Language Helper for the tested
 CCL 3.1.11. These dependencies are separate downloads. Rearranged S282 is not
 required to play this mod.
 
-Close the game, then drag [b]RearrangedS060-0.21.0-UMM.zip directly into UMM[/b].
+Close the game, then drag [b]RearrangedS060-0.22.0-UMM.zip directly into UMM[/b].
 One Rearranged S060 entry includes the runtime and both Meyer/Dockside bundles.
 There are no ZIPs inside the download and no separate asset-pack installs.
 
@@ -136,6 +136,16 @@ No original game DLLs, Verde audio/art or dependency mods are distributed here.
 [url=https://github.com/pjschinske/dv-rearranged-S282]Original S282 source[/url]
 [url=https://github.com/james-taplin/dv-rearranged-S282]JimTaplin's S282 fork[/url]
 [url=https://github.com/james-taplin/dv-rearranged-S060]S060 fork[/url]
+
+0.22.0 CHANGELOG - PLAIN TEXT
+
+- rebuilt the Meyer's rear as bodywork on the locomotive: a high coal hopper
+  behind the cab feeding the bunker, long side and well tanks matching the S060's
+  tank line, and a rear end with steps, ladders and handrails.
+- the rear engine unit now swings underneath instead of carrying the tanks.
+- moved the upper rear lamp to the new rear end with the lower pair.
+- the Meyer carries about 8,800 L of water and 3,500 kg of coal (stock 4,500 L
+  and 1,200 kg); switching back to stock keeps up to the stock capacity.
 
 0.21.0 CHANGELOG - PLAIN TEXT
 

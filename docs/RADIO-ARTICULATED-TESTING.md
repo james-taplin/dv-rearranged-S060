@@ -1,4 +1,13 @@
-# S060 radio 0.21.0 transition/effects candidate test
+# S060 radio 0.22.0 transition/effects candidate test
+
+## 0.22.0 Meyer R2 checks
+
+Select the Meyer: hopper, tanks and rear end stay put on curves while the rear
+engine unit swings underneath, with nothing clipping. All three rear lamps sit on
+the new rear end and respond to the cab switch. F4/gauges show about 8,800 L water
+and 3,500 kg coal; refill at a tower and coal stage, save with partly filled
+tanks and reload (amounts must match), then switch back to stock and confirm it
+keeps up to 4,500 L / 1,200 kg.
 
 ## 0.21.0 Shay R2 checks
 

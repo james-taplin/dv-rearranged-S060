@@ -38,6 +38,7 @@ public static class ConventionalNativeAudit
             material = new Material(Shader.Find("Standard")); material.mainTexture = texture; owned.Add(material);
             foreach (bool ten in new[] { false, true }) Validate(data, bodyData, ten);
             if(!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("S060_SHAY_AUDIT_BUNDLE"))) ValidateShay(data,bodyData);
+            if(!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("S060_MEYER_AUDIT_BUNDLE"))) ValidateMeyerBody(data,bodyData);
             File.WriteAllText(Path.Combine(output, "conventional-validation.json"), JsonUtility.ToJson(new Report { passed = true, checks = checks,
                 actualNativeMeshes = true, candidateGeometry = true, fiveDrivenAxles = true, fullSizeCylinders = true, tenOilSites = true, cleanup = true, crankSweep = true, tyreClearance = true, runtimeSha256 = Hash(dll),
                 shayNativeWheelReuse = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("S060_SHAY_AUDIT_BUNDLE")),
@@ -322,6 +323,54 @@ public static class ConventionalNativeAudit
         Check(after.Count(p=>In(p,fMin,fMax))>=before.Count(p=>In(p,fMin,fMax))*.9f,"Shay R2 relief keeps the native frame band above the trucks");
         Check(after.Count(p=>Mathf.Abs(p.x-.835f)<.001f&&p.y>1.62f&&p.y<2.36f)>=2,"Shay relief lines the engine pocket in the right tank");
         Check(!after.Any(p=>In(p,new Vector3(-.75f,.05f,-2.5f),new Vector3(.75f,1.05f,2.8f))),"No native body triangle remains inside the R2 truck bay");
+    }
+
+    // Meyer R2: the runtime's own body-mounted rear bodywork on the native S060 body,
+    // with the real donor engine units, rendered and checked against the rear unit sweep.
+    private static void ValidateMeyerBody(Data data,Entry bodyData)
+    {
+        var root=new GameObject("Native S060 Meyer R2 fixture");
+        var body=new GameObject("LocoS060_Body").transform;body.SetParent(root.transform,false);
+        Draw(body,"s060_body",Mesh(bodyData,v=>!SteamNativePreview.NativeCylinder(v,-1)&&!SteamNativePreview.NativeCylinder(v,1)));
+        var stub=new GameObject("rear frame stub").transform;stub.SetParent(root.transform,false);
+        foreach(var name in new[]{"[Attached rear platform]","[Meyer rear pannier L]","[Meyer rear pannier R]","[Period rear chassis]"})new GameObject(name).transform.SetParent(stub,false);
+        var type=runtime.GetType("RearrangedS060.S060MeyerBodywork",true);
+        var owner=type.GetMethod("Build",All,null,new[]{typeof(Transform),typeof(Transform),typeof(Transform)},null).Invoke(null,new object[]{root.transform,body,stub});
+        var parts=((Transform)type.GetProperty("Root",All).GetValue(owner,null)).GetComponentsInChildren<MeshFilter>(true);
+        Check(parts.Length==4&&parts.All(f=>f.sharedMesh!=null&&f.sharedMesh.vertexCount>0),"Meyer R2 builds paintwork, ironwork, buffer beam and hopper coal");
+        Check(stub.Cast<Transform>().All(t=>!t.gameObject.activeSelf),"Meyer R2 retires the old bogie-borne deck, panniers and bunker box");
+        var verts=parts.SelectMany(f=>f.sharedMesh.vertices.Select(v=>root.transform.InverseTransformPoint(f.transform.TransformPoint(v)))).ToArray();
+        // Rear engine unit sweep (yaw +-6, pitch/roll +-1, +-20 mm): z -7.77..-4.13, top 1.61 m.
+        Check(verts.Where(v=>v.z>-7.80f&&v.z<-4.10f).All(v=>v.y>=1.615f),"Meyer R2 bodywork stays above the rear unit's swept envelope");
+        Check(verts.Max(v=>v.y)<3.87f&&verts.Min(v=>v.z)>-8.28f&&verts.Max(v=>Mathf.Abs(v.x))<1.42f,"Meyer R2 bodywork stays inside the cab roof, coupler and body width");
+        // Real donor engine units for the picture; native wheels for its empty aliases.
+        var bundle=AssetBundle.LoadFromFile(Environment.GetEnvironmentVariable("S060_MEYER_AUDIT_BUNDLE"));
+        try
+        {
+            var pack=bundle.LoadAllAssets<CCL.Types.CustomCarPack>().FirstOrDefault();
+            var donor=pack?.Cars.SelectMany(c=>c.liveries).Select(l=>l.prefab).FirstOrDefault(g=>g!=null&&g.GetComponentsInChildren<Transform>(true).Any(t=>t.name=="[Meyer rear pannier L]"));
+            Check(donor!=null,"Meyer donor prefab with two engine units loads");
+            var copy=Object.Instantiate(donor,root.transform);copy.transform.localPosition=Vector3.zero;
+            // The donor's standalone body alias is not used by the runtime (only its two engine frames are).
+            foreach(var t in copy.GetComponentsInChildren<Transform>(true).Where(t=>t.name=="S060 body (native alias)").ToArray())t.gameObject.SetActive(false);
+            foreach(var t in copy.GetComponentsInChildren<Transform>(true).Where(t=>t.name=="[Attached rear platform]"||t.name.StartsWith("[Meyer rear pannier")||t.name=="[Period rear chassis]"||t.name.StartsWith("[S060 transfer pipe")).ToArray())t.gameObject.SetActive(false);
+            var wheel=Mesh(data.meshes.Single(m=>m.name=="s060_Wheels_02"));
+            foreach(var f in copy.GetComponentsInChildren<MeshFilter>(true).Where(f=>f.sharedMesh==null&&f.name.Contains("driver"))){f.sharedMesh=wheel;var r=f.GetComponent<MeshRenderer>();if(r!=null)r.sharedMaterial=material;}
+            foreach(var c in copy.GetComponentsInChildren<Component>(true).Where(c=>c is Collider||c is MonoBehaviour).ToArray())Object.DestroyImmediate(c);
+            RenderWide(root,"meyer-r2-side",new Vector3(12,2.0f,-2.2f),new Vector3(0,2.0f,-2.2f),4.3f);
+            RenderWide(root,"meyer-r2-rear",new Vector3(9,4.5f,-12),new Vector3(0,1.9f,-4.5f),3.6f);
+        }
+        finally{bundle.Unload(true);type.GetMethod("Dispose").Invoke(owner,null);Object.DestroyImmediate(root);}
+    }
+    private static void RenderWide(GameObject body,string name,Vector3 from,Vector3 at,float size)
+    {
+        var scene=EditorSceneManager.NewPreviewScene(); var clone=Object.Instantiate(body); clone.SetActive(true); UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(clone,scene);
+        var cameraGo=new GameObject("QA camera"); UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(cameraGo,scene); var camera=cameraGo.AddComponent<Camera>(); camera.scene=scene; camera.orthographic=true; camera.orthographicSize=size;
+        camera.clearFlags=CameraClearFlags.SolidColor; camera.backgroundColor=new Color(.84f,.88f,.92f); camera.transform.position=from; camera.transform.LookAt(at);
+        var lightGo=new GameObject("QA light"); UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(lightGo,scene); var light=lightGo.AddComponent<Light>();light.type=LightType.Directional;light.intensity=1.4f;light.transform.rotation=Quaternion.Euler(45,-30,0);
+        var target=new RenderTexture(1800,900,24); camera.targetTexture=target; camera.Render(); var previous=RenderTexture.active;RenderTexture.active=target;
+        var image=new Texture2D(1800,900,TextureFormat.RGB24,false);image.ReadPixels(new Rect(0,0,1800,900),0,0);image.Apply();File.WriteAllBytes(Path.Combine(output,name+"-native-preview.png"),image.EncodeToPNG());
+        RenderTexture.active=previous;Object.DestroyImmediate(image);Object.DestroyImmediate(target);EditorSceneManager.ClosePreviewScene(scene);
     }
 
     private static void Render(GameObject body,string name)

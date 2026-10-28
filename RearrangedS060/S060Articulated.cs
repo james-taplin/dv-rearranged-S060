@@ -34,6 +34,8 @@ namespace RearrangedS060
         private S060NativeCylinders nativeCylinders;
         private S060MeyerLights meyerLights;
         private S060NativeQuartering nativeQuartering;
+        private S060MeyerBodywork bodywork;
+        private S060MeyerCapacity capacity;
 
         internal static Transform[] Preflight(bool meyer) => ResolveFrames(meyer, out _);
         private static Transform[] ResolveFrames(bool meyer, out Transform donorRoot)
@@ -124,10 +126,21 @@ namespace RearrangedS060
             Physics.Apply(IsMeyer ? S060Parts.DriverRadius : .5f, powered.ToArray(), 4, 1);
             if (IsMeyer) meyerSupport.BindCollisionFrame(liveFrames[0]);
             if (IsMeyer) nativeCylinders = S060NativeCylinders.Bind(Parts, liveFrames[1]);
-            if (IsMeyer) meyerLights = S060MeyerLights.Bind(Parts.Car.transform, Parts.Body, liveFrames[0], meyerSupport.RearOffset);
+            if (IsMeyer)
+            {
+                // R2: tanks, hopper and rear end are rigid bodywork on the S060 body. A fixed datum at
+                // the donor rear frame's authored position carries the lamps and buffers with the body.
+                bodywork = S060MeyerBodywork.Apply(Parts.Car, Parts.Body, liveFrames[0]);
+                var datum = new GameObject("[Meyer R2 rear datum]"); added.Add(datum);
+                datum.transform.SetParent(Parts.Car.transform, false);
+                datum.transform.localPosition = donorRoot.InverseTransformPoint(frames[0].position);
+                datum.transform.localRotation = Quaternion.Inverse(donorRoot.rotation) * frames[0].rotation;
+                meyerLights = S060MeyerLights.Bind(Parts.Car.transform, Parts.Body, datum.transform, meyerSupport.RearOffset, true);
+            }
             steamPipes = S060SteamPipes.Bind(Parts.Car.transform, liveFrames[1], liveFrames[0], Parts.Body);
             // Presentation is fully prepared before changing the engine model.
             simulation.Select(IsMeyer ? S060EngineMode.Meyer : S060EngineMode.Dockside);
+            if (IsMeyer) capacity = S060MeyerCapacity.Apply(simulation.Flow, IsRestoring);
         }
         private void Hide(GameObject item) { hidden.Add((item, item.activeSelf)); item.SetActive(false); }
         protected override void ReleasePresentationMeshes() => meyerLights?.ReleaseMeshes();
@@ -139,11 +152,13 @@ namespace RearrangedS060
             // frame while a native lamp/cylinder/audio emitter still belongs
             // beneath it because restoring that owner failed.
             if (meyerLights != null && Attempt(meyerLights.Dispose)) meyerLights = null;
+            if (bodywork != null && Attempt(bodywork.Dispose)) bodywork = null;
             if (nativeCylinders != null && Attempt(nativeCylinders.Dispose)) nativeCylinders = null;
             if (steamPipes != null && Attempt(steamPipes.Dispose)) steamPipes = null;
             foreach (var owner in presentation.ToArray())
                 if (Attempt(owner.Dispose)) presentation.Remove(owner);
             if (stockCocks != null && Attempt(stockCocks.Dispose)) stockCocks = null;
+            if (capacity != null && Attempt(capacity.Dispose)) capacity = null;
             if (simulation != null) Attempt(() => simulation.Select(S060EngineMode.Simple));
             Attempt(Physics.Restore);
             foreach (var home in hidden.ToArray())

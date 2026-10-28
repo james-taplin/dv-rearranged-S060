@@ -25,6 +25,8 @@ $env:S060_NATIVE_PREVIEW = Join-Path $config.QAPath 'native-preview.json'
 $shayBundle=Get-ChildItem (Join-Path $PSScriptRoot 'build\shay') -Directory -Filter 'bundle-*' | Where-Object { Test-Path (Join-Path $_.FullName 'bundle-receipt.json') } | Sort-Object Name -Descending | Select-Object -First 1
 $env:S060_SHAY_AUDIT_BUNDLE=Join-Path $shayBundle.FullName 'shay_running_gear'
 $env:S060_CONVENTIONAL_NATIVE = Join-Path $config.QAPath 'conventional-native.json'
+$meyerBundle=Get-ChildItem (Join-Path $PSScriptRoot 'build\meyer') -Directory -Filter 'authoring-*' | Where-Object { Test-Path (Join-Path $_.FullName 'RS060_Meyer_0440\ccl_bundle') } | Sort-Object Name -Descending | Select-Object -First 1
+$env:S060_MEYER_AUDIT_BUNDLE=Join-Path $meyerBundle.FullName 'RS060_Meyer_0440\ccl_bundle'
 $entries = @(
     @{ name='exhaust'; method='ExhaustNativeAudit.RunBatch'; env='S060_EXHAUST_AUDIT_OUTPUT'; report='native-exhaust-validation.json' },
     @{ name='cocks'; method='CockNativeAudit.RunBatch'; env='S060_COCK_AUDIT_OUTPUT'; report='native-cock-validation.json' },
