@@ -1,4 +1,10 @@
-# S060 radio 0.22.0 transition/effects candidate test
+# S060 radio 0.22.1 transition/effects candidate test
+
+## 0.22.1 checks
+
+Meyer: rear buffer heads meet their stems on the beam; rear lamps stand proud of the
+bulkhead. Front buffers: report if still broken (0.22.1 does not change them).
+Shay: frame sills close the gap above both trucks; nothing touches on curves.
 
 ## 0.22.0 Meyer R2 checks
 

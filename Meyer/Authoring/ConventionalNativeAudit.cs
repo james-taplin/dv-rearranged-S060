@@ -322,6 +322,7 @@ public static class ConventionalNativeAudit
         Vector3 fMin=new Vector3(.40f,1.10f,-1.0f),fMax=new Vector3(.62f,1.60f,2.5f);
         Check(after.Count(p=>In(p,fMin,fMax))>=before.Count(p=>In(p,fMin,fMax))*.9f,"Shay R2 relief keeps the native frame band above the trucks");
         Check(after.Count(p=>Mathf.Abs(p.x-.835f)<.001f&&p.y>1.62f&&p.y<2.36f)>=2,"Shay relief lines the engine pocket in the right tank");
+        foreach(float side in new[]{-1f,1f})Check(after.Count(p=>Mathf.Abs(p.x-side*.86f)<.001f&&p.y>.90f&&p.y<1.085f)>=4,"Shay frame sill fills the band above the trucks on both sides");
         Check(!after.Any(p=>In(p,new Vector3(-.75f,.05f,-2.5f),new Vector3(.75f,1.05f,2.8f))),"No native body triangle remains inside the R2 truck bay");
     }
 

@@ -25,7 +25,7 @@ namespace RearrangedS060
         // Trimmed plates also lose the saddle foot left in front of the bay once the cylinders go.
         internal static readonly Bounds Apron=FromTo(new Vector3(-.85f,-.1f,2.94f),new Vector3(.85f,1.085f,3.55f));
         private const float TrimReach=.25f, TrimArea=.3f;
-        private const float SillX=.80f, DeckUnderside=1.62f;
+        private const float SillX=.86f, SillBottom=.90f, DeckUnderside=1.62f;
         internal static Bounds FromTo(Vector3 min,Vector3 max){var b=new Bounds();b.SetMinMax(min,max);return b;}
 
         internal static S060ShayBody Apply(Transform body)
@@ -75,6 +75,26 @@ namespace RearrangedS060
                     float zf=Apron.max.z,zr=Bay.min.z,yb=Bay.max.y;
                     Quad(deck.sub,deck.uv,Vector3.down,new Vector3(-SillX,yb,zr),new Vector3(SillX,yb,zr),new Vector3(SillX,yb,zf),new Vector3(-SillX,yb,zf));
                     Quad(deck.sub,deck.uv,Vector3.forward,new Vector3(-SillX,yb,zf),new Vector3(SillX,yb,zf),new Vector3(SillX,yb+.12f,zf),new Vector3(-SillX,yb+.12f,zf));
+                    // Deep frame sills fill the band between the belly and the swinging trucks (truck sweep
+                    // tops out at 0.85-0.87 m at |x| 0.62-0.86): channel-section, riveted, broken on the
+                    // right where the engine passes through the frame.
+                    void Solid(Vector3 lo,Vector3 hi)
+                    {
+                        Vector3 P(int x,int y,int z)=>new Vector3(x==0?lo.x:hi.x,y==0?lo.y:hi.y,z==0?lo.z:hi.z);
+                        Quad(deck.sub,deck.uv,Vector3.left,P(0,0,0),P(0,1,0),P(0,1,1),P(0,0,1));Quad(deck.sub,deck.uv,Vector3.right,P(1,0,0),P(1,0,1),P(1,1,1),P(1,1,0));
+                        Quad(deck.sub,deck.uv,Vector3.down,P(0,0,0),P(0,0,1),P(1,0,1),P(1,0,0));Quad(deck.sub,deck.uv,Vector3.up,P(0,1,0),P(1,1,0),P(1,1,1),P(0,1,1));
+                        Quad(deck.sub,deck.uv,Vector3.back,P(0,0,0),P(1,0,0),P(1,1,0),P(0,1,0));Quad(deck.sub,deck.uv,Vector3.forward,P(0,0,1),P(0,1,1),P(1,1,1),P(1,0,1));
+                    }
+                    foreach(float s in new[]{-1f,1f})
+                        foreach(var (sa,sb) in s>0?new[]{(zr,Notch.min.z-.04f),(Notch.max.z+.04f,Bay.max.z)}:new[]{(zr,Bay.max.z)})
+                        {
+                            float outer=s*SillX,web=s*(SillX-.02f),flange=s*(SillX-.08f);
+                            Solid(new Vector3(Mathf.Min(outer,web),SillBottom,sa),new Vector3(Mathf.Max(outer,web),yb,sb));            // web
+                            Solid(new Vector3(Mathf.Min(outer,flange),SillBottom,sa),new Vector3(Mathf.Max(outer,flange),SillBottom+.025f,sb)); // bottom flange
+                            for(float z=sa+.08f;z<sb-.04f;z+=.15f)
+                                foreach(float y in new[]{SillBottom+.05f,yb-.04f})
+                                    Solid(new Vector3(outer+(s>0?0:-.008f),y-.01f,z-.01f),new Vector3(outer+(s>0?.008f:0),y+.01f,z+.01f));
+                        }
                     // Engine pocket in the right tank, open to the side, painted like the tank.
                     float x0=Notch.min.x,x1=1.31f,y0=DeckUnderside,y1=Notch.max.y,z0=Notch.min.z,z1=Notch.max.z;
                     Quad(tank.sub,tank.uv,Vector3.right,new Vector3(x0,y0,z0),new Vector3(x0,y1,z0),new Vector3(x0,y1,z1),new Vector3(x0,y0,z1));

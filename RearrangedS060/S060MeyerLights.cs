@@ -23,7 +23,8 @@ namespace RearrangedS060
         private readonly List<(LODGroup group, LOD[] lods, Vector3 point, float size)> lods = new List<(LODGroup, LOD[], Vector3, float)>();
         // Meyer R2: lamps go to the new body-mounted rear bulkhead (face z -8.11), the
         // upper cab-back lamp too (the coal hopper hides it). Frame-local = car - (0,0,RearCentre).
-        internal const float BodyRearGlassZ = S060MeyerBodywork.BulkheadRear - .03f - MeyerPlan.RearCentre;
+        // Housings are ~0.13 m deep behind the glass: stand them fully proud of the bulkhead face.
+        internal const float BodyRearGlassZ = S060MeyerBodywork.BulkheadRear - .13f - MeyerPlan.RearCentre;
         internal const float NativeUpperGlassZ = -4.30f;
         internal static S060MeyerLights Bind(Transform car, Transform body, Transform rearFrame, Vector3 rearOffset, bool bodyMounted = false)
         {
@@ -92,8 +93,8 @@ namespace RearrangedS060
                         rearVertices[i] = rearMask[i] ? local + rearOffset - new Vector3(0, 0, MeyerPlan.RearCentre) : Vector3.zero;
                         if (rearMask[i]) flangeZ = Mathf.Max(flangeZ, rearVertices[i].z);
                     }
-                    // R2: the buffer flanges sit on the body-mounted beam's rear face (z -8.27).
-                    float flangeTarget = bodyMounted ? S060MeyerBodywork.BeamRear - MeyerPlan.RearCentre : MeyerPlan.RearBeamCentreZ + MeyerPlan.RearBeamDepth / 2;
+                    // R2 keeps the beam at the old rear beam, so the stem flanges stay on its face.
+                    float flangeTarget = MeyerPlan.RearBeamCentreZ + MeyerPlan.RearBeamDepth / 2;
                     float flangeCorrection = flangeTarget - flangeZ;
                     for (int i = 0; i < rearVertices.Length; i++) if (rearMask[i]) rearVertices[i].z += flangeCorrection;
                     var rearCopy = UnityEngine.Object.Instantiate(source); rearCopy.name = source.name + " (Meyer articulated rear only)";

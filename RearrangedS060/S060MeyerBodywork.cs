@@ -14,7 +14,10 @@ namespace RearrangedS060
     internal sealed class S060MeyerBodywork : IDisposable
     {
         internal const float PlateY = 1.62f, PlateTop = 1.66f, TankTop = 2.82f, HopperFront = -4.38f, HopperBack = -5.55f,
-            HopperTop = 3.45f, TankRear = -7.85f, BulkheadRear = -8.11f, BeamRear = -8.27f, BulkheadTop = 2.95f;
+            HopperTop = 3.45f, TankRear = -7.70f, BulkheadRear = -7.96f, BulkheadTop = 2.95f,
+            // The beam stays where the native buffer stems expect it (old rear beam, z -7.98..-7.82):
+            // the relocated buffer heads sit ~0.45 m behind its face, at -8.28..-8.57.
+            BeamRear = -7.98f, BeamFront = -7.82f;
         private readonly List<GameObject> owned = new List<GameObject>();
         private readonly List<Mesh> meshes = new List<Mesh>();
         private readonly List<(GameObject part, bool active)> hidden = new List<(GameObject, bool)>();
@@ -193,15 +196,15 @@ namespace RearrangedS060
             {
                 dark.Box(new Vector3(s * 1.15f - .16f, 1.40f, BulkheadRear - .03f), new Vector3(s * 1.15f + .16f, 1.43f, BulkheadRear + .06f));
                 foreach (float x in new[] { s * 1.24f, s * 1.36f })
-                    dark.Box(new Vector3(x - .015f, .42f, BulkheadRear + .02f), new Vector3(x + .015f, PlateY, BulkheadRear + .22f));
+                    dark.Box(new Vector3(x - .015f, .42f, BeamRear - .02f), new Vector3(x + .015f, PlateY, BeamFront));  // behind the rear unit's sweep (z < -7.77)
                 foreach (float y in new[] { .55f, .88f, 1.21f })
-                    dark.Box(new Vector3(s * 1.30f - .07f, y, BulkheadRear + .02f), new Vector3(s * 1.30f + .07f, y + .025f, BulkheadRear + .22f));
+                    dark.Box(new Vector3(s * 1.30f - .07f, y, BeamRear - .02f), new Vector3(s * 1.30f + .07f, y + .025f, BeamFront));
                 dark.Box(new Vector3(s * 1.33f - .012f, PlateTop, BulkheadRear + .05f), new Vector3(s * 1.33f + .012f, BulkheadTop + .35f, BulkheadRear + .08f));
             }
             // Buffer beam and frame extensions on the body, clear of the rear unit's sweep (z > -7.77).
-            beam.Box(new Vector3(-1.25f, .90f, BeamRear), new Vector3(1.25f, 1.25f, BulkheadRear));
+            beam.Box(new Vector3(-1.25f, .90f, BeamRear), new Vector3(1.25f, 1.25f, BeamFront));
             foreach (float s in new[] { -1f, 1f })
-                dark.Box(new Vector3(s * .70f - .07f, 1.0f, BulkheadRear), new Vector3(s * .70f + .07f, PlateY, TankRear));
+                dark.Box(new Vector3(s * .70f - .07f, 1.0f, BeamRear), new Vector3(s * .70f + .07f, PlateY, BeamFront + .01f));
         }
 
         // Static bodywork belongs to the car body's own collision compound (it is part of
@@ -224,7 +227,7 @@ namespace RearrangedS060
             Box("Rear tanks", new Vector3(-1.28f, PlateTop, TankRear), new Vector3(1.28f, TankTop, HopperBack));
             Box("Rear bulkhead", new Vector3(-1.30f, PlateY, BulkheadRear), new Vector3(1.30f, BulkheadTop, TankRear));
             Box("Rear running plate", new Vector3(-1.40f, PlateY, BulkheadRear), new Vector3(1.40f, PlateTop, HopperFront));
-            Box("Rear buffer beam", new Vector3(-1.25f, .90f, BeamRear), new Vector3(1.25f, 1.25f, BulkheadRear));
+            Box("Rear buffer beam", new Vector3(-1.25f, .90f, BeamRear), new Vector3(1.25f, 1.25f, BeamFront));
         }
 
         private void Add(string name, Builder b, Material material)
