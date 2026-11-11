@@ -19,6 +19,7 @@ namespace RearrangedS060
         private readonly GameObject root;
         private readonly string engine;
         private readonly bool animated;
+        private readonly bool reverseVisual;
         private readonly int cylinders;
         private readonly List<CylinderCockLayeredPortReader> audio = new List<CylinderCockLayeredPortReader>();
         private readonly List<ParticlesPortReadersController> particles = new List<ParticlesPortReadersController>();
@@ -27,8 +28,8 @@ namespace RearrangedS060
         private S060CrankWheels wheels;
         private Port cockControl;
         private Coroutine pendingCockCheck;
-        internal S060ArticulatedPresentation(TrainCar car, GameObject root, string engine, bool animated, int cylinders=2)
-        { this.car = car; this.root = root; this.engine = engine; this.animated = animated; this.cylinders=cylinders; }
+        internal S060ArticulatedPresentation(TrainCar car, GameObject root, string engine, bool animated, int cylinders=2, bool reverseVisual=false)
+        { this.car = car; this.root = root; this.engine = engine; this.animated = animated; this.cylinders=cylinders; this.reverseVisual = reverseVisual; }
         private string Remap(string value) => value?.Replace(MeyerRuntime.LpId + ".", engine + ".").Replace(MeyerRuntime.HpId + ".", engine + ".");
         internal void Bind()
         {
@@ -37,6 +38,7 @@ namespace RearrangedS060
             {
                 reader.portId = Remap(reader.portId);
                 if (!flow.TryGetPort(reader.portId, out var port)) throw new InvalidOperationException("Articulated animation port missing: " + reader.portId);
+                if (reverseVisual) ReverseMeyerMotion(reader);
                 motion.Add(reader); reader.Init(port);
             }
             if (animated && motion.Count != 1) throw new InvalidOperationException("Dockside bogie requires one native crank animation reader.");
@@ -54,6 +56,7 @@ namespace RearrangedS060
                 foreach (string id in new[] { reader.crankRotationPortId, reader.cylindersInletValveOpenPortId, reader.cylinderCockFlowNormalizedPortId, reader.cylinderCockControlPortId })
                     if (!flow.TryGetPort(id, out _)) throw new InvalidOperationException("Articulated cock audio port missing: " + id);
                 if (reader.cylCockAudio.Length != cylinders || reader.cylCockAudio.Any(a => a == null)) throw new InvalidOperationException("Articulated cock audio aliases are unresolved.");
+                if (reverseVisual) ReverseMeyerAudio(reader);
                 audio.Add(reader); reader.Init(car, flow);
             }
             foreach (var controller in root.GetComponentsInChildren<ParticlesPortReadersController>(true))
@@ -65,6 +68,7 @@ namespace RearrangedS060
                     reader.crankRotationPortId = Remap(reader.crankRotationPortId);
                     reader.cylindersInletValveOpenPortId = Remap(reader.cylindersInletValveOpenPortId);
                     reader.cylinderCockFlowNormalizedPortId = Remap(reader.cylinderCockFlowNormalizedPortId);
+                    if (reverseVisual) ReverseMeyerOutlets(reader);
                 }
                 foreach (var reader in controller.particlePortReaders)
                     foreach (var updater in reader.particleUpdaters)
@@ -80,6 +84,32 @@ namespace RearrangedS060
             if (audio.Count != 1 || particles.Count != 1) throw new InvalidOperationException("Articulated bogie requires one native cock audio and particle controller.");
             flow.TryGetPort(audio[0].cylinderCockControlPortId, out cockControl);
             cockControl.ValueUpdatedInternally += CockControlChanged;
+        }
+        // Turning the complete front engine 180 degrees reverses its axle
+        // axis and exchanges physical sides. Keep native masks/curves on their
+        // original cylinder index: q=.75-p makes local L's piston follow native
+        // R and local R follow native L, while both wheels still roll forward.
+        // This changes only the cloned presentation, never engine/save phase.
+        internal static void ReverseMeyerMotion(AnimatorPortReader reader)
+        {
+            if (reader.updateType != AnimatorPortReader.UpdateType.SET_NORMALIZED_TIME)
+                throw new InvalidOperationException("Reversed Meyer requires native absolute crank animation.");
+            reader.valueMultiplier = -1; reader.valueOffset = .75f;
+        }
+        internal static void ReverseMeyerOutlets(CylinderCockParticlePortReader reader)
+        {
+            if (reader.cylinderSetups.Length != 2)
+                throw new InvalidOperationException("Reversed Meyer requires two native cylinder outlet sets.");
+            var right = reader.cylinderSetups[0]; var left = reader.cylinderSetups[1];
+            var front = right.frontParticlesParent; var rear = right.rearParticlesParent;
+            right.frontParticlesParent = left.frontParticlesParent; right.rearParticlesParent = left.rearParticlesParent;
+            left.frontParticlesParent = front; left.rearParticlesParent = rear;
+        }
+        internal static void ReverseMeyerAudio(CylinderCockLayeredPortReader reader)
+        {
+            if (reader.cylCockAudio.Length != 2)
+                throw new InvalidOperationException("Reversed Meyer requires two native cylinder audio holders.");
+            var right = reader.cylCockAudio[0]; reader.cylCockAudio[0] = reader.cylCockAudio[1]; reader.cylCockAudio[1] = right;
         }
         private void CockControlChanged(float control)
         {

@@ -4,7 +4,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
+using DV.PitStops;
+using DV.Simulation.Cars;
 using LocoSim.Implementations;
+using LocoSim.Resources;
+using UnityEngine;
 
 namespace RearrangedS060
 {
@@ -18,11 +22,13 @@ namespace RearrangedS060
         internal const float Water = 8800f, Coal = 3500f;
         private static readonly FieldInfo CapacityField = AccessTools.Field(typeof(ResourceContainer), nameof(ResourceContainer.capacity));
         private readonly List<(ResourceContainer container, float original)> changed = new List<(ResourceContainer, float)>();
+        private SimulationFlow flow;
+        private GameObject servicingRoot;
 
-        internal static S060MeyerCapacity Apply(SimulationFlow flow, bool restoring)
+        internal static S060MeyerCapacity Apply(SimulationFlow flow, bool restoring, GameObject servicingRoot)
         {
             if (CapacityField == null) throw new InvalidOperationException("Native resource capacity field is unavailable.");
-            var owner = new S060MeyerCapacity();
+            var owner = new S060MeyerCapacity { flow = flow, servicingRoot = servicingRoot };
             try
             {
                 foreach (var (id, capacity) in new[] { ("water", Water), ("coal", Coal) })
@@ -33,6 +39,8 @@ namespace RearrangedS060
                     owner.changed.Add((container, container.capacity));
                     Set(container, capacity, amount);
                 }
+                owner.RefreshMass();
+                owner.RefreshServicingLimits();
                 return owner;
             }
             catch { owner.Dispose(); throw; }
@@ -46,6 +54,39 @@ namespace RearrangedS060
             container.normalizedReadOutPort.Value = container.amountReadOut.Value / capacity;
         }
 
+        private void RefreshServicingLimits()
+        {
+            // B99 caches maxValue at pit-stop initialization; its normal refresh
+            // updates only value. Keep existing data objects so an already-open
+            // station sees the new limits too. A later-created native controller
+            // initializes directly from the updated container capacities.
+            if (servicingRoot == null) return;
+            var servicing = servicingRoot.GetComponent<SimulatedCarPitStopParameters>();
+            if (servicing == null) return;
+            var report = servicing.GetCarPitStopParameters();
+            foreach (var (container, _) in changed)
+            {
+                var type = container.resourceType.ConvertToDVResource();
+                if (!report.TryGetValue(type, out var data))
+                    throw new InvalidOperationException("Native servicing resource missing: " + type);
+                data.maxValue = flow.OrderedSimComps.OfType<ResourceContainer>()
+                    .Where(c => c.resourceType == container.resourceType).Sum(c => c.capacity);
+            }
+        }
+
+        private void RefreshMass()
+        {
+            // Native resource mass normally refreshes on a two-minute timer.
+            // A restore or stock clamp changes actual amounts now; refresh the
+            // existing mass owner rather than leave old inertia/grip until then.
+            // Early load ordering may not have linked its container controller.
+            if (servicingRoot == null) return;
+            var controller = servicingRoot.GetComponent<SimController>();
+            var car = servicingRoot.GetComponent<TrainCar>();
+            if (controller?.resourceContainerController == null || car?.massController == null) return;
+            car.massController.UpdateTrainCarMass();
+        }
+
         public void Dispose()
         {
             foreach (var (container, original) in changed)
@@ -55,6 +96,8 @@ namespace RearrangedS060
                     Main.Logger.Log("S060 Meyer removed: " + container.id + " above the stock capacity (" + (amount - original).ToString("0") + ") was not kept.");
                 Set(container, original, amount);
             }
+            RefreshMass();
+            RefreshServicingLimits();
             changed.Clear();
         }
     }

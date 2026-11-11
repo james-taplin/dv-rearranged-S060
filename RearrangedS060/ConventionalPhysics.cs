@@ -6,6 +6,22 @@ namespace RearrangedS060
     // These are parameter conversions for the native simulator, not a new force model.
     public static class ConventionalPhysics
     {
+        // Fixed design datum: 41 t native dry body plus normal working supplies.
+        // Radio use with a nearly empty tank must not choose a different engine
+        // design. Actual mass remains native and still changes adhesion each tick.
+        public const float ReferenceOperatingMassKg = 50000f;
+
+        // An authored effective adhesive-load allowance, implemented through the
+        // native friction conversion below, not through Rigidbody mass or CoM.
+        // All-driven layouts keep full weight unless their coupled group reaches
+        // its axle-load allowance. The 0-6-2 keeps the conservative native 3/4
+        // equal-axle share pending measured suspension/load distribution.
+        public static float RatedDriverWeightFraction(int coupledAxles, int totalAxles)
+        {
+            if (coupledAxles <= 0) throw new ArgumentOutOfRangeException(nameof(coupledAxles));
+            return DriverWeightFraction(new[] { coupledAxles }, totalAxles, ReferenceOperatingMassKg);
+        }
+
         public static float RpmPerMetrePerSecond(float radius)
         {
             Positive(radius, nameof(radius));
@@ -21,10 +37,9 @@ namespace RearrangedS060
             return coefficient * (driverWeightFraction / ((float)poweredAxles / totalAxles));
         }
 
-        // DV spreads the whole 111 t loco over its axles, so short layouts put
-        // 28-37 t on each driver. Cap the driven-axle load by coupled group size
-        // (single, four- and six-coupled; larger groups uncapped). Only ever
-        // lowers the equal-load fraction. Articulated groups are capped per engine.
+        // Design allowances, not historical axle-load claims. A 50 t S060 on
+        // only two axles would otherwise retain about 25 t of adhesive load per
+        // driver. These allowances can only lower the equal-load fraction.
         public static float MaxDrivenAxleLoadKg(int coupledAxles)
         {
             if (coupledAxles == 1) return 18000f;

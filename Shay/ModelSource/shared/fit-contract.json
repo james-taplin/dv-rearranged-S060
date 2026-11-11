@@ -1,0 +1,1224 @@
+{
+  "units": "metres, degrees",
+  "coordinateSystem": "+X locomotive right, +Y up, +Z smokebox; Unity left-handed",
+  "sourceCommit": "a28d21389a23edffbfc7824c5a8a6808334f2136",
+  "runtimeSha256": "08CB2EAC7FA164CB97910C24185113CB318723E6742626940F052D081689938D",
+  "sourceFixtures": {
+    "conventional-native.json": "4D6D74B609FCA4190DFAB67D1940E7F182C36E264CA4D1077F0FD6E1A70A2B57",
+    "native-preview.json": "2ABC36D644D882EF6D57DB1AAA0C127277C7F8EA31D416334B838F12191C3538"
+  },
+  "bodyDatum": {
+    "position": [
+      0,
+      0,
+      0
+    ],
+    "rotation": [
+      0,
+      0,
+      0,
+      1
+    ],
+    "scale": [
+      1,
+      1,
+      1
+    ]
+  },
+  "railDatum": {
+    "nominalY": 0,
+    "method": "native design datum; stock rolling radius .712128 versus measured origin .7121295928955078",
+    "fittedWheelOriginResidual": 1.2981582641069522e-06
+  },
+  "rollingRadius": 0.4,
+  "rollingDiameter": 0.8,
+  "gauge": {
+    "lateralScale": 1,
+    "leftMirror": -1,
+    "measuredNativeFlangeBackPlanesApproxX": [
+      -0.6857,
+      0.6857
+    ],
+    "measuredBackToBackApprox": 1.3714,
+    "measuredTreadBandApproxAbsX": [
+      0.71522,
+      0.80069
+    ],
+    "trackGauge": null,
+    "note": "Actual unchanged wheel X coordinates are authoritative. Rail geometry is absent from these fixtures; track gauge is not measured or inferred from wheel centres."
+  },
+  "wheelAxisY": 0.4,
+  "nativeSupportPivots": [
+    [
+      0,
+      0,
+      -1.399999976158142
+    ],
+    [
+      0,
+      0,
+      0.925000011920929
+    ]
+  ],
+  "revision": "S060-SHAY-FIT-R3-20261111",
+  "status": "FROZEN_FOR_MODELLING",
+  "downstreamModelSessionsMayStart": true,
+  "reason": [
+    "James selected 0.80 m native wheels, approximately 150 kN starting effort, 252 mm cylinders and 86:20 gearing on 11 November 2026.",
+    "Visual priority: fill the plain underframe, substantial joined steam feeds, proper drain outlets."
+  ],
+  "scope": "Asset interfaces and bounded authoring fit; no runtime arrangement or driving certification",
+  "gameDrivingTest": false,
+  "wheelStations": [
+    -2.18,
+    -0.94,
+    1.2,
+    2.44
+  ],
+  "proposedTruckPivots": [
+    [
+      0,
+      0,
+      -1.399999976158142
+    ],
+    [
+      0,
+      0,
+      0.925000011920929
+    ]
+  ],
+  "pivotStatus": "Native bogie_car support pivots retained with asymmetric front bolster; no new physics object",
+  "axleOffsetsRelativeSupports": [
+    [
+      0,
+      0.4,
+      -0.7800000238418581
+    ],
+    [
+      0,
+      0.4,
+      0.45999997615814214
+    ],
+    [
+      0,
+      0.4,
+      0.274999988079071
+    ],
+    [
+      0,
+      0.4,
+      1.514999988079071
+    ]
+  ],
+  "trucks": [
+    {
+      "name": "rear",
+      "pivot": [
+        0,
+        0,
+        -1.399999976158142
+      ],
+      "axleIndices": [
+        0,
+        1
+      ],
+      "wheelbase": 1.24,
+      "pairMidpointZ": -1.56,
+      "pairMidpointMinusSupportZ": -0.16000002384185796,
+      "frameRailCentersX": [
+        -0.52,
+        0.52
+      ],
+      "frameRailWidth": 0.1,
+      "frameRailY": [
+        0.7302468171267222,
+        0.8502468171267221
+      ],
+      "frameRailZ": [
+        -2.4000000000000004,
+        -0.72
+      ]
+    },
+    {
+      "name": "front",
+      "pivot": [
+        0,
+        0,
+        0.925000011920929
+      ],
+      "axleIndices": [
+        2,
+        3
+      ],
+      "wheelbase": 1.24,
+      "pairMidpointZ": 1.8199999999999998,
+      "pairMidpointMinusSupportZ": 0.8949999880790709,
+      "frameRailCentersX": [
+        -0.52,
+        0.52
+      ],
+      "frameRailWidth": 0.1,
+      "frameRailY": [
+        0.7302468171267222,
+        0.8502468171267221
+      ],
+      "frameRailZ": [
+        0.98,
+        2.66
+      ]
+    }
+  ],
+  "wheelReuse": {
+    "nativeMeshAliases": [
+      "s282_wheels_front",
+      "s282_wheels_front",
+      "s282_wheels_front",
+      "s282_wheels_front"
+    ],
+    "order": "rear to front",
+    "scale": [
+      1,
+      1.1259575403795432,
+      1.1259575403795432
+    ],
+    "completeWheelset": true,
+    "note": "Native complete pony wheelset; radial Y/Z scale only. Native X/gauge/width preserved.",
+    "rollingRadiusMethod": "tread radius at the x where the S060 mesh equals its stock rolling radius 0.712128 (x=0.7573)"
+  },
+  "requiredBodyReliefs": [
+    {
+      "name": "Right_engine_tank_notch",
+      "min": [
+        0.895,
+        1.0,
+        -0.56
+      ],
+      "max": [
+        1.3,
+        2.34,
+        0.48
+      ],
+      "purpose": "engine column through the right tank, lined pocket"
+    }
+  ],
+  "requiredBodyReliefsNote": "Mandatory original replacement running-gear frame and bounded right tank/footplate notch with recessed cover. Private clipped native body is reference only; it is not an exportable replacement body. Cab and boiler transforms unchanged.",
+  "engine": {
+    "upperMin": [
+      0.77,
+      0.9,
+      -0.47
+    ],
+    "upperMax": [
+      1.33,
+      2.49,
+      0.73
+    ],
+    "crankMin": [
+      0.88,
+      0.28,
+      -0.42
+    ],
+    "crankMax": [
+      1.32,
+      0.8,
+      0.74
+    ],
+    "crankEnds": [
+      [
+        1.1,
+        0.57,
+        -0.35
+      ],
+      [
+        1.1,
+        0.57,
+        0.67
+      ]
+    ],
+    "frontDriveOutput": [
+      1.1,
+      0.27,
+      0.545
+    ],
+    "cylinderCenters": [
+      [
+        1.035,
+        1.98,
+        -0.24
+      ],
+      [
+        1.035,
+        1.98,
+        0.11
+      ],
+      [
+        1.035,
+        1.98,
+        0.45999999999999996
+      ]
+    ],
+    "cylinderRadius": 0.169,
+    "note": "Final dimensions exported directly. Wider cylinder pitch requires longer crank and revised output stubs; both shaft links refitted as one assembly.",
+    "origin": [
+      1.1,
+      0.57,
+      0.11
+    ],
+    "bore": 0.252,
+    "stroke": 0.30080814,
+    "crankRadius": 0.15,
+    "rodLength": 0.9,
+    "pistonAxisX": -0.065,
+    "cylinderPitch": 0.35,
+    "valveAxisX": -0.249,
+    "engineFitRevision": 2,
+    "frontReverserPitchRadius": 0.15,
+    "frontReverserCentreDistance": 0.3
+  },
+  "markers": [
+    {
+      "name": "BODY_ROOT",
+      "parent": "ROOT",
+      "position": [
+        0,
+        0,
+        0
+      ],
+      "rotationQuaternionXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "ENGINE_MOUNT",
+      "parent": "BODY_ROOT",
+      "position": [
+        0.835,
+        1.1,
+        -0.04
+      ],
+      "rotationQuaternionXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "ENGINE_CRANK_REAR",
+      "parent": "BODY_ROOT",
+      "position": [
+        1.1,
+        0.5700000000000001,
+        -0.35
+      ],
+      "rotationQuaternionXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "ENGINE_CRANK_FRONT",
+      "parent": "BODY_ROOT",
+      "position": [
+        1.1,
+        0.5700000000000001,
+        0.67
+      ],
+      "rotationQuaternionXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "FRONT_DRIVE_OUTPUT",
+      "parent": "BODY_ROOT",
+      "position": [
+        1.1,
+        0.27,
+        0.545
+      ],
+      "rotationQuaternionXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "TRUCK_REAR_PIVOT",
+      "parent": "BODY_ROOT",
+      "position": [
+        0,
+        0,
+        -1.399999976158142
+      ],
+      "rotationQuaternionXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "AXLE_R_REAR",
+      "parent": "TRUCK_REAR_PIVOT",
+      "position": [
+        0,
+        0.4,
+        -0.7800000238418578
+      ],
+      "rotationQuaternionXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "BEVEL_R_REAR",
+      "parent": "TRUCK_REAR_PIVOT",
+      "position": [
+        0.9697674418604652,
+        0.4,
+        -0.7800000238418578
+      ],
+      "rotationQuaternionXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "AXLE_R_FRONT",
+      "parent": "TRUCK_REAR_PIVOT",
+      "position": [
+        0,
+        0.4,
+        0.4599999761581421
+      ],
+      "rotationQuaternionXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "BEVEL_R_FRONT",
+      "parent": "TRUCK_REAR_PIVOT",
+      "position": [
+        0.9697674418604652,
+        0.4,
+        0.4599999761581421
+      ],
+      "rotationQuaternionXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "REAR_LINESHAFT_IN",
+      "parent": "TRUCK_REAR_PIVOT",
+      "position": [
+        0.9697674418604652,
+        0.4,
+        0.3
+      ],
+      "rotationQuaternionXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "TRUCK_FRONT_PIVOT",
+      "parent": "BODY_ROOT",
+      "position": [
+        0,
+        0,
+        0.925000011920929
+      ],
+      "rotationQuaternionXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "AXLE_F_REAR",
+      "parent": "TRUCK_FRONT_PIVOT",
+      "position": [
+        0,
+        0.4,
+        0.27499998807907106
+      ],
+      "rotationQuaternionXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "BEVEL_F_REAR",
+      "parent": "TRUCK_FRONT_PIVOT",
+      "position": [
+        0.9697674418604652,
+        0.4,
+        0.27499998807907106
+      ],
+      "rotationQuaternionXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "AXLE_F_FRONT",
+      "parent": "TRUCK_FRONT_PIVOT",
+      "position": [
+        0,
+        0.4,
+        1.5149999880790712
+      ],
+      "rotationQuaternionXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "BEVEL_F_FRONT",
+      "parent": "TRUCK_FRONT_PIVOT",
+      "position": [
+        0.9697674418604652,
+        0.4,
+        1.5149999880790712
+      ],
+      "rotationQuaternionXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "FRONT_LINESHAFT_IN",
+      "parent": "TRUCK_FRONT_PIVOT",
+      "position": [
+        0.9697674418604652,
+        0.4,
+        0.42
+      ],
+      "rotationQuaternionXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "STEAM_IN",
+      "parent": "BODY_ROOT",
+      "position": [
+        1.0,
+        2.3499999999999996,
+        -0.48
+      ],
+      "rotationQuaternionXYZW": [
+        0,
+        0.7071067811865476,
+        0,
+        0.7071067811865476
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "EXHAUST_OUT",
+      "parent": "BODY_ROOT",
+      "position": [
+        1.45,
+        2.3499999999999996,
+        0.55
+      ],
+      "rotationQuaternionXYZW": [
+        0,
+        0.7071067811865476,
+        0,
+        0.7071067811865476
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "SMOKEBOX_RETURN",
+      "parent": "BODY_ROOT",
+      "position": [
+        0.6120116,
+        2.7,
+        3.45
+      ],
+      "rotationQuaternionXYZW": [
+        -0.3333301366513385,
+        0.62361161246404,
+        0,
+        0.7071067811865475
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "CYLINDER_1_DRAIN_LOW",
+      "parent": "BODY_ROOT",
+      "position": [
+        1.24,
+        1.73,
+        -0.24
+      ],
+      "rotationQuaternionXYZW": [
+        0.7071067811865476,
+        0,
+        0,
+        0.7071067811865476
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "CYLINDER_1_DRAIN_HIGH",
+      "parent": "BODY_ROOT",
+      "position": [
+        1.24,
+        2.23,
+        -0.24
+      ],
+      "rotationQuaternionXYZW": [
+        0.7071067811865476,
+        0,
+        0,
+        0.7071067811865476
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "CYLINDER_2_DRAIN_LOW",
+      "parent": "BODY_ROOT",
+      "position": [
+        1.24,
+        1.73,
+        0.11
+      ],
+      "rotationQuaternionXYZW": [
+        0.7071067811865476,
+        0,
+        0,
+        0.7071067811865476
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "CYLINDER_2_DRAIN_HIGH",
+      "parent": "BODY_ROOT",
+      "position": [
+        1.24,
+        2.23,
+        0.11
+      ],
+      "rotationQuaternionXYZW": [
+        0.7071067811865476,
+        0,
+        0,
+        0.7071067811865476
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "CYLINDER_3_DRAIN_LOW",
+      "parent": "BODY_ROOT",
+      "position": [
+        1.24,
+        1.73,
+        0.45999999999999996
+      ],
+      "rotationQuaternionXYZW": [
+        0.7071067811865476,
+        0,
+        0,
+        0.7071067811865476
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "CYLINDER_3_DRAIN_HIGH",
+      "parent": "BODY_ROOT",
+      "position": [
+        1.24,
+        2.23,
+        0.45999999999999996
+      ],
+      "rotationQuaternionXYZW": [
+        0.7071067811865476,
+        0,
+        0,
+        0.7071067811865476
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "CAB_ENTRY_EXCLUSION",
+      "parent": "BODY_ROOT",
+      "position": [
+        1.185,
+        2.3275,
+        -2.0
+      ],
+      "rotationQuaternionXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "CAB_STEP_EXCLUSION",
+      "parent": "BODY_ROOT",
+      "position": [
+        1.185,
+        0.7425,
+        -3.235
+      ],
+      "rotationQuaternionXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "name": "FOOTPLATE_MOUNT",
+      "parent": "BODY_ROOT",
+      "position": [
+        1.02,
+        1.05,
+        -0.04
+      ],
+      "rotationQuaternionXYZW": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    }
+  ],
+  "markerConvention": "Positions and rotations relative to named parent. ROOT identity. Axle axis +X, line/crank shaft axis +Z. BEVEL markers are common pitch-cone apices with wheel axis +X and pinion axis +Z; six drains local +Z points down. All quaternions XYZW.",
+  "keepOutVolumes": [
+    {
+      "name": "CAB_ENTRY_EXCLUSION",
+      "min": [
+        0.72,
+        1.285,
+        -2.7
+      ],
+      "max": [
+        1.65,
+        3.37,
+        -1.3
+      ]
+    },
+    {
+      "name": "CAB_STEP_EXCLUSION",
+      "min": [
+        0.72,
+        0.2,
+        -3.65
+      ],
+      "max": [
+        1.65,
+        1.285,
+        -2.82
+      ]
+    },
+    {
+      "name": "ENGINE_UPPER",
+      "min": [
+        0.905,
+        0.9,
+        -0.55
+      ],
+      "max": [
+        1.29,
+        2.3,
+        0.47
+      ]
+    },
+    {
+      "name": "ENGINE_CRANK",
+      "min": [
+        0.99,
+        0.3,
+        -0.25
+      ],
+      "max": [
+        1.21,
+        0.64,
+        0.47
+      ]
+    }
+  ],
+  "frameEnvelopeRule": "Truck rails/horns/bolsters and brake envelopes follow their native support parent; see truck dimensions and private 77-part scene. Wheels below footplate are outside the doorway volume.",
+  "bevelGears": {
+    "ringPitchPlaneX": 0.9,
+    "ringPitchRadius": 0.3,
+    "ringFaceWidth": 0.024640454014486456,
+    "ringRadialBounds": [
+      0.255,
+      0.33499999999999996
+    ],
+    "spacer": "ring bolted to the wheel face on a 0.07 m cast spacer (pony hub face at |x| 0.8065)",
+    "pinionPitchRadius": 0.06976744186046512,
+    "coneApexX": 0.9697674418604652,
+    "teeth": [
+      86,
+      20
+    ],
+    "module": 0.0069767441860465115,
+    "reduction": 4.3,
+    "coneAnglesDegrees": [
+      76.90810693565317,
+      13.091893064346847
+    ],
+    "pinionPitchPlaneZOffsetByTruck": {
+      "rear": -0.3,
+      "front": 0.3
+    },
+    "note": "Original 86:20 visual bevels, matching pitch cones, inspected mesh clearance; no manufacturing claim."
+  },
+  "frontReversingPair": {
+    "ratio": 1,
+    "teeth": [
+      20,
+      20
+    ],
+    "module": 0.0075,
+    "pitchRadius": 0.075,
+    "outerEnvelopeRadius": 0.085,
+    "centres": [
+      [
+        1.1,
+        0.52,
+        0.36
+      ],
+      [
+        1.1,
+        0.37,
+        0.36
+      ]
+    ],
+    "purpose": "Output BELOW the crank (R1 was above) for a 15 degree front joint; reverses the front shaft so all wheels turn together"
+  },
+  "transmissionStudy": [
+    {
+      "truck": "rear",
+      "note": "R3 actual 49-pose interface fit; mesh clearance tested separately.",
+      "bodyEnd": [
+        1.1,
+        0.57,
+        -0.35
+      ],
+      "truckEndNeutral": [
+        0.9697674418604652,
+        0.4,
+        -1.099999976158142
+      ],
+      "maxJointAngle": 38.41098246345791,
+      "engineEnd": [
+        1.1,
+        0.57,
+        -0.35
+      ]
+    },
+    {
+      "truck": "front",
+      "note": "R3 actual 49-pose interface fit; mesh clearance tested separately.",
+      "bodyEnd": [
+        1.1,
+        0.27,
+        0.545
+      ],
+      "truckEndNeutral": [
+        0.9697674418604652,
+        0.4,
+        1.3450000119209289
+      ],
+      "maxJointAngle": 24.36820476735136,
+      "engineEnd": [
+        1.1,
+        0.27,
+        0.545
+      ]
+    }
+  ],
+  "clearanceInterpretation": "A zero full-revolution AABB lower bound means overlapping enclosing boxes, not mesh contact: exact native triangles were tested at eight phases at those poses, with zero contacts. Positive AABB bounds are conservative distances, inflated-envelope tests certify their stated allowance at sampled configurations only. No continuous sweep or minimum triangle distance is claimed.",
+  "testRange": {
+    "yawDegrees": [
+      -12,
+      12
+    ],
+    "yawStepDegrees": 1,
+    "pitchDegrees": [
+      -1,
+      1
+    ],
+    "rollDegrees": [
+      -1,
+      1
+    ],
+    "verticalMetres": [
+      -0.02,
+      0.02
+    ],
+    "posesPerTruck": 49,
+    "poseSampling": "25 yaw-only poses plus all 24 combinations of yaw {-12,0,12}, pitch {-1,1}, roll {-1,1}, vertical {-.020,.020}",
+    "wheelPhaseDegrees": [
+      0,
+      45,
+      90,
+      135,
+      180,
+      225,
+      270,
+      315
+    ],
+    "supersedes": "R0 +/-2 degree, +/-0.030 m range is not certified by R1",
+    "limitations": "Discrete model stress study; does not establish all DV curve coverage, physical joint speed/strength, finished-tooth fit or driving behavior"
+  },
+  "materials": {
+    "logicalSlots": [
+      "body_live",
+      "engine_painted",
+      "frame_painted",
+      "gear_steel",
+      "shaft_steel",
+      "brake_iron",
+      "pipe_copper"
+    ],
+    "liveBodyAlias": "LocoS060Green_Body",
+    "meshBinding": "MeshGrabberFilter.Filter = target MeshFilter; ReplacementName = native wheel alias",
+    "materialBinding": "MaterialGrabberRenderer: renderer material slot 0, ReplacementName LocoS060Green_Body",
+    "existingPatterns": [
+      "SteamBogieVisuals.LiveMaterial",
+      "S060SteamPipes.Bind: actual per-car s060_body.sharedMaterial",
+      "S060OilCups: refresh when body sharedMaterial reference changes"
+    ],
+    "refreshRule": "Bind to the actual car material and rebind after skin/sharedMaterial changes using existing refresh pattern; never bake/extract a native skin",
+    "privateScene": "Author diagnostic colours only"
+  },
+  "authorOwnedParts": [
+    "Three-cylinder vertical engine, crossheads, guides, 120-degree longitudinal crank and mounting brackets",
+    "Front 1:1 reversing gear pair and guard",
+    "Four annular bevel rings with bolt-on spacers/hub covers; four bevel pinions",
+    "Two truck line shafts, four universal joints and two three-member telescopic links",
+    "Two truck frames, journal housings, asymmetric bolsters and truck-following brake shoes",
+    "Local recessed tank notch cover and local footplate mounting trim",
+    "Steam inlet, exhaust return to existing smokebox, six cylinder drains and pipe supports"
+  ],
+  "validation": {
+    "r1-fit-measurements": {
+      "passed": true
+    },
+    "r1-assembly-validation": {
+      "passed": true
+    },
+    "r1-motion-validation": {
+      "passed": true,
+      "checks": 5880
+    },
+    "r1-joint-validation": {
+      "passed": true,
+      "checks": 3920
+    },
+    "r1-unity-validation": {
+      "passed": true,
+      "sceneReopened": true,
+      "unityVersion": "2019.4.40f1",
+      "checks": 104,
+      "meshes": 77,
+      "markers": 29,
+      "gameDrivingTest": false
+    }
+  },
+  "paths": {
+    "scene": "B:\\LLW CONVERT\\locos\\s060-shay\\fit\\unity\\Assets\\S060-Shay-Fit-R1.unity",
+    "prefab": "B:\\LLW CONVERT\\locos\\s060-shay\\fit\\unity\\Assets\\R1\\S060-Shay-Fit-R1.prefab",
+    "handover": "B:\\LLW CONVERT\\locos\\s060-shay\\fit\\HANDOVER.md",
+    "views": "B:\\LLW CONVERT\\locos\\s060-shay\\fit\\views\\r1",
+    "evidence": "B:\\LLW CONVERT\\locos\\s060-shay\\fit\\evidence"
+  },
+  "supersedes": "S060-SHAY-FIT-R1-20261026 (archived shared/r1/)",
+  "bulk": {
+    "lineShaftDiameter": 0.1,
+    "slidingSquareSection": 0.09,
+    "universalJointAcross": 0.166,
+    "crankshaftDiameter": 0.11,
+    "connectingRodSection": [
+      0.075,
+      0.11
+    ],
+    "pistonRodDiameter": 0.06,
+    "ringFaceWidth": 0.024640454014486456,
+    "note": "Full-size two-truck Shay proportions (~25 t class). Visual only."
+  },
+  "bodyRelief": {
+    "method": "Keep every native s060_body piece that clears the R2 swept trucks/transmission/engine; trim large plates along the sweep profile (not a flat cut); close trims; remove small pieces whole; never slice ladders/reverser.",
+    "sweepTopApprox": "1.03-1.05 m over the trucks (R1: 1.21-1.27)",
+    "fireParticle": [
+      0.014,
+      1.145,
+      -1.592
+    ]
+  },
+  "oilCups": {
+    "count": 5,
+    "gearSide": 3,
+    "offSide": 2,
+    "orientation": "upright only, never sideways",
+    "positions": "per James 2026-10-27 image: three marked on the gear side; two on the off side to be confirmed"
+  },
+  "bodyReliefR3": {
+    "notchMin": [
+      0.75,
+      1.0,
+      -0.65
+    ],
+    "notchMax": [
+      1.55,
+      2.5,
+      0.74
+    ],
+    "sillBottom": 0.97,
+    "bellyY": 1.085
+  },
+  "transmissionR3": {
+    "memberLength": 0.333,
+    "jointEndAllowance": 0.102,
+    "jointLengthsByTruck": [
+      [
+        0.6085595222112092,
+        0.9905846058064526
+      ],
+      [
+        0.5926893620055546,
+        1.0404764892061258
+      ]
+    ],
+    "maximumJointAngles": [
+      38.41098246345791,
+      24.36820476735136
+    ],
+    "engineEnds": [
+      [
+        1.1,
+        0.57,
+        -0.35
+      ],
+      [
+        1.1,
+        0.27,
+        0.545
+      ]
+    ],
+    "truckEndsLocal": [
+      [
+        0.9697674418604652,
+        0.4,
+        0.3
+      ],
+      [
+        0.9697674418604652,
+        0.4,
+        0.42
+      ]
+    ]
+  },
+  "motion": {
+    "ringTeeth": 86,
+    "pinionTeeth": 20,
+    "engineFitRevision": 2,
+    "rollingRadius": 0.4,
+    "engineBore": 0.252,
+    "engineStroke": 0.30080814,
+    "cylinderPitch": 0.35,
+    "valveAxisX": -0.249,
+    "truckShaftX": 0.9697674418604652,
+    "truckShaftY": 0.4,
+    "memberLength": 0.333,
+    "jointEndAllowance": 0.102,
+    "rearEngineEnd": {
+      "x": 1.1,
+      "y": 0.57,
+      "z": -0.35
+    },
+    "frontEngineEnd": {
+      "x": 1.1,
+      "y": 0.27,
+      "z": 0.545
+    },
+    "rearTruckEnd": {
+      "x": 0.9697674418604652,
+      "y": 0.4,
+      "z": 0.3
+    },
+    "frontTruckEnd": {
+      "x": 0.9697674418604652,
+      "y": 0.4,
+      "z": 0.42
+    }
+  }
+}

@@ -17,7 +17,7 @@ namespace RearrangedS060
         // Fit contract R2 reliefs (body metres, +X right, +Z smokebox). The pony-wheel trucks
         // sweep to 0.85-1.01 m, so native structure stays down to 1.085 m (R1: 1.285 m).
         internal static readonly Bounds Bay=FromTo(new Vector3(-1.5f,-.1f,-2.68f),new Vector3(1.5f,1.085f,2.94f));
-        internal static readonly Bounds Notch=FromTo(new Vector3(.835f,1.0f,-.62f),new Vector3(1.55f,2.36f,.50f));
+        internal static readonly Bounds Notch=FromTo(new Vector3(.75f,1.0f,-.65f),new Vector3(1.55f,2.50f,.74f));
         private static readonly Bounds[] Protected={FromTo(new Vector3(.72f,1.285f,-2.7f),new Vector3(1.65f,3.37f,-1.3f)),FromTo(new Vector3(.72f,.2f,-3.65f),new Vector3(1.65f,1.285f,-2.82f))};
         // Outside reverser reach rod and the conventional cylinder blocks: always whole.
         private static readonly Bounds Reverser=FromTo(new Vector3(.25f,1.40f,-.52f),new Vector3(1.30f,1.66f,-.05f));
@@ -25,7 +25,10 @@ namespace RearrangedS060
         // Trimmed plates also lose the saddle foot left in front of the bay once the cylinders go.
         internal static readonly Bounds Apron=FromTo(new Vector3(-.85f,-.1f,2.94f),new Vector3(.85f,1.085f,3.55f));
         private const float TrimReach=.25f, TrimArea=.3f;
-        private const float SillX=.86f, SillBottom=.90f, DeckUnderside=1.62f;
+        private const float SillX=.86f, SillBottom=.97f, DeckUnderside=1.62f;
+        // Off-side oil cups stand on shelves on the sill's outer face, over each truck pivot.
+        internal const float SillCupX=-1.04f, SillCupShelf=1.07f;
+        internal static readonly float[] SillCupZ={-1.40f,.925f};
         internal static Bounds FromTo(Vector3 min,Vector3 max){var b=new Bounds();b.SetMinMax(min,max);return b;}
 
         internal static S060ShayBody Apply(Transform body)
@@ -85,16 +88,30 @@ namespace RearrangedS060
                         Quad(deck.sub,deck.uv,Vector3.down,P(0,0,0),P(0,0,1),P(1,0,1),P(1,0,0));Quad(deck.sub,deck.uv,Vector3.up,P(0,1,0),P(1,1,0),P(1,1,1),P(0,1,1));
                         Quad(deck.sub,deck.uv,Vector3.back,P(0,0,0),P(1,0,0),P(1,1,0),P(0,1,0));Quad(deck.sub,deck.uv,Vector3.forward,P(0,0,1),P(0,1,1),P(1,1,1),P(1,0,1));
                     }
+                    // The sills run on to the front buffer beam (the Apron cut left it hanging), and are
+                    // closed into box girders, so close up there is frame behind them, not a skin.
                     foreach(float s in new[]{-1f,1f})
-                        foreach(var (sa,sb) in s>0?new[]{(zr,Notch.min.z-.04f),(Notch.max.z+.04f,Bay.max.z)}:new[]{(zr,Bay.max.z)})
+                        foreach(var (sa,sb) in s>0?new[]{(zr,Notch.min.z-.04f),(Notch.max.z+.04f,zf)}:new[]{(zr,zf)})
                         {
-                            float outer=s*SillX,web=s*(SillX-.02f),flange=s*(SillX-.08f);
+                            float outer=s*SillX,web=s*(SillX-.02f),flange=s*(SillX-.08f),inner=s*(SillX-.06f);
                             Solid(new Vector3(Mathf.Min(outer,web),SillBottom,sa),new Vector3(Mathf.Max(outer,web),yb,sb));            // web
                             Solid(new Vector3(Mathf.Min(outer,flange),SillBottom,sa),new Vector3(Mathf.Max(outer,flange),SillBottom+.025f,sb)); // bottom flange
+                            Solid(new Vector3(Mathf.Min(flange,inner),SillBottom,sa),new Vector3(Mathf.Max(flange,inner),yb,sb));       // inner web
                             for(float z=sa+.08f;z<sb-.04f;z+=.15f)
                                 foreach(float y in new[]{SillBottom+.05f,yb-.04f})
                                     Solid(new Vector3(outer+(s>0?0:-.008f),y-.01f,z-.01f),new Vector3(outer+(s>0?.008f:0),y+.01f,z+.01f));
                         }
+                    // Front headstock tying both sills to the buffer beam; the front truck sweeps no
+                    // higher than 0.45 m beyond z 3.0.
+                    Solid(new Vector3(-SillX,SillBottom,zf-.12f),new Vector3(SillX,yb,zf));
+                    // Deep cross stretcher between the trucks, where neither truck rises above 0.6 m.
+                    Solid(new Vector3(-(SillX-.02f),.66f,-.20f),new Vector3(SillX-.08f,yb,.20f));
+                    // Off-side oil cup shelves with a web below, on the sill's outer face.
+                    foreach(float z in SillCupZ)
+                    {
+                        Solid(new Vector3(SillCupX-.07f,SillCupShelf-.025f,z-.07f),new Vector3(-SillX,SillCupShelf,z+.07f));
+                        Solid(new Vector3(SillCupX-.04f,SillBottom+.02f,z-.008f),new Vector3(-SillX,SillCupShelf-.025f,z+.008f));
+                    }
                     // Engine pocket in the right tank, open to the side, painted like the tank.
                     float x0=Notch.min.x,x1=1.31f,y0=DeckUnderside,y1=Notch.max.y,z0=Notch.min.z,z1=Notch.max.z;
                     Quad(tank.sub,tank.uv,Vector3.right,new Vector3(x0,y0,z0),new Vector3(x0,y1,z0),new Vector3(x0,y1,z1),new Vector3(x0,y0,z1));
@@ -151,6 +168,12 @@ namespace RearrangedS060
 
         internal static Piece Classify(Bounds piece,float area)
         {
+            // Whole obsolete conventional springs, their loose adjustment parts,
+            // and the outside expansion links have no axle beneath them in Shay.
+            var springs=FromTo(new Vector3(.20f,1.11f,-.65f),new Vector3(.74f,1.54f,2.66f));
+            var link=FromTo(new Vector3(.83f,1.085f,.72f),new Vector3(1.20f,1.635f,1.34f));
+            var guides=FromTo(new Vector3(1.03f,.86f,1.10f),new Vector3(1.075f,1.11f,2.74f));
+            if(new[]{springs,link,guides}.Any(b=>Inside(piece,b)||Inside(piece,Mirror(b))))return Piece.Remove;
             bool prot=Protected.Any(p=>Overlaps(piece,p)||Overlaps(piece,Mirror(p)));
             if(Inside(piece,Reverser)||Inside(piece,Cylinder)||Inside(piece,Mirror(Cylinder))) return Piece.Remove;
             var result=Piece.Keep;

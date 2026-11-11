@@ -1,3 +1,17 @@
+R3 model/detail candidate is now staged with matching assets and offline checks;
+see [R3-DETAIL-PASS.md](R3-DETAIL-PASS.md). No install or gameplay acceptance.
+
+Current physics specification (0.24.0, R3 assets staged): 0.80 m radially resized
+live DV pony wheelsets at native gauge; 252 x300.808 mm cylinders; 45 L chest;
+1.6 kg/s flow ceiling;86:20 gears(4.3:1),92% transmission efficiency. The model
+session owns a new fully authored engine/truck/transmission revision. The old
+procedural engine fitter is archived and is not applied to the new model.
+The 1.6 kg/s physics candidate passes2,365 native-engine/save checks and three
+affected native Unity suites. It is staged only. Complete model/geometry and
+gameplay acceptance are separate from this tune; do not install/release.
+See REGEAR-MODELLING-BRIEF.md and ../PHYSICS-0.24.0.md. The material below is
+historical; its wheel, cylinder and gear dimensions do not describe this target.
+
 # Two-truck Shay integration — 27 October 2026
 
 R1 is integrated as the ninth S060 radio/UMM choice, appended arrangement ID 7.

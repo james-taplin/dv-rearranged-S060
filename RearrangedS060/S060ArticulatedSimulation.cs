@@ -165,8 +165,8 @@ namespace RearrangedS060
             if (!auxiliary)
             {
                 slot.Shay = Clone<ReciprocatingSteamEngineDefinition>(native, id);
-                slot.Shay.numCylinders = 3; slot.Shay.cylinderBore = .17f; slot.Shay.pistonStroke = .150395513f;
-                slot.Shay.steamChestVolume = 12; slot.Shay.throttleMaxFlow = .8f;
+                slot.Shay.numCylinders = 3; slot.Shay.cylinderBore = S060SteamCalibration.Shay.Bore; slot.Shay.pistonStroke = S060SteamCalibration.Shay.Stroke;
+                slot.Shay.steamChestVolume = S060SteamCalibration.Shay.ChestLitres; slot.Shay.throttleMaxFlow = S060SteamCalibration.Shay.MaxFlow;
             }
             slot.Meyer = Clone<MeyerStageDefinition>(native, id);
             slot.Meyer.Owner = Bank.Compound; slot.Meyer.HighPressure = !auxiliary;

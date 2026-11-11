@@ -57,7 +57,10 @@ public static class SteamMeshContact
                 Segment(other.a, other.b, this) || Segment(other.b, other.c, this) || Segment(other.c, other.a, this)) return true;
             var normal = Vector3.Cross(b - a, c - a);
             if (normal.sqrMagnitude < 1e-14f) return false;
-            normal.Normalize();
+            // Vector3.Normalize zeros vectors shorter than 1e-5. Valid small
+            // clipped faces can have area normals below that, despite passing
+            // our explicit degeneracy threshold. Divide by the measured length.
+            normal /= Mathf.Sqrt(normal.sqrMagnitude);
             if (Mathf.Abs(Vector3.Dot(other.a - a, normal)) > .000001f ||
                 Mathf.Abs(Vector3.Dot(other.b - a, normal)) > .000001f || Mathf.Abs(Vector3.Dot(other.c - a, normal)) > .000001f) return false;
             int axis = Mathf.Abs(normal.x) > Mathf.Abs(normal.y) ? (Mathf.Abs(normal.x) > Mathf.Abs(normal.z) ? 0 : 2) : (Mathf.Abs(normal.y) > Mathf.Abs(normal.z) ? 1 : 2);
@@ -94,6 +97,9 @@ public static class SteamMeshContact
         if (baseTriangle.Intersects(new Triangle(Vector3.forward, Vector3.right + Vector3.forward, Vector3.up + Vector3.forward))) throw new InvalidOperationException("Separated triangle control failed.");
         if (!baseTriangle.Intersects(new Triangle(new Vector3(.1f, .1f), new Vector3(.2f, .1f), new Vector3(.1f, .2f)))) throw new InvalidOperationException("Contained coplanar triangle control failed.");
         if (!baseTriangle.Intersects(new Triangle(new Vector3(.3f, -.1f), new Vector3(.7f, -.1f), new Vector3(.5f, .7f)))) throw new InvalidOperationException("Coplanar edge-crossing control failed.");
-        return 4;
+        var small = new Triangle(new Vector3(-1.07834017f,.5091537f,-.5141494f), new Vector3(-1.07834017f,.509810746f,-.513212264f), new Vector3(-1.07834017f,.513872445f,-.5174455f));
+        var shaft = new Triangle(new Vector3(-1.13335454f,.496970057f,-.50981766f), new Vector3(-1.13335454f,.5155992f,-.522265255f), new Vector3(-.900900841f,.515598834f,-.522265434f));
+        if (small.Intersects(shaft) || shaft.Intersects(small)) throw new InvalidOperationException("Separated small bearing-face and shaft triangles must stay clear in both test directions.");
+        return 6;
     }
 }

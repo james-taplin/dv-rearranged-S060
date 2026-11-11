@@ -1,0 +1,26 @@
+[
+  {
+    "path": "shared\\fit-contract.json",
+    "sha256": "5D8C009809CBBE4481720359F8EABA5FC23B3448D345BEF7BF97DA3876C40264"
+  },
+  {
+    "path": "engine\\tools\\build_engine.py",
+    "sha256": "541448AA8E465837E4858A5FFC1F15FEA87F4FE3CEF873B31802A8A5B65A103F"
+  },
+  {
+    "path": "engine\\tools\\mesh_primitives.py",
+    "sha256": "AF7AFE0A3ECF08ED2A35A1082F65019E8F9DE8367130E93054781C5D62D21339"
+  },
+  {
+    "path": "trucks\\source\\build_trucks.py",
+    "sha256": "46172B48CA1BD225742783FCEBA2B3C08EA54B9E14E68028A571EED99351FFED"
+  },
+  {
+    "path": "transmission\\source\\build.py",
+    "sha256": "D8FB801CD14D0DE27C7A754C14EF35D50FA52971D7DFC572A31EA17D9FA1FF04"
+  },
+  {
+    "path": "transmission\\source\\validate.py",
+    "sha256": "9404022EBA12288477CE3D82F595647463FD550F80EF49BE45AB883653FA9542"
+  }
+]

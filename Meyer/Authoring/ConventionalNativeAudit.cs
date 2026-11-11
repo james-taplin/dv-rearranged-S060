@@ -18,7 +18,7 @@ public static class ConventionalNativeAudit
     [Serializable] private class Node { public string name, mesh; public Vector3 position, scale; public Quaternion rotation; public Node[] children; }
     [Serializable] private class Data { public Node[] roots; public Entry[] meshes; }
     [Serializable] private class Report { public bool passed, actualNativeMeshes, candidateGeometry, fiveDrivenAxles, fullSizeCylinders, tenOilSites, cleanup, crankSweep, tyreClearance;
-        public bool gameRuntimeValidated = false, shayNativeWheelReuse; public int checks; public string runtimeSha256, shayBundleSha256; }
+        public bool gameRuntimeValidated = false, shayNativeWheelReuse, previewOnly; public int checks; public string runtimeSha256, shayBundleSha256; }
     private static readonly BindingFlags All = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
     private static int checks;
     private static readonly List<Object> owned = new List<Object>();
@@ -36,11 +36,12 @@ public static class ConventionalNativeAudit
             var bodyData = JsonUtility.FromJson<Data>(File.ReadAllText(Environment.GetEnvironmentVariable("S060_NATIVE_PREVIEW"))).meshes.Single(m => m.name == "s060_body");
             var texture = new Texture2D(2, 2); texture.LoadImage(File.ReadAllBytes(Path.Combine(Path.GetDirectoryName(Environment.GetEnvironmentVariable("S060_NATIVE_PREVIEW")), "native-preview-atlas.png"))); owned.Add(texture);
             material = new Material(Shader.Find("Standard")); material.mainTexture = texture; owned.Add(material);
-            foreach (bool ten in new[] { false, true }) Validate(data, bodyData, ten);
+            if(Environment.GetEnvironmentVariable("S060_ONLY_SHAY")!="1")foreach (bool ten in new[] { false, true }) Validate(data, bodyData, ten);
             if(!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("S060_SHAY_AUDIT_BUNDLE"))) ValidateShay(data,bodyData);
-            if(!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("S060_MEYER_AUDIT_BUNDLE"))) ValidateMeyerBody(data,bodyData);
+            if(!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("S060_MEYER_AUDIT_BUNDLE"))) if(Environment.GetEnvironmentVariable("S060_ONLY_SHAY")!="1")ValidateMeyerBody(data,bodyData);
+            bool preview=Environment.GetEnvironmentVariable("S060_SHAY_PREVIEW_ONLY")=="1",shayOnly=Environment.GetEnvironmentVariable("S060_ONLY_SHAY")=="1";
             File.WriteAllText(Path.Combine(output, "conventional-validation.json"), JsonUtility.ToJson(new Report { passed = true, checks = checks,
-                actualNativeMeshes = true, candidateGeometry = true, fiveDrivenAxles = true, fullSizeCylinders = true, tenOilSites = true, cleanup = true, crankSweep = true, tyreClearance = true, runtimeSha256 = Hash(dll),
+                actualNativeMeshes = true, candidateGeometry = true, fiveDrivenAxles = !shayOnly, fullSizeCylinders = !preview, tenOilSites = !shayOnly, cleanup = true, crankSweep = !preview, tyreClearance = !shayOnly, previewOnly=preview, runtimeSha256 = Hash(dll),
                 shayNativeWheelReuse = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("S060_SHAY_AUDIT_BUNDLE")),
                 shayBundleSha256 = Hash(Environment.GetEnvironmentVariable("S060_SHAY_AUDIT_BUNDLE")) }, true));
             EditorApplication.Exit(0);
@@ -244,33 +245,68 @@ public static class ConventionalNativeAudit
         Check(prefab!=null,"Shipping Shay prefab loads by its verified asset path");
         var owner=New("S060Shay");Set(owner,"Parts",parts);root.SetActive(true);
         var bodyFilter=body.GetComponentsInChildren<MeshFilter>(true).Single(f=>f.name=="s060_body");var originalBody=bodyFilter.sharedMesh;
-        // R2 wheels: the stock S282 pony wheelset, from a private QA fixture in place of the live prefab.
+        // Native wheel geometry, original UVs and its OWN S282 atlas. The S060
+        // body material previously used here made the private preview misleading.
         var ponyData=JsonUtility.FromJson<Data>(File.ReadAllText(Path.Combine(Path.GetDirectoryName(Environment.GetEnvironmentVariable("S060_CONVENTIONAL_NATIVE")),"s282-pony-native.json"))).meshes.Single(m=>m.name=="s282_wheels_front");
         var ponyType=runtime.GetType("RearrangedS060.S060ShayWheelset");var pony=Activator.CreateInstance(ponyType,true);
-        ponyType.GetField("Near",All).SetValue(pony,Mesh(ponyData));ponyType.GetField("Material",All).SetValue(pony,material);
+        var wheelMaterial=new Material(Shader.Find("Standard")){name="LocoS282A_Body (native QA)"};owned.Add(wheelMaterial);
+        foreach(var map in new[]{"albedo","metallic"})
+        {
+            var texture=new Texture2D(2,2,TextureFormat.RGBA32,true,map=="metallic");
+            texture.LoadImage(File.ReadAllBytes(Path.Combine(Path.GetDirectoryName(Environment.GetEnvironmentVariable("S060_CONVENTIONAL_NATIVE")),"shay-native-wheel-"+map+".png")));owned.Add(texture);
+            wheelMaterial.SetTexture(map=="albedo"?"_MainTex":"_MetallicGlossMap",texture);
+        }
+        wheelMaterial.EnableKeyword("_METALLICGLOSSMAP");
+        ponyType.GetField("Near",All).SetValue(pony,Mesh(ponyData));ponyType.GetField("Material",All).SetValue(pony,wheelMaterial);ponyType.GetField("Scale",All).SetValue(pony,new Vector3(1,.4f/.3552532f,.4f/.3552532f));
         var returned=(Array)Call(owner,"BuildModels",prefab,pony);
         Check(returned.Length==4,"Shay geometry returns four real native PoweredWheel objects");
         var markers=(Transform[])owner.GetType().GetProperty("Markers",All).GetValue(owner,null);
         var model=(GameObject)owner.GetType().GetProperty("Root",All).GetValue(owner,null);
         var aliases=markers.SelectMany(t=>t.GetComponents<MeshFilter>()).Where(f=>f.name.Contains("_NATIVE_")).ToArray();
         Check(aliases.Length==4&&aliases.All(f=>f.sharedMesh!=null&&f.sharedMesh.name=="s282_wheels_front"),"All four axles alias one complete stock S282 pony wheelset");
-        foreach(var f in aliases)Check(f.transform.localScale==Vector3.one,"Pony wheelsets keep stock size and gauge (unscaled)");
-        foreach(var f in aliases)Check(Mathf.Abs(f.transform.position.y-root.transform.TransformPoint(0,.3552532f,0).y)<.002f,"Pony wheelset axle sits at the R2 rolling radius");
+        foreach(var f in aliases)Check(Math.Abs(f.transform.localScale.x-1)<1e-6&&Math.Abs(f.transform.localScale.y-.4f/.3552532f)<1e-5&&f.transform.localScale.y==f.transform.localScale.z,"Pony wheelsets scale radially to 0.80 m and retain native X/gauge");
+        foreach(var f in aliases)
+        {
+            Check(f.GetComponent<MeshRenderer>().sharedMaterial==wheelMaterial,"Native wheels retain their own S282 material");
+            Check(f.sharedMesh.uv.SequenceEqual(ponyData.uv),"Native wheel UVs remain byte-for-byte unmodified");
+        }
+        foreach(var f in aliases)Check(Mathf.Abs(f.transform.position.y-root.transform.TransformPoint(0,.4f,0).y)<.002f,"Pony wheelset axle sits at the R2 rolling radius");
         Check(bodyFilter.sharedMesh!=originalBody,"Measured tank and lower-frame relief is a per-car mesh copy");
         ValidateShayRelief(body,bodyFilter.transform,originalBody,bodyFilter.sharedMesh);
         Call(owner,"RefreshMaterials",(object)markers);
+        Render(root,"shay-authoring-fit");
+        RenderWide(root,"shay-sleeve-detail",new Vector3(4,2.2f,6),new Vector3(.85f,2.1f,3.15f),.6f);
+        Check(model.GetComponentsInChildren<MeshRenderer>(true).Where(r=>!r.name.Contains("_NATIVE_")&&r.name!="Native wheel distant").All(r=>r.sharedMaterial!=material),"Every custom mesh uses its own finish rather than the complete native body atlas");
+        var reducers=model.GetComponentsInChildren<MeshFilter>(true).Where(f=>f.name.StartsWith("Shay hollow tapered sleeve")).ToArray();
+        Check(reducers.Length==2,"Both native steam sleeves have smooth hollow tapered reducers");
+        foreach(var reducer in reducers)
+        {
+            var mesh=reducer.sharedMesh;
+            Check(mesh.vertexCount==528&&mesh.uv.Length==mesh.vertexCount,"Reducer has separate inner/outer walls and mapped annular lips");
+            Check(mesh.vertices.All(p=>new Vector2(p.x-mesh.bounds.center.x,p.z-mesh.bounds.center.z).magnitude>.049f),"Reducer steam passage is open without central cap vertices");
+        }
         var finishes=markers.Where(t=>!t.name.Contains("_NATIVE_")&&t.name!="Native wheel distant").SelectMany(t=>t.GetComponents<MeshRenderer>()).Select(r=>r.sharedMaterial).Where(m=>m!=null).ToArray();
         Check(!finishes.Any(m=>m==bodyFilter.GetComponent<MeshRenderer>().sharedMaterial),"No Shay part wears the S060 body atlas material");
         Check(!finishes.Any(m=>m.name.Contains("PAINT")||m.name.Contains("painted")||m.name=="gear_steel"||m.name=="shaft_steel"||m.name=="S060_MACHINED"),"Shay painted and machined slots use the run-time gunmetal and steel finishes");
         Check(finishes.Any(m=>m.name=="S060 Shay dirty gunmetal")&&finishes.Any(m=>m.name=="S060 Shay oily steel"),"Both Shay finishes are applied");
+        if(Environment.GetEnvironmentVariable("S060_SHAY_PREVIEW_ONLY")=="1")
+        {
+            RenderWide(root,"shay-offside",new Vector3(-9,1.7f,.3f),new Vector3(0,1.7f,.3f),2.7f);
+            RenderWide(root,"shay-front-low",new Vector3(-5,.7f,8),new Vector3(0,1.0f,2.8f),1.6f);
+            Call(owner,"RestoreModels");Check(bodyFilter.sharedMesh==originalBody,"Preview restores exact native body mesh");
+            Object.DestroyImmediate(root);bundle.Unload(true);return;
+        }
+        ValidateShayPipes(root.transform,model.transform,bodyFilter,markers);
         var bank=New("S060EngineBank");var slot=System.Runtime.Serialization.FormatterServices.GetUninitializedObject(runtime.GetType("RearrangedS060.S060EngineSlot"));
         var engineType=runtime.GetType("RearrangedS060.S060ShayEngine");var engine=System.Runtime.Serialization.FormatterServices.GetUninitializedObject(engineType);
         var nativeEngine=engineType.BaseType;var engines=Array.CreateInstance(nativeEngine,4);engines.SetValue(engine,3);
         slot.GetType().GetField("Engines",All).SetValue(slot,engines);bank.GetType().GetField("Rear",All).SetValue(bank,slot);
+        var engineHomes=model.transform.Find("Engine").GetComponentsInChildren<MeshFilter>(true).ToDictionary(f=>f,f=>f.sharedMesh);
+        Check(model.transform.Find("Trucks/BODY_ROOT/SHAY_FRAME_DETAILS")!=null,"R3 includes rigid frame bearers and mounted reservoir");
         var motion=model.AddComponent(runtime.GetType("RearrangedS060.S060ShayMotion"));Call(motion,"Bind",bank,model.transform,bundle.LoadAllAssets<TextAsset>().Single(),markers);
         var transmission=(Component)motion.GetType().GetField("transmission",All).GetValue(motion);
         foreach(float yaw in new[]{-12f,0,12f})
-        foreach(double turn in new[]{0.0,.125,.25,.75,1.0,42.875})
+        foreach(double turn in new[]{0.0,.125,.25,.375,.5,.625,.75,.875,1.0,42.875})
         {
             rear.transform.localRotation=Quaternion.Euler(1,yaw,-1);front.transform.localRotation=Quaternion.Euler(-1,-yaw,1);
             Set(engine,"GearTurns",turn);Call(motion,"LateUpdate");
@@ -279,6 +315,7 @@ public static class ConventionalNativeAudit
             Check(engagement>=.08f&&frontEngagement>=.08f,"Shipping articulated links retain the frozen minimum engagement");
             Check(markers.Where(t=>t.name.StartsWith("OIL_CUP_")).Count()==8,"Two supported axlebox cup markers per driven axle survive articulation");
             Check(markers.All(t=>!float.IsNaN(t.localRotation.x)),"Shipping combined engine/transmission produces finite poses");
+            if(yaw==0){ValidateShayPowerPose(model.transform.Find("Engine"),bodyFilter,turn);Debug.Log("Shay native power pose "+turn+" passed");}
         }
         rear.transform.localRotation=front.transform.localRotation=Quaternion.identity;
         // The game's 0.20.2 trace showed an empty parts list: prove every gear role is bound and actually turns.
@@ -291,10 +328,131 @@ public static class ConventionalNativeAudit
         for(int i=0;i<turning.Length;i++)Check(Quaternion.Angle(at0[i],turning[i].localRotation)>1,"Shay "+turning[i].name+" turns with the gear clock");
         Set(engine,"GearTurns",0.0);Call(motion,"LateUpdate");
         Render(root,"shay");
+        RenderWide(root,"shay-offside",new Vector3(-9,1.0f,.3f),new Vector3(0,1.0f,.3f),2.6f);
+        RenderWide(root,"shay-front-low",new Vector3(-5,.7f,8),new Vector3(0,1.0f,2.8f),1.6f);
+        RenderWide(root,"shay-sleeve-detail",new Vector3(4,2.2f,6),new Vector3(.85f,2.1f,3.15f),.6f);
         var detached=markers.Where(t=>t.name=="TRUCK_REAR"||t.name=="TRUCK_FRONT"||t.name=="TRUCK_REAR_PIVOT"||t.name=="TRUCK_FRONT_PIVOT").ToArray();
+        Object.DestroyImmediate(motion);
+        Check(engineHomes.All(p=>p.Key.sharedMesh==p.Value),"The fully authored R3 engine never replaces its shared engine meshes");
         Call(owner,"RestoreModels");Check(bodyFilter.sharedMesh==originalBody,"Leaving Shay restores the exact native body mesh");
         Check(detached.All(t=>t==null||!t.gameObject.activeSelf),"Leaving Shay retires every detached truck and transmission frame");
         Object.DestroyImmediate(root);bundle.Unload(true);
+    }
+
+    private static void ValidateShayPipes(Transform space,Transform model,MeshFilter body,Transform[] markers)
+    {
+        // Exact triangle clipping keeps the rest of each long pipe in the test;
+        // only the physical flange/port interfaces are permitted to intersect.
+        var ports=markers.Where(t=>new[]{"STEAM_IN","EXHAUST_OUT","SMOKEBOX_RETURN"}.Contains(t.name))
+            .Select(t=>new Bounds(space.InverseTransformPoint(t.position),Vector3.one*.25f)).ToArray();
+        List<Vector3> Clip(List<Vector3> polygon,int axis,float edge,bool less)
+        {
+            var result=new List<Vector3>();
+            for(int i=0;i<polygon.Count;i++)
+            {var a=polygon[i];var b=polygon[(i+1)%polygon.Count];bool ia=less?a[axis]<=edge:a[axis]>=edge,ib=less?b[axis]<=edge:b[axis]>=edge;
+             if(ia)result.Add(a);if(ia!=ib)result.Add(Vector3.LerpUnclamped(a,b,(edge-a[axis])/(b[axis]-a[axis])));}
+            return result;
+        }
+        var targets=new[]{body}.Concat(model.Find("Engine/LOD0/FIXED").GetComponentsInChildren<MeshFilter>(true))
+            .Concat(model.Find("Trucks/BODY_ROOT/SHAY_FRAME_DETAILS").GetComponentsInChildren<MeshFilter>(true).Where(f=>f.name.EndsWith("LOD0"))).ToArray();
+        foreach(var f in model.GetComponentsInChildren<MeshFilter>(true).Where(f=>f.name.StartsWith("Shay ")&&(f.name.EndsWith("feed")||f.name.EndsWith("riser")||f.name.EndsWith("return"))))
+        {
+            Debug.Log("Checking main Shay pipe: "+f.name);
+            var v=f.sharedMesh.vertices.Select(p=>space.InverseTransformPoint(f.transform.TransformPoint(p))).ToArray();var t=f.sharedMesh.triangles;
+            var polygons=Enumerable.Range(0,t.Length/3).Select(i=>new[]{v[t[3*i]],v[t[3*i+1]],v[t[3*i+2]]}.ToList()).ToList();
+            foreach(var port in ports)
+            {
+                var next=new List<List<Vector3>>();
+                foreach(var polygon in polygons)
+                {
+                    var remainder=polygon;
+                    foreach(var plane in new[]{(a:0,e:port.min.x,l:false),(a:0,e:port.max.x,l:true),(a:1,e:port.min.y,l:false),(a:1,e:port.max.y,l:true),(a:2,e:port.min.z,l:false),(a:2,e:port.max.z,l:true)})
+                    {var outside=Clip(remainder,plane.a,plane.e,!plane.l);if(outside.Count>=3)next.Add(outside);remainder=Clip(remainder,plane.a,plane.e,plane.l);if(remainder.Count==0)break;}
+                }
+                polygons=next;
+            }
+            var points=new List<Vector3>();foreach(var poly in polygons)for(int i=1;i+1<poly.Count;i++)points.AddRange(new[]{poly[0],poly[i],poly[i+1]});
+            var mesh=new Mesh{indexFormat=UnityEngine.Rendering.IndexFormat.UInt32,vertices=points.ToArray(),triangles=Enumerable.Range(0,points.Count).ToArray()};
+            var go=new GameObject(f.name+" outside actual port interfaces");go.transform.SetParent(space,false);var proxy=go.AddComponent<MeshFilter>();proxy.sharedMesh=mesh;
+            try
+            {
+                var shell=new SteamMeshContact.Shell(proxy,space);
+                foreach(var target in targets)Check(!shell.Intersects(new SteamMeshContact.Shell(target,space,shell.Bounds),out var hit),"Main Shay pipe clears native body, fixed engine and frame details: "+f.name+" / "+target.name+" / "+hit);
+                Debug.Log("Shay pipe clearance passed: "+f.name);
+            }
+            finally{Object.DestroyImmediate(go);Object.DestroyImmediate(mesh);}
+        }
+    }
+
+    private static void ValidateShayPowerPose(Transform engine,MeshFilter body,double turn)
+    {
+        Bounds Used(MeshFilter f,Transform space)
+        {
+            var points=f.sharedMesh.vertices;var indices=f.sharedMesh.triangles.Distinct().ToArray();
+            var b=new Bounds(space.InverseTransformPoint(f.transform.TransformPoint(points[indices[0]])),Vector3.zero);
+            foreach(var i in indices)b.Encapsulate(space.InverseTransformPoint(f.transform.TransformPoint(points[i])));b.Expand(.00001f);return b;
+        }
+        var bore=.252f;
+        var actualStroke=Math.Sqrt(1.05*1.05-.065*.065)-Math.Sqrt(.75*.75-.065*.065);
+        var calibration=runtime.GetType("RearrangedS060.S060SteamCalibration+Shay");
+        Check(Math.Abs((float)calibration.GetField("Stroke",All).GetRawConstantValue()-actualStroke)<.000001,"Shay native stroke matches the actual offset-slider geometry");
+        Check((float)calibration.GetField("Bore",All).GetRawConstantValue()==bore,"Shay bore fixture uses the authored cylinder power revision");
+        foreach(var lod in engine.Cast<Transform>().Where(t=>t.name.StartsWith("LOD",StringComparison.Ordinal)))
+        {
+            var fixedParts=lod.Find("FIXED").GetComponentsInChildren<MeshFilter>(true);
+            foreach(int i in Enumerable.Range(1,3))
+            {
+                var pin=lod.Find("CRANK/THROW_"+i+"/Crank_pin_"+i).GetComponent<MeshFilter>();
+                var rod=lod.Find("ROD_"+i);var head=lod.Find("CROSSHEAD_"+i);
+                var eye=rod.Find("Rod_big_eye_"+i).GetComponent<MeshFilter>();
+                var wrist=head.Find("Wrist_pin_"+i).GetComponent<MeshFilter>();
+                Check(Vector3.Distance(pin.transform.TransformPoint(pin.sharedMesh.bounds.center),eye.transform.TransformPoint(eye.sharedMesh.bounds.center))<.00001,"Actual longer crank pin meets actual big-end eye throughout the sweep");
+                var small=rod.Find("Rod_small_eye_"+i).GetComponent<MeshFilter>();
+                Check(Vector3.Distance(small.transform.TransformPoint(small.sharedMesh.bounds.center),wrist.transform.TransformPoint(wrist.sharedMesh.bounds.center))<.00001,"Actual fixed-length rod eye meets the wrist pin throughout the sweep");
+                var piston=head.Find("Piston_"+i).GetComponent<MeshFilter>();var pistonBounds=Used(piston,lod);
+                Check(pistonBounds.min.y>1.23f+.005f&&pistonBounds.max.y<1.59f-.005f,"Long-stroke piston stays between the shortened internal head spigots");
+                var casting=lod.Find("FIXED/Cylinder_casting_"+i).GetComponent<MeshFilter>();
+                Check(Math.Abs(casting.sharedMesh.bounds.size.x-.306f)<.00001,"R3 cylinder jackets have 27 mm nominal walls around the 252 mm bore");
+                if(turn==0)
+                {
+                    var chest=lod.Find("FIXED/Valve_chest_"+i).GetComponent<MeshFilter>();
+                    var branch=lod.Find("FIXED/Steam_branch_"+i).GetComponent<MeshFilter>();
+                    var header=lod.Find("FIXED/Steam_header").GetComponent<MeshFilter>();
+                    var area=Used(chest,engine);area.Encapsulate(Used(branch,engine));
+                    Check(new SteamMeshContact.Shell(chest,engine,area).Intersects(new SteamMeshContact.Shell(casting,engine,area)),"Moved valve chest still joins the unchanged outer cylinder casting");
+                    Check(new SteamMeshContact.Shell(branch,engine,area).Intersects(new SteamMeshContact.Shell(chest,engine,area)),"Adapted steam branch still joins its moved valve chest");
+                    Check(new SteamMeshContact.Shell(branch,engine,area).Intersects(new SteamMeshContact.Shell(header,engine,area)),"Adapted branch keeps the original fixed boiler-header connection");
+                    var exhaustBranch=lod.Find("FIXED/Exhaust_branch_"+i).GetComponent<MeshFilter>();
+                    var exhaustHeader=lod.Find("FIXED/Exhaust_header").GetComponent<MeshFilter>();area.Encapsulate(Used(exhaustBranch,engine));
+                    Check(new SteamMeshContact.Shell(exhaustBranch,engine,area).Intersects(new SteamMeshContact.Shell(casting,engine,area)),"Adapted exhaust branch stays connected to the outer cylinder wall");
+                    Check(new SteamMeshContact.Shell(exhaustBranch,engine,area).Intersects(new SteamMeshContact.Shell(exhaustHeader,engine,area)),"Adapted exhaust branch keeps its original fixed header connection");
+                    Check(!new SteamMeshContact.Shell(chest,engine,area).Intersects(new SteamMeshContact.Shell(body,engine,area)),"Moved valve chest clears the existing native-body pocket");
+                }
+                var guide=lod.Find("FIXED/Guide_("+(i-1)+", -1)").GetComponent<MeshFilter>();var guideBounds=Used(guide,lod);
+                var yoke=lod.Find("FIXED/Guide_lower_yoke_"+i).GetComponent<MeshFilter>();
+                foreach(var rail in fixedParts.Where(f=>f.name.StartsWith("Guide_("+(i-1)+",",StringComparison.Ordinal)))
+                {
+                    var area=Used(rail,engine);
+                    Check(new SteamMeshContact.Shell(rail,engine,area).Intersects(new SteamMeshContact.Shell(yoke,engine,area)),"Split guide-bearing rails remain physically joined to both lower yoke strips");
+                }
+                foreach(var cheek in head.GetComponentsInChildren<MeshFilter>().Where(f=>f.name.StartsWith("Crosshead_cheek_",StringComparison.Ordinal)))
+                {var b=Used(cheek,lod);Check(b.min.y>guideBounds.min.y&&b.max.y<guideBounds.max.y,"Both crosshead cheeks remain inside the supported existing guide length");}
+                var moving=rod.GetComponentsInChildren<MeshFilter>().Concat(head.GetComponentsInChildren<MeshFilter>()).Concat(lod.Find("CRANK/THROW_"+i).GetComponentsInChildren<MeshFilter>());
+                foreach(var f in moving)
+                {
+                    var area=Used(f,engine);var movingShell=new SteamMeshContact.Shell(f,engine,area);
+                    Check(!movingShell.Intersects(new SteamMeshContact.Shell(body,engine,area),out var bodyHit),"Long-stroke Shay motion clears the fitted native body: "+f.name+" / "+bodyHit);
+                    foreach(var stationary in fixedParts)
+                    {
+                        // The original front sliding-bearing face remains an
+                        // intended guide/cheek engagement, not a moving-rod gap.
+                        if(f.name.StartsWith("Crosshead_cheek_",StringComparison.Ordinal)&&stationary.name.StartsWith("Guide_(",StringComparison.Ordinal))continue;
+                        var b=Used(stationary,engine);if(!b.Intersects(area))continue;
+                        Check(!movingShell.Intersects(new SteamMeshContact.Shell(stationary,engine,area),out var hit),"Long-stroke Shay motion clears fixed engine geometry: "+f.name+" / "+stationary.name+" / "+hit);
+                    }
+                }
+            }
+        }
     }
 
     // Whole-piece relief: protected cab steps survive untouched, the outside reverser
@@ -318,12 +476,14 @@ public static class ConventionalNativeAudit
         Vector3 rMin=new Vector3(.90f,1.44f,-.51f),rMax=new Vector3(1.28f,1.555f,-.07f);
         Check(before.Any(p=>In(p,rMin,rMax))&&!after.Any(p=>In(p,rMin,rMax)),"Shay relief removes the outside reverser whole, never half");
         Check(after.Count(p=>Mathf.Abs(p.y-1.085f)<.001f&&Mathf.Abs(p.x)<.8f)>=2,"Shay R2 relief closes the trimmed frame with a belly plate at 1.085 m");
-        // R2: the native frame plates stay down to the belly, so they close the sides themselves.
-        Vector3 fMin=new Vector3(.40f,1.10f,-1.0f),fMax=new Vector3(.62f,1.60f,2.5f);
-        Check(after.Count(p=>In(p,fMin,fMax))>=before.Count(p=>In(p,fMin,fMax))*.9f,"Shay R2 relief keeps the native frame band above the trucks");
-        Check(after.Count(p=>Mathf.Abs(p.x-.835f)<.001f&&p.y>1.62f&&p.y<2.36f)>=2,"Shay relief lines the engine pocket in the right tank");
-        foreach(float side in new[]{-1f,1f})Check(after.Count(p=>Mathf.Abs(p.x-side*.86f)<.001f&&p.y>.90f&&p.y<1.085f)>=4,"Shay frame sill fills the band above the trucks on both sides");
-        Check(!after.Any(p=>In(p,new Vector3(-.75f,.05f,-2.5f),new Vector3(.75f,1.05f,2.8f))),"No native body triangle remains inside the R2 truck bay");
+        // The redundant leaf springs are removed whole. Structural plates
+        // still reach the measured belly; new original girders are separate.
+        Check(after.Any(p=>p.y>=1.08f&&p.y<1.12f&&Mathf.Abs(p.x)>.40f&&Mathf.Abs(p.x)<.62f),"R3 retains native structural plate above the truck bay");
+        Check(after.Count(p=>Mathf.Abs(p.x-.75f)<.001f&&p.y>1.62f&&p.y<2.36f)>=2,"Shay relief lines the engine pocket in the right tank");
+        foreach(float side in new[]{-1f,1f})Check(after.Count(p=>Mathf.Abs(p.x-side*.86f)<.001f&&p.y>.969f&&p.y<1.085f)>=4,"Shay frame sill fills the band above the trucks on both sides");
+        foreach(float side in new[]{-1f,1f})Check(after.Any(p=>Mathf.Abs(p.x-side*.86f)<.001f&&p.z>3.5f&&p.y>=.97f),"Shay frame sills run on to the front buffer beam");
+        Check(after.Count(p=>Mathf.Abs(p.y-1.07f)<.001f&&p.x<-.87f&&p.x>-1.12f)>=4,"Shay off-side oil cup shelves stand on the sill");
+        Check(!after.Any(p=>In(p,new Vector3(-.75f,.05f,-2.5f),new Vector3(.75f,1.05f,2.8f))&&!(Mathf.Abs(p.z)<=.201f&&p.y>=.659f)),"No body triangle remains inside the R2 truck bay, except the cross stretcher above the 0.59 m mid-sweep");
     }
 
     // Meyer R2: the runtime's own body-mounted rear bodywork on the native S060 body,
@@ -338,7 +498,7 @@ public static class ConventionalNativeAudit
         var type=runtime.GetType("RearrangedS060.S060MeyerBodywork",true);
         var owner=type.GetMethod("Build",All,null,new[]{typeof(Transform),typeof(Transform),typeof(Transform)},null).Invoke(null,new object[]{root.transform,body,stub});
         var parts=((Transform)type.GetProperty("Root",All).GetValue(owner,null)).GetComponentsInChildren<MeshFilter>(true);
-        Check(parts.Length==4&&parts.All(f=>f.sharedMesh!=null&&f.sharedMesh.vertexCount>0),"Meyer R2 builds paintwork, ironwork, buffer beam and hopper coal");
+        Check(parts.Length==4&&parts.All(f=>f.sharedMesh!=null&&f.sharedMesh.vertexCount>0),"Meyer R2 builds paintwork, ironwork, buffer beam and hopper tarpaulin");
         Check(stub.Cast<Transform>().All(t=>!t.gameObject.activeSelf),"Meyer R2 retires the old bogie-borne deck, panniers and bunker box");
         var verts=parts.SelectMany(f=>f.sharedMesh.vertices.Select(v=>root.transform.InverseTransformPoint(f.transform.TransformPoint(v)))).ToArray();
         // Rear engine unit sweep (yaw +-6, pitch/roll +-1, +-20 mm): z -7.77..-4.13, top 1.61 m.
@@ -372,7 +532,7 @@ public static class ConventionalNativeAudit
         var scene=EditorSceneManager.NewPreviewScene(); var clone=Object.Instantiate(body); clone.SetActive(true); UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(clone,scene);
         var cameraGo=new GameObject("QA camera"); UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(cameraGo,scene); var camera=cameraGo.AddComponent<Camera>(); camera.scene=scene; camera.orthographic=true; camera.orthographicSize=size;
         camera.clearFlags=CameraClearFlags.SolidColor; camera.backgroundColor=new Color(.84f,.88f,.92f); camera.transform.position=from; camera.transform.LookAt(at);
-        var lightGo=new GameObject("QA light"); UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(lightGo,scene); var light=lightGo.AddComponent<Light>();light.type=LightType.Directional;light.intensity=1.4f;light.transform.rotation=Quaternion.Euler(45,-30,0);
+        var lightGo=new GameObject("QA light"); UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(lightGo,scene); var light=lightGo.AddComponent<Light>();light.type=LightType.Directional;light.intensity=1.4f;light.transform.rotation=Quaternion.Euler(45,from.x < at.x ? 150 : -30,0);
         var target=new RenderTexture(1800,900,24); camera.targetTexture=target; camera.Render(); var previous=RenderTexture.active;RenderTexture.active=target;
         var image=new Texture2D(1800,900,TextureFormat.RGB24,false);image.ReadPixels(new Rect(0,0,1800,900),0,0);image.Apply();File.WriteAllBytes(Path.Combine(output,name+"-native-preview.png"),image.EncodeToPNG());
         RenderTexture.active=previous;Object.DestroyImmediate(image);Object.DestroyImmediate(target);EditorSceneManager.ClosePreviewScene(scene);

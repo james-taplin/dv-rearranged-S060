@@ -61,9 +61,7 @@ namespace RearrangedS060
                 for(int i=0;i<3;i++)
                 {
                     var front=UnityEngine.Object.Instantiate(original.frontParticlesParent,jets.transform);var rear=UnityEngine.Object.Instantiate(original.rearParticlesParent,jets.transform);
-                    front.transform.position=find("COCK_C"+(i+1)+"_FRONT").position;rear.transform.position=find("COCK_C"+(i+1)+"_REAR").position;
-                    front.transform.rotation=rear.transform.rotation=Quaternion.LookRotation(-car.up,car.forward);
-                    foreach(var ps in front.GetComponentsInChildren<ParticleSystem>(true).Concat(rear.GetComponentsInChildren<ParticleSystem>(true))){var main=ps.main;main.startLifetimeMultiplier*=.25f;main.startSpeedMultiplier*=.25f;}
+                    FitJet(front,find("COCK_C"+(i+1)+"_FRONT"));FitJet(rear,find("COCK_C"+(i+1)+"_REAR"));
                     setups[i]=new CylinderCockParticlePortReader.CylinderSetup {frontParticlesParent=front,rearParticlesParent=rear,frontActivityCurve=Shift(original.frontActivityCurve,i/3f),rearActivityCurve=Shift(original.rearActivityCurve,i/3f)};
                     sources[i]=UnityEngine.Object.Instantiate(audio.cylCockAudio[0],audio.transform);sources[i].transform.position=(front.transform.position+rear.transform.position)/2;
                 }
@@ -77,12 +75,35 @@ namespace RearrangedS060
                     var drip=(ParticlesPortReadersController.ParticlePortReader)clone.Invoke(oldDrips[0],null);
                     drip.particlesParent=UnityEngine.Object.Instantiate(oldDrips[0].particlesParent,controller.transform);drip.particlesParent.name="Water drip "+i;
                     drip.particlesParent.transform.position=find("COCK_C"+(i+1)+"_REAR").position;drip.particleSystemsData=null;
-                    drip.particlesParent.transform.rotation=Quaternion.LookRotation(-car.up,car.forward);
+                    var outlet=find("COCK_C"+(i+1)+"_REAR");
+                    drip.particlesParent.transform.rotation=outlet.rotation;
+                    foreach(var ps in drip.particlesParent.GetComponentsInChildren<ParticleSystem>(true))
+                    {
+                        ps.transform.SetPositionAndRotation(outlet.position,outlet.rotation);
+                        // The native horizontal-cylinder drip box is 0.86 m long.
+                        // Each upright cylinder has one compact drain mouth.
+                        var shape=ps.shape;shape.position=Vector3.zero;shape.rotation=Vector3.zero;shape.scale=Vector3.one*.014f;
+                    }
                     drip.particleUpdaters=oldDrips[0].particleUpdaters.Select(p=>(ParticlesPortReadersController.ParticlePortReader.PortParticleUpdateDefinition)clone.Invoke(p,null)).ToList();
                     drips[i]=drip;
                 }
                 foreach(var drip in oldDrips)drip.particlesParent.SetActive(false);
                 controller.particlePortReaders=controller.particlePortReaders.Except(oldDrips).Concat(drips).ToList();
+        }
+        private static void FitJet(GameObject holder,Transform outlet)
+        {
+            holder.transform.SetPositionAndRotation(outlet.position,outlet.rotation);
+            foreach(var ps in holder.GetComponentsInChildren<ParticleSystem>(true))
+            {
+                // Native SteamExhaust children already carry +/-90-degree yaw.
+                // Align the actual particle systems, not only their parent.
+                ps.transform.SetPositionAndRotation(outlet.position,outlet.rotation);
+                var main=ps.main;main.startLifetimeMultiplier*=.25f;main.startSpeedMultiplier*=.25f;
+                main.startSizeMultiplier*=.18f;
+                // Preserve the native buoyant shape at the shortened jet scale.
+                main.gravityModifierMultiplier*=.0625f;
+                var shape=ps.shape;shape.position=Vector3.zero;shape.rotation=Vector3.zero;shape.scale=Vector3.one;shape.radius=.007f;
+            }
         }
         private static AnimationCurve Shift(AnimationCurve source,float offset)
         {

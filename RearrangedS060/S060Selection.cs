@@ -11,6 +11,7 @@ namespace RearrangedS060
     {
         internal const float MinimumScale = .55f, MaximumScale = 1.15f;
         internal const float StockDiameter = 1.424256f;
+        internal const float ShayRollingRadius = .4f;
         internal const float SmallSixScale = S060EightLayout.MaximumScale;
         internal S060Arrangement Arrangement { get; }
         internal float Scale { get; }
@@ -21,7 +22,7 @@ namespace RearrangedS060
             new S060Selection(arrangement, arrangement == S060Arrangement.SixCoupled ? SmallSixScale : 1f);
         internal bool IsStock => Arrangement == S060Arrangement.SixCoupled && Scale == 1f;
         internal string Name => Arrangement == S060Arrangement.SixCoupled && !IsStock ? "0-6-0 Short Wheelbase" : NameOf(Arrangement);
-        internal float DriverDiameter => Arrangement == S060Arrangement.Shay ? StockDiameter * .8f : (Arrangement == S060Arrangement.Dockside || Arrangement == S060Arrangement.TenCoupled) ? 1f : StockDiameter * Scale;
+        internal float DriverDiameter => Arrangement == S060Arrangement.Shay ? 2f * ShayRollingRadius : (Arrangement == S060Arrangement.Dockside || Arrangement == S060Arrangement.TenCoupled) ? 1f : StockDiameter * Scale;
         internal bool FixedSize => RequiresFixedSize(Arrangement);
         internal string Description => Name + " / " + DriverDiameter.ToString("0.00", CultureInfo.InvariantCulture) + " m drivers";
 

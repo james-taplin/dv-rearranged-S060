@@ -18,7 +18,8 @@ namespace RearrangedS060
         protected override float CylinderShift => cylinderShift;
         internal override string Name => "0-8-0 (small drivers, rear axle at stock station)";
 
-        protected override void Apply() => Physics.Apply(Scale.DriverRadius, BuildGeometry(), totalAxles: DriverCount, driverWeightFraction: 1f);
+        protected override void Apply() => Physics.Apply(Scale.DriverRadius, BuildGeometry(), totalAxles: DriverCount,
+            driverWeightFraction: ConventionalPhysics.RatedDriverWeightFraction(DriverCount, DriverCount));
 
         internal LocoSim.Implementations.Wheels.PoweredWheel[] BuildGeometry()
         {

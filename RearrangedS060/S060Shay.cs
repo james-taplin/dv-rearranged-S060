@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using DV.Wheels;
 using LocoSim.Implementations.Wheels;
 using UnityEngine;
+using Newtonsoft.Json.Linq;
 
 namespace RearrangedS060
 {
@@ -15,15 +16,33 @@ namespace RearrangedS060
         {
             if (bundle == null) bundle=AssetBundle.LoadFromFile(Path.Combine(Main.ModPath,"assets","Shay","shay_running_gear"));
             if (bundle == null) throw new InvalidOperationException("Shay running-gear bundle is unavailable.");
+            ValidateMotion(Motion);
             return bundle.LoadAsset<GameObject>("assets/shayintegration/s060shay.prefab")
                 ?? throw new InvalidOperationException("Shay running-gear prefab is unavailable.");
         }
         internal static TextAsset Motion => bundle.LoadAllAssets<TextAsset>().Single();
+        internal static void ValidateMotion(TextAsset data)
+        {
+            var specification = JObject.Parse(data.text);
+            bool Finite(string key) => (float?)specification[key] is float value && !float.IsNaN(value) && !float.IsInfinity(value);
+            bool Matches(string key, float expected) => Finite(key) && Math.Abs((float)specification[key] - expected) <= .00001f;
+            if ((int?)specification["ringTeeth"] != S060SteamCalibration.Shay.RingTeeth ||
+                (int?)specification["pinionTeeth"] != S060SteamCalibration.Shay.PinionTeeth ||
+                (int?)specification["engineFitRevision"] != 2 ||
+                !Matches("rollingRadius", S060Selection.ShayRollingRadius) ||
+                !Matches("engineBore", S060SteamCalibration.Shay.Bore) ||
+                !Matches("engineStroke", S060SteamCalibration.Shay.Stroke) ||
+                !Matches("truckShaftY", S060SteamCalibration.Shay.TruckShaftY) ||
+                !Matches("truckShaftX", S060SteamCalibration.Shay.TruckShaftX) ||
+                !Finite("cylinderPitch") || (float)specification["cylinderPitch"] <= 0 || !Finite("valveAxisX"))
+                throw new InvalidOperationException("Update the included Shay assets for the 0.80 m wheels, larger engine and 86:20 reduction before selecting Shay.");
+        }
     }
 
     internal sealed class S060Shay : S060Conversion
     {
-        internal override string Name => "Two-truck Shay (native wheels, 43:19 reduction)";
+        internal override string Name => "Two-truck Shay (native wheels, 4.3:1 reduction)";
+        internal Transform Body => Parts.Body;
         internal GameObject Root { get; private set; }
         internal Transform[] Markers { get; private set; }
         private readonly List<(GameObject part,bool active)> hidden=new List<(GameObject,bool)>();
@@ -77,7 +96,7 @@ namespace RearrangedS060
             for(int i=0;i<4;i++)
             {
                 var axle=Find(axleNames[i]);
-                // R2: one complete vanilla S282 pony wheelset per axle, live and unscaled.
+                // Live native wheelset; resize only its radial plane, retaining gauge.
                 var filter=axle.GetComponentsInChildren<MeshFilter>(true).Single(f=>f.sharedMesh==null&&f.name.EndsWith("_NATIVE_SET",StringComparison.Ordinal));
                 filter.transform.localRotation=pony.Rotation;filter.transform.localScale=pony.Scale;
                 filter.sharedMesh=pony.Near;filter.GetComponent<MeshRenderer>().sharedMaterial=pony.Material;
@@ -139,11 +158,12 @@ namespace RearrangedS060
         protected override void ReleasePresentationMeshes(){plumbing?.Dispose();body?.Dispose();}
     }
 
-    // R2 truck wheels: the stock S282 pony wheelset, aliased live (never copied).
+    // Stock S282 pony wheelset, aliased live; radial sizing preserves lateral gauge.
     internal sealed class S060ShayWheelset
     {
         // Fit contract R2: tread radius at the S060's own contact line (x .7575).
-        internal const float RollingRadius=.3552532f;
+        internal const float RollingRadius=S060Selection.ShayRollingRadius;
+        internal const float NativeRollingRadius=.3552532f;
         internal Mesh Near, Far; internal Material Material;
         internal Quaternion Rotation=Quaternion.identity; internal Vector3 Scale=Vector3.one;
         internal static S060ShayWheelset FromStock()
@@ -156,17 +176,20 @@ namespace RearrangedS060
             // Keep the donor's mesh orientation/scale relative to its own axle.
             var rel=donor.Axle.worldToLocalMatrix*near.transform.localToWorldMatrix;
             return new S060ShayWheelset{Near=near.sharedMesh,Far=far?.sharedMesh,Material=near.GetComponent<MeshRenderer>()?.sharedMaterial,
-                Rotation=rel.rotation,Scale=rel.lossyScale};
+                Rotation=rel.rotation,Scale=Vector3.Scale(rel.lossyScale,new Vector3(1,RollingRadius/NativeRollingRadius,RollingRadius/NativeRollingRadius))};
         }
     }
 
-    // Shared run-time finishes built from the bundle's own Standard materials.
+    // Shared run-time finishes built from the bundle's own Standard materials. Statics outlive
+    // a save reload, but the bundle's Standard shader may not: a copy whose shader has gone is
+    // rebuilt from the live template, never reused (it rendered magenta after reload, 0.22.2).
     internal static class S060ShayFinish
     {
         private static Material gunmetal, steel;
         private static Texture2D grime;
-        internal static Material Gunmetal(Material template)=>gunmetal!=null?gunmetal:gunmetal=Make(template,"S060 Shay dirty gunmetal",new Color(.21f,.215f,.22f),.55f,.28f);
-        internal static Material Steel(Material template)=>steel!=null?steel:steel=Make(template,"S060 Shay oily steel",new Color(.34f,.34f,.33f),.75f,.42f);
+        internal static Material Gunmetal(Material template)=>Live(gunmetal)?gunmetal:gunmetal=Make(template,"S060 Shay dirty gunmetal",new Color(.21f,.215f,.22f),.55f,.28f);
+        internal static Material Steel(Material template)=>Live(steel)?steel:steel=Make(template,"S060 Shay oily steel",new Color(.34f,.34f,.33f),.75f,.42f);
+        private static bool Live(Material m)=>m!=null&&m.shader!=null&&m.shader.isSupported;
         private static Material Make(Material template,string name,Color color,float metallic,float gloss)
         {
             var m=new Material(template){name=name,color=color,mainTexture=Grime(),mainTextureScale=new Vector2(2,2)};
@@ -210,8 +233,9 @@ namespace RearrangedS060
 namespace RearrangedS060
 {
     // R2 oil-cup seats (James, 2026-10-28): three on the gear-side line-shaft bearing arms,
-    // two on the off-side truck frame top flanges, one on top of the middle crank bearing.
-    // Native circuit index -> seat. Every seat is upright and owned by the Shay root/frames.
+    // two on shelves on the off-side frame sill (the sill hid them on the truck frames),
+    // one on top of the middle crank bearing. Native circuit index -> seat. Every seat is
+    // upright and owned by the Shay root/frames, so leaving the Shay removes it.
     internal static class S060ShaySeats
     {
         internal static Dictionary<int,Transform> Build(S060Shay shay)
@@ -222,7 +246,12 @@ namespace RearrangedS060
                 var seat=new GameObject("[S060 oil seat] "+name).transform;seat.SetParent(parent,false);
                 seat.localPosition=local;seat.localRotation=Quaternion.identity;return seat;
             }
-            const float flangeTop=.806f, apex=1.0325581f;
+            const float flangeTop=.8502963f, apex=S060SteamCalibration.Shay.TruckShaftX;
+            Transform OnSill(string name,float z)
+            {
+                var seat=Seat(shay.Root.transform,name,Vector3.zero);
+                seat.position=shay.Body.TransformPoint(new Vector3(S060ShayBody.SillCupX,S060ShayBody.SillCupShelf,z));seat.rotation=shay.Body.rotation;return seat;
+            }
             Vector3 OnBearingArm(string bearing)
             {
                 var b=Find(bearing+"__AXIS").localPosition;return new Vector3(apex-.10f,flangeTop,b.z);
@@ -232,9 +261,9 @@ namespace RearrangedS060
                 [3]=Seat(Find("TRUCK_REAR_PIVOT"),"gear rear outer bearing",OnBearingArm("bearing_1")),
                 [4]=Seat(Find("TRUCK_FRONT_PIVOT"),"gear front inner bearing",OnBearingArm("bearing_3")),
                 [5]=Seat(Find("TRUCK_FRONT_PIVOT"),"gear front outer bearing",OnBearingArm("bearing_4")),
-                [0]=Seat(Find("TRUCK_REAR"),"off-side rear frame",new Vector3(-.52f,flangeTop,-1.98f+1.4f)),
-                [1]=Seat(Find("TRUCK_FRONT"),"off-side front frame",new Vector3(-.52f,flangeTop,2.24f-.925f)),
-                [2]=Seat(Find("Engine"),"crank bearing",new Vector3(0,.09f,.06f)),
+                [0]=OnSill("off-side rear sill",S060ShayBody.SillCupZ[0]),
+                [1]=OnSill("off-side front sill",S060ShayBody.SillCupZ[1]),
+                [2]=Seat(Find("Engine"),"crank bearing",new Vector3(0,.09f,.14f)),
             };
         }
     }

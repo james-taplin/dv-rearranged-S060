@@ -65,6 +65,8 @@ namespace RearrangedS060
                     ["preventWheelslip"] = slip.preventWheelslip, ["engineBraking"] = slip.IsEngineBraking,
                     ["poweredAxles"] = slip.NumberOfPoweredAxles, ["totalAxles"] = car.NumberOfAxles,
                     ["massKg"] = N(car.massController.TotalMass), ["weightPerAxleN"] = N(car.massController.WeightPerAxle),
+                    ["nativeTypeWheelslipCoefficient"] = N(car.carLivery.parentType.WheelslipFrictionCoef),
+                    ["nativeTypeRollingResistanceCoefficient"] = N(car.carLivery.parentType.RollingResistanceCoef),
                     ["generatedForceN"] = N(sim.drivingForce.generatedForce), ["driverRadiusM"] = N(sim.drivingForce.wheelRadius),
                     ["drivingForceInputPort"] = sim.drivingForce.torqueGeneratedPortId,
                     ["drivingForceInputTorqueNm"] = Port(owner.Flow, sim.drivingForce.torqueGeneratedPortId),
@@ -84,6 +86,8 @@ namespace RearrangedS060
                 {
                     var input = car.entity.GetComponentData<WheelslipControllerSystem.WheelslipInputData>();
                     var grip = car.entity.GetComponentData<AdhesionControllerSystem.AdhesionWheelslipOutputData>();
+                    var friction = car.entity.GetComponentData<AdhesionControllerSystem.StaticAdhesionCalculationData>();
+                    sample["ecsWheelslipCoefficient"] = N(friction.wheelslipFrictionCoef);
                     sample["ecsGeneratedForceN"] = N(input.generatedForce);
                     sample["ecsPreventWheelslip"] = input.preventWheelslip;
                     sample["ecsPoweredAxles"] = input.numberOfPoweredAxles;
@@ -108,7 +112,7 @@ namespace RearrangedS060
             Write(new JObject { ["record"] = "session", ["schema"] = 2, ["car"] = car.ID,
                 ["version"] = typeof(Main).Assembly.GetName().Version.ToString(),
                 ["phase"] = "Passive S060 owner Update; native components/ECS can be from different ticks",
-                ["limits"] = "New window per changed arrangement; 2 Hz for first 3 seconds, then while articulated regulator open; maximum 120 samples or 180 seconds since first sample",
+                ["limits"] = "New window per changed arrangement; 2 Hz for first 3 seconds, then while articulated regulator open; maximum 120 samples or 180 seconds since first regulator-open sample",
                 ["units"] = "bar absolute, newtons, Nm, RPM, kg; positions metres in current shifted Unity world, angular velocity rad/s; null means unavailable/non-finite" });
             Main.Logger.Log("S060 articulated driving trace started: " + path);
         }
@@ -182,6 +186,7 @@ namespace RearrangedS060
                 ["body"] = Body(car.rb), ["frontBogie"] = BogieState(car.FrontBogie), ["rearBogie"] = BogieState(car.RearBogie),
                 ["stress"] = stress == null ? JValue.CreateNull() : new JObject {
                     ["enabled"] = stress.enabled, ["magnitude"] = N(stress.stress),
+                    ["slowBuildUpStress"] = N(stress.slowBuildUpStress),
                     ["target"] = V(stress.targetStress), ["vector"] = V(stress.stressVector) } };
         }
         private static JToken Body(Rigidbody body) => body == null ? JValue.CreateNull() : new JObject {
@@ -196,6 +201,12 @@ namespace RearrangedS060
             if (bogie == null) return JValue.CreateNull();
             var joint = bogie.GetComponent<ConfigurableJoint>();
             return new JObject { ["body"] = Body(bogie.rb), ["startingLocalPosition"] = V(bogie.startingLocalPosition),
+                // These are the exact cached inputs read by native Bogie.FixedUpdate.
+                // Record inputs, not final force: brakes, wheel-slide/slip gates
+                // and near-zero-speed handling remain native.
+                ["rollingResistanceCoefficient"] = N(bogie.rollingResistanceCoefficient),
+                ["slowBuildUpStress"] = bogie.trainStress == null ? JValue.CreateNull() : N(bogie.trainStress.slowBuildUpStress),
+                ["rollingStressMultiplier"] = bogie.trainStress == null ? JValue.CreateNull() : N(1 + 25 * Mathf.Clamp01(bogie.trainStress.slowBuildUpStress)),
                 ["initialConnectedAnchor"] = V(bogie.initialConnectedAnchor), ["joint"] = Joint(joint) };
         }
         private static JToken Joint(ConfigurableJoint joint)

@@ -31,7 +31,7 @@ namespace RearrangedS060
                     var rotation = Quaternion.Inverse(parts.Car.transform.rotation) * part.rotation;
                     var scale = part.lossyScale; var carScale = parts.Car.transform.lossyScale;
                     part.SetParent(front, false);
-                    part.localPosition = position + new Vector3(0, 0, MeyerPlan.CylinderZ - S060PipeGeometry.NativeCylinderCentreZ);
+                    part.localPosition = position + new Vector3(0, 0, S060MeyerLayout.FrontCylinderZ - S060PipeGeometry.NativeCylinderCentreZ);
                     part.localRotation = rotation;
                     part.localScale = new Vector3(scale.x / carScale.x, scale.y / carScale.y, scale.z / carScale.z);
                     if (source.Contains(part)) foreach (var renderer in part.GetComponentsInChildren<Renderer>(true)) renderer.enabled = true;
@@ -41,10 +41,15 @@ namespace RearrangedS060
                     var old = front.Find("[Round cylinders " + side + "]");
                     if (old == null) continue;
                     foreach (var renderer in old.GetComponentsInChildren<Renderer>(true))
-                    { owner.fallback.Add((renderer, renderer.enabled)); renderer.enabled = false; }
+                    {
+                        owner.fallback.Add((renderer, renderer.enabled));
+                        // Reuse the authored saddle to connect the complete
+                        // native casting to the extended articulated frame.
+                        renderer.enabled = renderer.name == "Cylinder saddle";
+                    }
                 }
                 owner.audio = S060NativeAudio.Follow(parts.Car,
-                    new Vector3(0, 0, MeyerPlan.CylinderZ - S060PipeGeometry.NativeCylinderCentreZ), front);
+                    new Vector3(0, 0, S060MeyerLayout.FrontCylinderZ - S060PipeGeometry.NativeCylinderCentreZ), front);
                 return owner;
             }
             catch { owner.Dispose(); throw; }

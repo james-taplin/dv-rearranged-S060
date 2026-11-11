@@ -21,7 +21,8 @@ namespace RearrangedS060
             var powered = new[] { Parts.PoweredFor(1), Parts.PoweredFor(2), Parts.PoweredFor(3) };
             // Same three axles, same weight: only the rolling radius changes, which
             // is what turns wheel size into speed and tractive effort.
-            Physics.Apply(Scale.DriverRadius, powered, totalAxles: 3, driverWeightFraction: 1f);
+            Physics.Apply(Scale.DriverRadius, powered, totalAxles: 3,
+                driverWeightFraction: ConventionalPhysics.RatedDriverWeightFraction(3, 3));
         }
 
         protected override void Undo()

@@ -18,6 +18,10 @@ namespace RearrangedS060
     {
         private static readonly ConditionalWeakTable<ChuffClipsSimReader, AudioBinding> Audio = new ConditionalWeakTable<ChuffClipsSimReader, AudioBinding>();
         private static readonly ConditionalWeakTable<SteamSmokeParticlePortReader, SmokeBinding> Smoke = new ConditionalWeakTable<SteamSmokeParticlePortReader, SmokeBinding>();
+        // Pooling can call Deinit again after enrollment has ended. These weak,
+        // owner-free markers let us guard native readers' null-unsafe Deinit.
+        private static readonly ConditionalWeakTable<ChuffClipsSimReader, object> ManagedAudio = new ConditionalWeakTable<ChuffClipsSimReader, object>();
+        private static readonly ConditionalWeakTable<SteamSmokeParticlePortReader, object> ManagedSmoke = new ConditionalWeakTable<SteamSmokeParticlePortReader, object>();
         private readonly List<AudioBinding> audio = new List<AudioBinding>();
         private readonly List<SmokeBinding> smoke = new List<SmokeBinding>();
         internal readonly TrainCar Car;
@@ -30,14 +34,18 @@ namespace RearrangedS060
         {
             harmony.Patch(AccessTools.Method(typeof(ChuffClipsSimReader), nameof(ChuffClipsSimReader.Init)),
                 prefix: new HarmonyMethod(typeof(S060ExhaustPresentation), nameof(AudioInitPrefix)),
-                postfix: new HarmonyMethod(typeof(S060ExhaustPresentation), nameof(AudioInitPostfix)));
+                postfix: new HarmonyMethod(typeof(S060ExhaustPresentation), nameof(AudioInitPostfix)),
+                finalizer: new HarmonyMethod(typeof(S060ExhaustPresentation), nameof(AudioInitFinalizer)));
             harmony.Patch(AccessTools.Method(typeof(ChuffClipsSimReader), nameof(ChuffClipsSimReader.Deinit)),
-                postfix: new HarmonyMethod(typeof(S060ExhaustPresentation), nameof(AudioDeinitPostfix)));
+                prefix: new HarmonyMethod(typeof(S060ExhaustPresentation), nameof(AudioDeinitPrefix)),
+                finalizer: new HarmonyMethod(typeof(S060ExhaustPresentation), nameof(AudioDeinitFinalizer)));
             harmony.Patch(AccessTools.Method(typeof(SteamSmokeParticlePortReader), nameof(SteamSmokeParticlePortReader.Init)),
                 prefix: new HarmonyMethod(typeof(S060ExhaustPresentation), nameof(SmokeInitPrefix)),
-                postfix: new HarmonyMethod(typeof(S060ExhaustPresentation), nameof(SmokeInitPostfix)));
+                postfix: new HarmonyMethod(typeof(S060ExhaustPresentation), nameof(SmokeInitPostfix)),
+                finalizer: new HarmonyMethod(typeof(S060ExhaustPresentation), nameof(SmokeInitFinalizer)));
             harmony.Patch(AccessTools.Method(typeof(SteamSmokeParticlePortReader), nameof(SteamSmokeParticlePortReader.Deinit)),
-                postfix: new HarmonyMethod(typeof(S060ExhaustPresentation), nameof(SmokeDeinitPostfix)));
+                prefix: new HarmonyMethod(typeof(S060ExhaustPresentation), nameof(SmokeDeinitPrefix)),
+                finalizer: new HarmonyMethod(typeof(S060ExhaustPresentation), nameof(SmokeDeinitFinalizer)));
         }
         internal void Refresh()
         {
@@ -62,43 +70,123 @@ namespace RearrangedS060
                 if (Smoke.TryGetValue(reader, out _) || reader.chuffEventPort == null ||
                     reader.chuffEventPortId != S060EngineMapping.MainId + ".CHUFF_EVENT") continue;
                 var baseline = new SmokeBinding(this, reader);
-                reader.Deinit(); baseline.End(); reader.Init(Flow);
+                Smoke.Add(reader, baseline); smoke.Add(baseline);
+                ManagedSmoke.GetValue(reader, _ => new object());
+                reader.Deinit(); reader.Init(Flow);
             }
             foreach (var reader in initializedAudio.Where(r => r != null).Distinct())
             {
                 if (Audio.TryGetValue(reader, out _) || reader.chuffEventPort == null ||
                     reader.chuffEventPortId != S060EngineMapping.MainId + ".CHUFF_EVENT") continue;
+                var baseline = new AudioBinding(this, reader);
+                Audio.Add(reader, baseline); audio.Add(baseline);
+                ManagedAudio.GetValue(reader, _ => new object());
                 reader.Deinit(); reader.Init(Car, Flow);
             }
         }
-        private static void AudioInitPrefix(ChuffClipsSimReader __instance, TrainCar car, SimulationFlow simFlow)
+        private static bool AudioInitPrefix(ChuffClipsSimReader __instance, TrainCar car, SimulationFlow simFlow, out AudioBinding __state)
         {
+            __state = null;
             var owner = S060ArticulatedSimulation.ExhaustFor(simFlow);
+            if (Audio.TryGetValue(__instance, out var current))
+            {
+                if (current.Owner == owner && current.Mode == owner.Bank.Mode && owner.Car == car) return false;
+                __instance.Deinit();
+            }
             if (owner == null || owner.Car != car || __instance.GetComponent<S060ExhaustCopy>() != null ||
-                __instance.chuffEventPortId != S060EngineMapping.MainId + ".CHUFF_EVENT") return;
-            var binding = new AudioBinding(owner, __instance);
-            binding.Prepare(); Audio.Add(__instance, binding); owner.audio.Add(binding);
+                __instance.chuffEventPortId != S060EngineMapping.MainId + ".CHUFF_EVENT") return true;
+            __state = new AudioBinding(owner, __instance);
+            Audio.Add(__instance, __state); owner.audio.Add(__state);
+            ManagedAudio.GetValue(__instance, _ => new object());
+            __state.Prepare();
+            return true;
         }
-        private static void AudioInitPostfix(ChuffClipsSimReader __instance)
-        { if (Audio.TryGetValue(__instance, out var binding)) binding.Complete(); }
-        private static void AudioDeinitPostfix(ChuffClipsSimReader __instance)
+        private static void AudioInitPostfix(AudioBinding __state) => __state?.Complete();
+        private static Exception AudioInitFinalizer(Exception __exception, AudioBinding __state)
+            => __exception != null && __state != null ? EndAudio(__state, __exception, true) : __exception;
+        private static bool AudioDeinitPrefix(ChuffClipsSimReader __instance)
+            => !ManagedAudio.TryGetValue(__instance, out _) || !ReferenceEquals(__instance.car, null);
+        private static Exception AudioDeinitFinalizer(ChuffClipsSimReader __instance, Exception __exception)
         {
-            if (!Audio.TryGetValue(__instance, out var binding)) return;
-            binding.End(); binding.Owner.audio.Remove(binding); Audio.Remove(__instance);
+            return Audio.TryGetValue(__instance, out var binding) ? EndAudio(binding, __exception, __exception != null) : __exception;
         }
-        private static void SmokeInitPrefix(SteamSmokeParticlePortReader __instance, SimulationFlow simFlow)
+        private static bool SmokeInitPrefix(SteamSmokeParticlePortReader __instance, SimulationFlow simFlow, out SmokeBinding __state)
         {
+            __state = null;
             var owner = S060ArticulatedSimulation.ExhaustFor(simFlow);
-            if (owner == null || __instance.chuffEventPortId != S060EngineMapping.MainId + ".CHUFF_EVENT") return;
-            var binding = new SmokeBinding(owner, __instance);
-            binding.Prepare(); Smoke.Add(__instance, binding); owner.smoke.Add(binding);
+            if (Smoke.TryGetValue(__instance, out var current))
+            {
+                if (current.Owner == owner && current.Mode == owner.Bank.Mode) return false;
+                __instance.Deinit();
+            }
+            if (owner == null || __instance.chuffEventPortId != S060EngineMapping.MainId + ".CHUFF_EVENT") return true;
+            __state = new SmokeBinding(owner, __instance);
+            Smoke.Add(__instance, __state); owner.smoke.Add(__state);
+            ManagedSmoke.GetValue(__instance, _ => new object());
+            __state.Prepare();
+            return true;
         }
-        private static void SmokeInitPostfix(SteamSmokeParticlePortReader __instance)
-        { if (Smoke.TryGetValue(__instance, out var binding)) binding.Complete(); }
-        private static void SmokeDeinitPostfix(SteamSmokeParticlePortReader __instance)
+        private static void SmokeInitPostfix(SmokeBinding __state) => __state?.Complete();
+        private static Exception SmokeInitFinalizer(Exception __exception, SmokeBinding __state)
+            => __exception != null && __state != null ? EndSmoke(__state, __exception) : __exception;
+        private static bool SmokeDeinitPrefix(SteamSmokeParticlePortReader __instance)
+            => !ManagedSmoke.TryGetValue(__instance, out _) ||
+                (__instance.fireOnPort != null && __instance.chuffEventPort != null && __instance.isBoilerBrokenPort != null);
+        private static Exception SmokeDeinitFinalizer(SteamSmokeParticlePortReader __instance, Exception __exception)
         {
-            if (!Smoke.TryGetValue(__instance, out var binding)) return;
-            binding.End(); binding.Owner.smoke.Remove(binding); Smoke.Remove(__instance);
+            return Smoke.TryGetValue(__instance, out var binding) ? EndSmoke(binding, __exception) : __exception;
+        }
+        private static Exception EndAudio(AudioBinding binding, Exception failure, bool incompleteNative)
+        {
+            try { Cleanup(() => { if (incompleteNative) CleanupNativeAudio(binding.Reader, binding.Owner.Car); }, binding.End); }
+            catch (Exception cleanup) { failure = Combine(failure, cleanup); }
+            finally { binding.Owner.audio.Remove(binding); Audio.Remove(binding.Reader); }
+            return failure;
+        }
+        private static Exception EndSmoke(SmokeBinding binding, Exception failure)
+        {
+            try { Cleanup(() => CleanupNativeSmoke(binding.Reader), binding.End); }
+            catch (Exception cleanup) { failure = Combine(failure, cleanup); }
+            finally { binding.Owner.smoke.Remove(binding); Smoke.Remove(binding.Reader); }
+            return failure;
+        }
+        private static Exception Combine(Exception first, Exception next) => first == null ? next :
+            new AggregateException("S060 exhaust lifecycle cleanup failed.", first, next);
+        // Every independent teardown step runs, including authored-state restore,
+        // even if a native/Unity cleanup operation itself fails.
+        private static void Cleanup(params Action[] actions)
+        {
+            Exception failure = null;
+            foreach (var action in actions)
+                try { action(); } catch (Exception error) { failure = Combine(failure, error); }
+            if (failure != null) throw failure;
+        }
+        private static Action<T> Native<T>(Type type, string name, object reader) =>
+            AccessTools.MethodDelegate<Action<T>>(AccessTools.Method(type, name), reader);
+        private static void CleanupNativeAudio(ChuffClipsSimReader reader, TrainCar fallback)
+        {
+            // B99 Init subscribes slide/slip before building audio configuration,
+            // and movement/chuffs afterwards. Deinit assumes car is non-null;
+            // this fallback must also handle a failure partway through Deinit.
+            var car = ReferenceEquals(reader.car, null) ? fallback : reader.car;
+            Cleanup(
+                () => { if (!ReferenceEquals(car, null) && car.adhesionController != null)
+                    car.adhesionController.WheelSlideStateChanged -= Native<bool>(typeof(ChuffClipsSimReader), "OnWheelSlideChange", reader); },
+                () => { if (!ReferenceEquals(car, null) && car.adhesionController != null && car.adhesionController.wheelslipController.IsSome(out var slip))
+                    slip.WheelslipStateChanged -= Native<bool>(typeof(ChuffClipsSimReader), "OnWheelslipChange", reader); },
+                () => { if (!ReferenceEquals(car, null)) car.MovementStateChanged -= Native<bool>(typeof(ChuffClipsSimReader), "OnMovementStateChange", reader); },
+                () => { if (reader.chuffEventPort != null) reader.chuffEventPort.ValueUpdatedInternally -= Native<float>(typeof(ChuffClipsSimReader), "OnChuff", reader); },
+                () => reader.StopAllCoroutines(),
+                () => { reader.car = null; reader.wheelSlideCoro = null; reader.wheelslipCoro = null;
+                    reader.chuffEventPort = null; reader.exhaustPressurePort = null; reader.chuffFrequencyPort = null;
+                    reader.cylinderWaterNormalizedPort = null; reader.cylinderCockControlPort = null; reader.ashesInPipesPort = null; });
+        }
+        private static void CleanupNativeSmoke(SteamSmokeParticlePortReader reader)
+        {
+            Cleanup(
+                () => { if (reader.fireOnPort != null) reader.fireOnPort.ValueUpdatedInternally -= Native<float>(typeof(SteamSmokeParticlePortReader), "OnFireChanged", reader); },
+                () => { if (reader.chuffEventPort != null) reader.chuffEventPort.ValueUpdatedInternally -= Native<float>(typeof(SteamSmokeParticlePortReader), "OnChuffEvent", reader); },
+                () => { if (reader.isBoilerBrokenPort != null) reader.isBoilerBrokenPort.ValueUpdatedInternally -= Native<float>(typeof(SteamSmokeParticlePortReader), "OnBoilerBrokenChanged", reader); });
         }
         private static string Remap(string value, string engine) => value?.Replace(S060EngineMapping.MainId + ".", engine + ".");
         private static Port Require(SimulationFlow flow, string id)
@@ -112,8 +200,9 @@ namespace RearrangedS060
             internal readonly S060ExhaustPresentation Owner;
             internal readonly ChuffClipsSimReader Reader;
             internal ChuffClipsSimReader Extra;
-            private bool extraInitialized;
+            private bool extraInitAttempted;
             private readonly S060EngineMode mode;
+            internal S060EngineMode Mode => mode;
             private readonly string[] ids;
             private readonly float medium, high;
             internal AudioBinding(S060ExhaustPresentation owner, ChuffClipsSimReader reader)
@@ -139,14 +228,16 @@ namespace RearrangedS060
                     .SingleOrDefault(r => r.chuffEventPortId == ids[0]) : null;
                 if (template == null) throw new InvalidOperationException("S060 authored chuff template missing.");
                 var copy = UnityEngine.Object.Instantiate(template.gameObject, Reader.transform.parent);
+                Extra = copy.GetComponent<ChuffClipsSimReader>();
                 copy.name = "[S060 Dockside second exhaust]";
                 copy.AddComponent<S060ExhaustCopy>();
-                Extra = copy.GetComponent<ChuffClipsSimReader>();
                 CopyAuthoredConfiguration(template, Extra);
                 SetIds(Extra, ids.Select(id => Remap(id, S060EngineMapping.AdditionalExhaustId(mode))).ToArray());
                 foreach (var id in Ids(Extra)) Require(Owner.Flow, id);
+                // Native Init can throw after subscribing to car/adhesion events.
+                // Enroll the attempt before calling it so End can always undo it.
+                extraInitAttempted = true;
                 Extra.Init(Owner.Car, Owner.Flow);
-                extraInitialized = true;
             }
             private void CopyAuthoredConfiguration(ChuffClipsSimReader template, ChuffClipsSimReader copy)
             {
@@ -191,16 +282,19 @@ namespace RearrangedS060
                 { preWrapMode = source.preWrapMode, postWrapMode = source.postWrapMode };
             internal void End()
             {
-                if (Extra != null)
-                {
-                    if (extraInitialized) { Extra.Deinit(); StopLoops(Extra); }
-                    foreach (var source in Extra.GetComponentsInChildren<AudioSource>(true)) source.Stop();
-                    Extra.gameObject.SetActive(false); Extra.transform.SetParent(null, false);
-                    UnityEngine.Object.Destroy(Extra.gameObject); Extra = null;
-                    extraInitialized = false;
-                }
-                StopLoops(Reader);
-                SetIds(Reader, ids); Reader.mediumPressureThreshold = medium; Reader.highPressureThreshold = high;
+                var extra = Extra; var attempted = extraInitAttempted;
+                Extra = null; extraInitAttempted = false;
+                Cleanup(
+                    () => { if (extra != null && attempted)
+                        { try { if (!ReferenceEquals(extra.car, null)) extra.Deinit(); }
+                          finally { CleanupNativeAudio(extra, Owner.Car); } } },
+                    () => { if (extra != null) StopLoops(extra); },
+                    () => { if (extra != null) extra.gameObject.SetActive(false); },
+                    () => { if (extra != null) extra.transform.SetParent(null, false); },
+                    () => { if (extra != null)
+                        { if (Application.isPlaying) UnityEngine.Object.Destroy(extra.gameObject); else UnityEngine.Object.DestroyImmediate(extra.gameObject); } },
+                    () => StopLoops(Reader),
+                    () => { SetIds(Reader, ids); Reader.mediumPressureThreshold = medium; Reader.highPressureThreshold = high; });
             }
             private static string[] Ids(ChuffClipsSimReader reader) => new[] { reader.chuffEventPortId,
                 reader.exhaustPressurePortId, reader.chuffFrequencyPortId, reader.cylinderWaterNormalizedPortId,
@@ -212,9 +306,14 @@ namespace RearrangedS060
             }
             private static void StopLoops(ChuffClipsSimReader reader)
             {
-                foreach (var loop in reader.chuffLoops.Concat(reader.waterChuffLoops).Concat(reader.ashChuffLoops))
-                    if (loop.chuffLoop != null) { loop.chuffLoop.Stop(); loop.chuffLoop.Reset(); }
-                foreach (var source in reader.GetComponentsInChildren<AudioSource>(true)) source.Stop();
+                var actions = new List<Action>();
+                foreach (var loops in new[] { reader.chuffLoops, reader.waterChuffLoops, reader.ashChuffLoops })
+                    if (loops != null) foreach (var loop in loops)
+                        if (loop?.chuffLoop != null)
+                        { actions.Add(() => loop.chuffLoop.Stop()); actions.Add(() => loop.chuffLoop.Reset()); }
+                foreach (var source in reader.GetComponentsInChildren<AudioSource>(true)) actions.Add(() => source.Stop());
+                actions.Add(() => reader.anyLoopOngoing = false);
+                Cleanup(actions.ToArray());
             }
         }
 
@@ -223,6 +322,7 @@ namespace RearrangedS060
             internal readonly S060ExhaustPresentation Owner;
             internal readonly SteamSmokeParticlePortReader Reader;
             private readonly S060EngineMode mode;
+            internal S060EngineMode Mode => mode;
             private readonly string eventId, pressureId;
             private Port rearEvent, frontEvent, rearPressure, frontPressure;
             private Action<float> rearPulse, frontPulse, pressureChanged;
@@ -237,6 +337,7 @@ namespace RearrangedS060
                 Reader.chuffEventPortId = Remap(eventId, S060EngineMapping.ExhaustId(mode));
                 Reader.exhaustPressurePortId = Remap(pressureId, S060EngineMapping.ExhaustId(mode));
                 Require(Owner.Flow, Reader.chuffEventPortId); Require(Owner.Flow, Reader.exhaustPressurePortId);
+                Require(Owner.Flow, Reader.fireOnPortId); Require(Owner.Flow, Reader.isBoilerBrokenPortId);
             }
             internal void Complete()
             {
@@ -260,26 +361,29 @@ namespace RearrangedS060
             }
             internal void End()
             {
-                if (rearPulse != null) rearEvent.ValueUpdatedInternally -= rearPulse;
-                if (frontPulse != null) frontEvent.ValueUpdatedInternally -= frontPulse;
-                if (pressureChanged != null)
-                { rearPressure.ValueUpdatedInternally -= pressureChanged; frontPressure.ValueUpdatedInternally -= pressureChanged; }
+                var actions = new List<Action> {
+                    () => { if (rearPulse != null && rearEvent != null) rearEvent.ValueUpdatedInternally -= rearPulse; },
+                    () => { if (frontPulse != null && frontEvent != null) frontEvent.ValueUpdatedInternally -= frontPulse; },
+                    () => { if (pressureChanged != null && rearPressure != null) rearPressure.ValueUpdatedInternally -= pressureChanged; },
+                    () => { if (pressureChanged != null && frontPressure != null) frontPressure.ValueUpdatedInternally -= pressureChanged; },
                 // Native Deinit only unsubscribes. Stop its old pressure-driven
                 // coroutine and restore cached authored baselines before Init
                 // enumerates leaves; closed/cold leaves may have been disabled.
-                Reader.StopAllCoroutines(); Reader.chuffCoro = null; Reader.stopAllCoro = null;
-                Reader.nextChuffQueued = false; Reader.allParticlesStopped = false;
+                    () => Reader.StopAllCoroutines(),
+                    () => { Reader.chuffCoro = null; Reader.stopAllCoro = null;
+                        Reader.nextChuffQueued = false; Reader.allParticlesStopped = false; } };
                 if (Reader.allParticlesSystemsData != null)
                     foreach (var data in Reader.allParticlesSystemsData)
                     {
-                        if (data.ps == null) continue;
-                        data.ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-                        var main = data.ps.main; main.startSpeed = data.initialStartSpeed; main.maxParticles = data.initialMaxParticles;
-                        var emission = data.ps.emission; emission.rateOverTime = data.initialRateOverTime;
-                        data.ps.gameObject.SetActive(true);
+                        if (data == null || data.ps == null) continue;
+                        actions.Add(() => data.ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear));
+                        actions.Add(() => { var main = data.ps.main; main.startSpeed = data.initialStartSpeed; main.maxParticles = data.initialMaxParticles;
+                            var emission = data.ps.emission; emission.rateOverTime = data.initialRateOverTime; });
+                        actions.Add(() => data.ps.gameObject.SetActive(true));
                     }
-                Reader.chuffEventPortId = eventId; Reader.exhaustPressurePortId = pressureId;
-                Reader.chuffEventPort = Require(Owner.Flow, eventId); Reader.exhaustPressurePort = Require(Owner.Flow, pressureId);
+                actions.Add(() => { Reader.chuffEventPortId = eventId; Reader.exhaustPressurePortId = pressureId;
+                    Owner.Flow.TryGetPort(eventId, out Reader.chuffEventPort); Owner.Flow.TryGetPort(pressureId, out Reader.exhaustPressurePort); });
+                Cleanup(actions.ToArray());
             }
         }
     }

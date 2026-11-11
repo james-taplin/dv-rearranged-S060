@@ -32,6 +32,9 @@ namespace RearrangedS060
         {
             if (!Active || collision == null) throw new InvalidOperationException("Meyer support must be active before binding its collision frame.");
             collision.BindFrame(frame);
+            // Legacy shell collision keeps its original body-space footprint;
+            // only the power unit and its four physical axle halves move aft.
+            collision.transform.localPosition = -S060MeyerLayout.RearVisualOffset;
             var extended = collision.Encapsulate(bounds, car.transform);
             extended.Encapsulate(car.RearCouplerAnchor.localPosition); car._bounds = extended;
         }
@@ -86,8 +89,7 @@ namespace RearrangedS060
             {
                 foreach (var target in targets)
                     Relocate(target.bogie, new Vector3(0, target.bogie.startingLocalPosition.y, target.z), target.bogie.startingLocalRotation, null);
-                var anchor = rearAnchor; anchor.z = MeyerPlan.RearCouplerZ; car.RearCouplerAnchor.localPosition = anchor;
-                MoveCouplingVisuals(car.transform.TransformVector(anchor - rearAnchor));
+                MoveRearCoupling();
                 // SetupTrainCar reparents collision out of [colliders] into
                 // the live rigidbody root; use its cached native reference.
                 var root = car.carColliders?.collisionRoot;
@@ -104,7 +106,7 @@ namespace RearrangedS060
                     {
                         capsules.Add((capsule, capsule.center, capsule.height));
                         var c = car.transform.InverseTransformPoint(capsule.transform.TransformPoint(capsule.center));
-                        c.z = c.z >= 0 ? MeyerPlan.FrontCentre : MeyerPlan.RearCentre;
+                        c.z = c.z >= 0 ? MeyerPlan.FrontCentre : MeyerPlan.RearCentre + S060MeyerLayout.RearVisualOffsetZ;
                         capsule.center = capsule.transform.InverseTransformPoint(car.transform.TransformPoint(c));
                         capsule.height = (float)MeyerPlan.AxlePitch + capsule.radius * 2;
                     }
@@ -120,6 +122,16 @@ namespace RearrangedS060
                 catch (Exception undo) { throw new AggregateException("Meyer support apply and restoration failed; support remains available for retry.", apply, undo); }
                 throw;
             }
+        }
+        private void MoveRearCoupling()
+        {
+            // Keep the native hook, hose and physical anchor together at the
+            // R2 hook pocket. Buffer heads are retained at their fixed beam by
+            // S060MeyerLights when it binds the native buffer anchors.
+            var anchor = rearAnchor;
+            anchor.z = MeyerPlan.RearCouplerZ + MeyerPlan.RearCouplingCorrectionZ;
+            car.RearCouplerAnchor.localPosition = anchor;
+            MoveCouplingVisuals(car.transform.TransformVector(anchor - rearAnchor));
         }
         private void MoveCouplingVisuals(Vector3 delta)
         {

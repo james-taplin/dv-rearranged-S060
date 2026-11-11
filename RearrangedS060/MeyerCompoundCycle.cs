@@ -57,6 +57,10 @@ namespace RearrangedS060
         {
             internal readonly Vessel Chest;
             internal readonly double SweptPerRevolution, MaximumIntake;
+            // Native piston mechanics may request shaft torque. The circuit
+            // still owns the steam transfer and caps work by actual enthalpy.
+            // This delegate is runtime wiring, never part of a saved vessel.
+            internal Func<double, double, double> MechanicalTorqueRequest;
             internal double Torque, Intake, Exhaust, Vent, VentEnergy, ExhaustTemperature, AdmissionPressure;
             internal Stage(double bore, double stroke, double chestCubicMetres, double maximumIntake)
             {
@@ -138,13 +142,17 @@ namespace RearrangedS060
             double wanted = stage.Chest.Mass / stage.Chest.Volume * stage.SweptPerRevolution * cut * revs * dt;
             var packet = stage.Chest.Take(Math.Min(wanted, stage.Chest.Mass * .1));
             double fraction = wanted > 1e-12 ? packet.Mass / wanted : 1;
-            double targetWork = workPerRev * revs * dt * fraction;
+            double requestedTorque = stage.MechanicalTorqueRequest == null
+                ? direction * workPerRev / (2 * Math.PI)
+                : stage.MechanicalTorqueRequest(pressure, backPressure);
+            if (!Finite(requestedTorque)) throw new InvalidOperationException("Invalid Meyer mechanical torque request.");
+            double targetWork = Math.Abs(requestedTorque) * 2 * Math.PI * revs * dt * fraction;
             // No work may exceed the isentropic enthalpy drop of the steam
             // actually discharged. Leave the remaining energy in HP exhaust.
             double available = packet.Energy * (1 - Math.Pow(backPressure / pressure, (Gamma - 1) / Gamma));
             double work = Math.Min(targetWork, Math.Max(0, available));
-            double torque = revs > 1e-9 ? work / (2 * Math.PI * revs * dt) : workPerRev / (2 * Math.PI);
-            stage.Torque += direction * torque * dt;
+            double torque = revs > 1e-9 ? work / (2 * Math.PI * revs * dt) : Math.Abs(requestedTorque);
+            stage.Torque += Math.Sign(requestedTorque) * torque * dt;
             stage.Exhaust += packet.Mass;
             packet.Energy -= work; Work += work;
             stage.ExhaustTemperature = packet.Mass > 1e-12 ? packet.Energy / (packet.Mass * Cp) - 273.15 : 25;

@@ -24,8 +24,11 @@ namespace RearrangedS060
         // Meyer R2: lamps go to the new body-mounted rear bulkhead (face z -8.11), the
         // upper cab-back lamp too (the coal hopper hides it). Frame-local = car - (0,0,RearCentre).
         // Housings are ~0.13 m deep behind the glass: stand them fully proud of the bulkhead face.
-        internal const float BodyRearGlassZ = S060MeyerBodywork.BulkheadRear - .13f - MeyerPlan.RearCentre;
+        internal const float BodyRearGlassZ = MeyerPlan.BulkheadRear - .13f - MeyerPlan.RearCentre;
         internal const float NativeUpperGlassZ = -4.30f;
+        // The upper housing is open at the back: it drops until its top is under the bulkhead's
+        // beaded top, so the open back is never seen from above (James, 2026-10-28).
+        internal const float UpperHousingTopY = MeyerPlan.BulkheadTop - .03f;
         internal static S060MeyerLights Bind(Transform car, Transform body, Transform rearFrame, Vector3 rearOffset, bool bodyMounted = false)
         {
             var owner = new S060MeyerLights();
@@ -40,6 +43,7 @@ namespace RearrangedS060
                 var parts = meshes.Concat(new[] { rear.Find("s060_headlight_glass_R_LO"), rear.Find("HeadlightsLowLeft"), rear.Find("HeadlightsLowRight") }).ToArray();
                 if (parts.Any(t => t == null)) throw new InvalidOperationException("Native lower rear glass or controlled lamp effects are missing.");
                 var upper = new Transform[0];
+                float upperDrop = 0;
                 if (bodyMounted)
                 {
                     upper = body.GetComponentsInChildren<Transform>(true).Where(t => t.name == "s060_taillight_upper")
@@ -47,6 +51,7 @@ namespace RearrangedS060
                             (t.name.StartsWith("s060_headlight_glass", StringComparison.Ordinal) && t.name != "s060_headlight_glass_R_LO"))).ToArray();
                     if (upper.Length < 3) throw new InvalidOperationException("Native upper rear lamp housing, glass or controlled effect is missing.");
                     parts = parts.Concat(upper).ToArray();
+                    upperDrop = Mathf.Max(0, HousingTop(car, upper.Where(t => t.name == "s060_taillight_upper")) - UpperHousingTopY);
                 }
                 foreach (var part in parts)
                     owner.homes.Add(new Home { Part = part, Parent = part.parent, Position = part.localPosition,
@@ -61,7 +66,7 @@ namespace RearrangedS060
                     // car coordinates. The new rear datum is in frame space.
                     float target = bodyMounted ? BodyRearGlassZ : MeyerPlan.RearLampGlassZ;
                     float native = upper.Contains(part) ? NativeUpperGlassZ : MeyerPlan.NativeRearLampGlassZ;
-                    part.localPosition = local + new Vector3(0, 0, target - native);
+                    part.localPosition = local + new Vector3(0, upper.Contains(part) ? -upperDrop : 0, target - native);
                     part.localRotation = rotation; part.localScale = matrix.lossyScale;
                 }
                 var plate = car.Find("[buffers]/HookPlate_R");
@@ -73,7 +78,7 @@ namespace RearrangedS060
                 plate.SetParent(rearFrame, false);
                 plate.localPosition = platePosition + new Vector3(0, 0, 2.105f);
                 plate.localRotation = plateRotation;
-                owner.BindBuffers(car, rearFrame);
+                owner.BindBuffers(car, rearFrame, bodyMounted ? MeyerPlan.RearCouplingCorrectionZ : 0f);
                 var stems = body.GetComponentsInChildren<MeshFilter>(true).Where(f => f.name == "s060_buffer_stems").ToArray();
                 if (stems.Length == 0) throw new InvalidOperationException("Native buffer stem mesh is missing.");
                 foreach (var filter in stems)
@@ -121,7 +126,22 @@ namespace RearrangedS060
             }
             catch { owner.Dispose(); throw; }
         }
-        private void BindBuffers(Transform car, Transform rearFrame)
+        private static float HousingTop(Transform car, IEnumerable<Transform> housings)
+        {
+            float top = float.NegativeInfinity;
+            foreach (var filter in housings.SelectMany(h => h.GetComponentsInChildren<MeshFilter>(true)).Where(f => f.sharedMesh != null))
+            {
+                var b = filter.sharedMesh.bounds;
+                for (int i = 0; i < 8; i++)
+                {
+                    var corner = new Vector3((i & 1) == 0 ? b.min.x : b.max.x, (i & 2) == 0 ? b.min.y : b.max.y, (i & 4) == 0 ? b.min.z : b.max.z);
+                    top = Mathf.Max(top, car.InverseTransformPoint(filter.transform.TransformPoint(corner)).y);
+                }
+            }
+            if (float.IsNegativeInfinity(top)) throw new InvalidOperationException("Native upper rear lamp housing mesh is missing.");
+            return top;
+        }
+        private void BindBuffers(Transform car, Transform rearFrame, float couplingCorrectionZ)
         {
             var buffers = car.Find("[buffers]");
             var rig = buffers == null ? null : buffers.Cast<Transform>().SingleOrDefault(t => t.name == "BuffersAndChainRig" && car.InverseTransformPoint(t.position).z < 0);
@@ -129,7 +149,9 @@ namespace RearrangedS060
             var anchors = new[] { rig.Find("buffer anchor left"), rig.Find("buffer anchor right") };
             if (anchors.Any(t => t == null)) throw new InvalidOperationException("Native rear buffer anchors are missing.");
             var wrapper = new GameObject("[Meyer native rear buffers]"); added.Add(wrapper); wrapper.transform.SetParent(rearFrame, false);
-            wrapper.transform.localPosition = car.InverseTransformPoint(rig.position) - new Vector3(0, 0, MeyerPlan.RearCentre);
+            // The R2 hook/hose rig now moves farther aft to its pocket. Its
+            // buffer heads stay on the existing beam and native stem ends.
+            wrapper.transform.localPosition = car.InverseTransformPoint(rig.position) - new Vector3(0, 0, MeyerPlan.RearCentre + couplingCorrectionZ);
             wrapper.transform.localRotation = Quaternion.Inverse(car.rotation) * rig.rotation;
             foreach (var anchor in anchors)
                 homes.Add(new Home { Part = anchor, Parent = anchor.parent, Position = anchor.localPosition,

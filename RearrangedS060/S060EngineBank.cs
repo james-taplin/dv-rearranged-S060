@@ -40,6 +40,8 @@ namespace RearrangedS060
             if (mainTarget is S060ShayEngine geared) geared.SynchronizePhase();
             if (auxiliaryTarget != null) S060EngineState.CopyCondition(auxiliary, auxiliaryTarget,
                 Mathf.Repeat(main.crankRotationReadOut.Value + .125f, 1));
+            if (mainTarget is MeyerNativeStage hp) hp.RephaseMechanics();
+            if (auxiliaryTarget is MeyerNativeStage lp) lp.RephaseMechanics();
             // A cylinder crack on either unit must survive a return to a single
             // engine, even though the auxiliary slot is then dormant.
             if (main.isCylinderCrackedReadOut.Value > 0 || auxiliary.isCylinderCrackedReadOut.Value > 0)
@@ -206,7 +208,7 @@ namespace RearrangedS060
 
     internal sealed class S060ShayEngine : ReciprocatingSteamEngine
     {
-        internal const float Ratio = 43f / 19f, Efficiency = .92f;
+        internal const float Ratio = S060SteamCalibration.Shay.GearRatio, Efficiency = .92f;
         internal double GearTurns { get; private set; }
         internal S060ShayEngine(ReciprocatingSteamEngineDefinition definition) : base(definition) { }
         public override void Tick(float delta)

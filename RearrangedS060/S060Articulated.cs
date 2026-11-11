@@ -32,6 +32,10 @@ namespace RearrangedS060
         private S060MeyerSupport meyerSupport;
         private S060SteamPipes steamPipes;
         private S060NativeCylinders nativeCylinders;
+        private S060MeyerClearance meyerClearance;
+        private S060MeyerFrontMotion meyerFrontMotion;
+        private readonly List<S060MeyerGearMounts> meyerGearMounts = new List<S060MeyerGearMounts>();
+        private S060MeyerFrontEquipment meyerFrontEquipment;
         private S060MeyerLights meyerLights;
         private S060NativeQuartering nativeQuartering;
         private S060MeyerBodywork bodywork;
@@ -42,7 +46,7 @@ namespace RearrangedS060
         {
             string id = meyer ? "RS060_Meyer_0440" : "RS060_Franklin_Dockside_0440";
             if (Globals.G?.Types == null || !Globals.G.Types.TryGetLivery(id, out var donor) || donor.prefab == null)
-                throw new InvalidOperationException("Install the " + (meyer ? "Meyer" : "Dockside") + " asset pack first.");
+                throw new InvalidOperationException((meyer ? "Meyer" : "Dockside") + " assets not loaded. Check Custom Car Loader (CCL) and its dependencies, including DV Language Helper, in UMM; restart the game. Packs are bundled. See Player.log for CCL errors.");
             donorRoot = donor.prefab.transform;
             var frames = donor.prefab.GetComponentsInChildren<Transform>(true).Where(t => t.name == "bogie_car").OrderBy(t => donor.prefab.transform.InverseTransformPoint(t.position).z).ToArray();
             if (frames.Length != 2) throw new InvalidOperationException("Articulated donor must have exactly two bogie frames.");
@@ -97,9 +101,10 @@ namespace RearrangedS060
                 var frame = UnityEngine.Object.Instantiate(source.gameObject, parent); added.Add(frame);
                 frame.name = "[S060 " + (IsMeyer ? "Meyer" : "Dockside") + (i == 0 ? " rear]" : " front]");
                 liveFrames.Add(frame.transform);
-                if (IsMeyer) frame.transform.localPosition = Vector3.zero;
+                if (IsMeyer) frame.transform.localPosition = i == 0 ? S060MeyerLayout.RearVisualOffset : Vector3.zero;
                 else frame.transform.position = Parts.Car.transform.TransformPoint(donorRoot.InverseTransformPoint(source.position));
                 frame.transform.localRotation = source.localRotation; frame.transform.localScale = source.localScale;
+                if (IsMeyer && i == 1) frame.transform.localRotation = S060MeyerLayout.FrontRotation * source.localRotation;
                 // Visual axles stay inside the authored Animator hierarchy. Four
                 // plain native physics axles live directly below bogie_car,
                 // where DV's axle getter expects them, and point at those wheels.
@@ -120,11 +125,14 @@ namespace RearrangedS060
                 frame.SetActive(true); bogie.axles = null;
                 var mode = IsMeyer ? S060EngineMode.Meyer : S060EngineMode.Dockside;
                 string engine = i == 0 ? S060EngineMapping.PhysicalRearId(mode) : S060EngineMapping.PhysicalFrontId(mode);
-                var effects = new S060ArticulatedPresentation(Parts.Car, frame, engine, true);
+                var effects = new S060ArticulatedPresentation(Parts.Car, frame, engine, true,
+                    reverseVisual: IsMeyer && i == 1);
                 presentation.Add(effects); effects.Bind();
             }
             Physics.Apply(IsMeyer ? S060Parts.DriverRadius : .5f, powered.ToArray(), 4, 1);
             if (IsMeyer) meyerSupport.BindCollisionFrame(liveFrames[0]);
+            if (IsMeyer) meyerFrontMotion = S060MeyerFrontMotion.Bind(liveFrames[1]);
+            if (IsMeyer) foreach (var frame in liveFrames) meyerGearMounts.Add(S060MeyerGearMounts.Bind(frame, Parts.Body));
             if (IsMeyer) nativeCylinders = S060NativeCylinders.Bind(Parts, liveFrames[1]);
             if (IsMeyer)
             {
@@ -137,10 +145,15 @@ namespace RearrangedS060
                 datum.transform.localRotation = Quaternion.Inverse(donorRoot.rotation) * frames[0].rotation;
                 meyerLights = S060MeyerLights.Bind(Parts.Car.transform, Parts.Body, datum.transform, meyerSupport.RearOffset, true);
             }
+            // Pipe fitting owns a second shell copy. Unwind it before this
+            // local clearance owner so stock always receives its original mesh.
+            if (IsMeyer) meyerClearance = S060MeyerClearance.Apply(Parts.Body);
+            if (IsMeyer) meyerFrontEquipment = S060MeyerFrontEquipment.Bind(Parts.Car.transform, Parts.Body);
             steamPipes = S060SteamPipes.Bind(Parts.Car.transform, liveFrames[1], liveFrames[0], Parts.Body);
             // Presentation is fully prepared before changing the engine model.
             simulation.Select(IsMeyer ? S060EngineMode.Meyer : S060EngineMode.Dockside);
-            if (IsMeyer) capacity = S060MeyerCapacity.Apply(simulation.Flow, IsRestoring);
+            if (IsMeyer) capacity = S060MeyerCapacity.Apply(simulation.Flow, IsRestoring,
+                Parts.Car.gameObject);
         }
         private void Hide(GameObject item) { hidden.Add((item, item.activeSelf)); item.SetActive(false); }
         protected override void ReleasePresentationMeshes() => meyerLights?.ReleaseMeshes();
@@ -155,6 +168,11 @@ namespace RearrangedS060
             if (bodywork != null && Attempt(bodywork.Dispose)) bodywork = null;
             if (nativeCylinders != null && Attempt(nativeCylinders.Dispose)) nativeCylinders = null;
             if (steamPipes != null && Attempt(steamPipes.Dispose)) steamPipes = null;
+            foreach (var owner in meyerGearMounts.ToArray())
+                if (Attempt(owner.Dispose)) meyerGearMounts.Remove(owner);
+            if (steamPipes == null && meyerGearMounts.Count == 0 && meyerFrontMotion != null && Attempt(meyerFrontMotion.Dispose)) meyerFrontMotion = null;
+            if (meyerFrontEquipment != null && Attempt(meyerFrontEquipment.Dispose)) meyerFrontEquipment = null;
+            if (steamPipes == null && meyerClearance != null && Attempt(meyerClearance.Dispose)) meyerClearance = null;
             foreach (var owner in presentation.ToArray())
                 if (Attempt(owner.Dispose)) presentation.Remove(owner);
             if (stockCocks != null && Attempt(stockCocks.Dispose)) stockCocks = null;

@@ -114,19 +114,25 @@ namespace RearrangedS060
         { var part = Group(parent, name); part.localPosition = position; return part; }
         private Transform Ball(Transform parent, string name, Vector3 position, float radius)
         {
+            var part = Render(parent, name, JointMesh(radius));
+            part.localPosition = position; return part;
+        }
+        internal static Mesh JointMesh(float radius)
+        {
             // Build the joint as lathe rings rather than importing a model or
             // giving a primitive the locomotive's complete paint atlas.
             const int rings = 9; var centres = new Vector3[rings]; var radii = new float[rings];
             for (int i = 0; i < rings; i++)
             { float angle = Mathf.PI * i / (rings - 1); centres[i] = new Vector3(0, 0, -radius * Mathf.Cos(angle)); radii[i] = Mathf.Max(.001f, radius * Mathf.Sin(angle)); }
-            var part = Render(parent, name, Tube(centres, radii)); part.GetComponent<MeshFilter>().sharedMesh.RecalculateNormals();
-            part.localPosition = position; return part;
+            var mesh = Tube(centres, radii); mesh.RecalculateNormals(); return mesh;
         }
         private Transform Pipe(Transform parent, string name, float radius, Vector3[] points, bool rounded = true)
+            => Render(parent, name, PathMesh(points, radius, rounded));
+        internal static Mesh PathMesh(Vector3[] points, float radius, bool rounded = true)
         {
             var centres = rounded ? Rounded(points) : points;
             var radii = new float[centres.Length]; for (int i = 0; i < radii.Length; i++) radii[i] = radius;
-            return Render(parent, name, Tube(centres, radii));
+            return Tube(centres, radii);
         }
         private Transform Render(Transform parent, string name, Mesh mesh)
         {

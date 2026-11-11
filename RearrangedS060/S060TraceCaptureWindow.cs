@@ -28,7 +28,11 @@ namespace RearrangedS060
         {
             if (Stopped || mode == null || mode == 0 || Limit(now) != null || now < nextSample ||
                 (!regulatorOpen && now >= settlingUntil)) return false;
-            if (!HasStarted) { StartedAt = now; HasStarted = true; }
+            // Initial closed-regulator settling samples do not spend the
+            // powered-test time budget while James prepares/warmups the loco.
+            // Once running begins, wall time stays bounded even after closing
+            // the regulator; idling cannot extend an active capture.
+            if (!HasStarted && regulatorOpen) { StartedAt = now; HasStarted = true; }
             nextSample = now + SampleInterval;
             Samples++;
             return true;

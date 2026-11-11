@@ -11,7 +11,10 @@ namespace RearrangedS060
     {
         private readonly List<(MeshFilter filter, Mesh original, Mesh owned)> meshes = new List<(MeshFilter, Mesh, Mesh)>();
         private readonly Dictionary<int, Vector3> sockets = new Dictionary<int, Vector3>();
+        private readonly Dictionary<int, float> socketRadii = new Dictionary<int, float>();
+        private bool capSockets;
         internal Vector3 BoilerSocket(int side) => sockets.TryGetValue(side, out var value) ? value : throw new InvalidOperationException("Actual S060 boiler neck section missing.");
+        internal float BoilerSocketRadius(int side) => socketRadii[side];
         internal static bool InBranch(Vector3 p) => Math.Abs(p.x) >= .52f && Math.Abs(p.x) <= 1.50f &&
             p.y >= 1.56f && p.y <= 2.35f && p.z >= 2.98f && p.z <= 3.35f;
         internal static Vector3 Bend(Vector3 p, Vector3 delta)
@@ -20,9 +23,9 @@ namespace RearrangedS060
             float t = Math.Max(0, Math.Min(1, (2.35f - p.y) / (2.35f - 1.56f)));
             return p + delta * (t * t * (3 - 2 * t));
         }
-        internal static S060BodyPipes Apply(Transform body, Vector3 delta, bool remove = false)
+        internal static S060BodyPipes Apply(Transform body, Vector3 delta, bool remove = false, bool capSockets = true)
         {
-            var owner = new S060BodyPipes();
+            var owner = new S060BodyPipes { capSockets = capSockets };
             try
             {
                 foreach (var filter in body.GetComponentsInChildren<MeshFilter>(true).Where(f => f.name == "s060_body").OrderByDescending(f => f.sharedMesh == null ? 0 : f.sharedMesh.vertexCount))
@@ -94,6 +97,8 @@ namespace RearrangedS060
                 if (points.Length < 6) throw new InvalidOperationException("S060 boiler neck has no usable actual mesh section.");
                 var centre = new Vector3((points.Min(p => p.x) + points.Max(p => p.x)) / 2, S060PipeGeometry.BoilerCutY, (points.Min(p => p.z) + points.Max(p => p.z)) / 2);
                 if (!sockets.ContainsKey(section.Key)) sockets.Add(section.Key, centre);
+                socketRadii[section.Key] = points.Max(p => new Vector2(p.x-centre.x,p.z-centre.z).magnitude);
+                if (!capSockets) continue;
                 var ring = points.OrderBy(p => Mathf.Atan2(p.z - centre.z, p.x - centre.x)).ToArray();
                 for (int i = 0; i < ring.Length; i++)
                 {

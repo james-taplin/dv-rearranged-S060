@@ -1,5 +1,742 @@
 # Rearranged S060 — handover
 
+## Shay R3 detail/model pass — 11 November 2026, STAGED ONLY
+
+The fully authored 0.80 m / 86:20 Shay model, substantial steam plumbing,
+hollow sleeve reducers, frame detail and corrected cock emitters are staged.
+Matching runtime and original-only asset: `build/shay-r3-20261111/candidate`.
+Source/native geometry checks pass; see [R3 detail handover](shay/R3-DETAIL-PASS.md)
+for exact hashes, scopes, preview-fixture UV/material corrections and remaining
+James-owned DV testing. Current 1.6 kg/s physics is retained. No install,
+game launch, push or publication. This candidate includes concurrent unreleased
+Meyer/physics work; it is not a complete release package.
+
+## Shay 1.6 kg/s tune — 11 November 2026, STAGED ONLY
+
+James approved the 1.6 kg/s Shay tune, retaining 0.80 m wheels, roughly 150 kN
+starting effort and save compatibility. No install, DV launch or model rebuild.
+The production calibration change is solely Shay.MaxFlow from 1.2 to 1.6.
+Wheel radius, 252 x 300.808 mm cylinders, 45 L chest, 86:20 gears / 4.3:1 ratio,
+92% transmission efficiency, saved 43-turn clock and native boiler are unchanged.
+No automatic cutoff or additional force/adhesion mechanism was introduced.
+
+Staged runtime: build/shay-flow-1600-20261111/candidate/RearrangedS060.dll,
+SHA256 FF51E3A4C310745576BA007B2306662C2268AE920F9CD95A6771D93303E57E4B.
+Clean runtime build: 0 warnings/errors. It includes preceding unreleased Meyer
+work and current concurrent Shay authoring; this physics stage does not establish
+complete model/geometry or UMM/Nexus release readiness. Do not install it.
+
+Offline proof: build/shay-flow-1600-20261111/validation.json and engine-envelope.
+2,365 engine-bank checks pass, including old 43:19 saves, actual prior 1.2 kg/s
+Shay saves active AND dormant, exact serialized state round-trip before ticking,
+new-calibration finite continuation, the unchanged Meyer suite and native slip.
+The prior save producer is preserved under previous-1200-engine-bank/Native.dll.
+The first new round-trip assertion compared parsed JSON doubles to live float
+JValues; corrected it to compare serialized JSON on both sides, following the
+existing cross-version fixture. This was a fixture precision mismatch, not a
+production save change. No runtime rebuild was needed for that correction.
+Native Unity suites exhaust/cocks/Shay-effects pass 611/284/23 checks (918 total)
+at build/radio-0.24.0/runtime-audits-20261111-211839 against the exact staged DLL.
+Earlier Meyer-specific evidence remains source-applicable; do not report those
+older DLL tests as newly executed against this candidate.
+
+At 16 bar absolute / 200 C, full gear, mean available kN at .1/1/5/10/15/20/30 km/h:
+156.68 / 152.64 / 138.41 / 91.71 / 57.62 / 38.99 / 20.29.
+Normal shorter cutoff: 70% reverser (~64.5% cutoff) at 10 km/h gives 127.69 kN;
+40% reverser (~39% cutoff) at 15 km/h gives 106.47 kN. At 13 bar these operating
+points give 111.06 / 87.05 kN. These are fixed-supply, unclipped machinery values.
+Steam flow is bounded by 1.6 kg/s; James still needs to test boiler sustainability
+and actual grade/adhesion behavior. Existing cab cutoff remains manual.
+
+The modelling brief, integration note, physics report and README now reflect
+1.6 kg/s. Earlier entries below are chronological evidence, not current approval
+to keep 1.2 kg/s. Installed 0.23.4 remains SHA256
+50D4C3D99678246B1350828B22DF4CAD2327EDCA78CB643B8F2BB365179EF1C7.
+
+## Shay speed-curve clarification — 11 November 2026, feasibility only
+
+James asked whether the sharp10km/h decline is inevitable with.80m wheels and
+approximately150kN start. READ-ONLY production investigation: no tuning/model/
+installation changes authorised or made. Earlier all-layout force tables used
+FULL GEAR throughout; do not present them as the maximum useful operating curve.
+The current1.2kg/s limit is saturated by10km/h at90%cutoff. Existing native cab
+cutoff control substantially improves the curve without any code/asset change.
+
+Bounded45-point native study: build/physics-20261111/shay-flow-study/results.json.
+The folder freezes copies of the existing native fixture/production inputs; its
+FlowStudy entry changes only the test-instance throttleMaxFlow field and cab
+reverser, using unchanged.8m/252mm/4.3:1/45L machinery at16barabs/200C. Same
+120s settling+60s averaging as the accepted envelope. No real boiler simulated.
+At current1.2kg/s fullgear10/15kmh yields64.07/38.88kN;40%reverser(~39%cutoff)
+yields112.96/74.98kN. Start in fullgear retains156.50kN at.1kmh. At an UNAPPLIED
+1.6kg/s ceiling, fullgearstart156.68kN;70%reverser(~64.5%cutoff) gives127.69kN
+at10kmh,40%reverser gives106.47kN at15kmh. At2kg/s fullgear10kmh119.71kN;
+shortenedcutoff can also improve it. Any ceiling increase consumes more steam
+under load and requires James's boiler/haulage testing; do not enlarge boiler
+or silently change the approved model contract. Gearing need not change for
+these improvements. Keep normal cab control, no automatic cutoff feature added.
+
+## Meyer starting/adhesion pass — 11 November 2026, NOT INSTALLED
+
+James authorised Meyer physics while his separate Shay modelling continues:
+preserve the compound circuit/saves, test offline, do NOT install. This section
+supersedes the older statement below that crank-resolved Meyer starting was
+outside the first physics iteration. No DV launch/control or installation.
+
+Confirmed defect: Meyer used crank-independent mean work even at rest, unlike
+native cylinder/valve mechanics. MeyerNativeStage now prepares both native crank
+states once before the cycle and requests actual instantaneous torque below
+45 RPM, native blend to 60 RPM, then mean torque. MeyerCompoundCycle still caps
+moving work using the discharged parcel's enthalpy drop, transfers conserved HP
+exhaust to the receiver/LP, and uses actual receiver backpressure. No LP boiler
+bypass, cylinder/chest/receiver/flow recalibration or arbitrary force boost.
+An empty circuit starts on HP alone; the native 5% minimum cutoff means centred
+gear is not zero torque at every crank angle. Full signed rollback thermodynamics
+and independent HP/LP slip clocks remain outside scope.
+
+New native trapped-cylinder pressure memory exposed a real reload regression:
+one hot partial-cutoff case changed first-tick HP torque by 16% without saving
+it. Optional mechanicsVersion=1/cylinderAdmissionBar now saves signed pressures,
+strictly validates before mutation and retains existing meyerVersion=1, vessels,
+ledger and engine IDs. Actual older saves round-trip unchanged before ticking;
+their cache seeds from retained circuit pressure. Meyer reselection reseeds for
+the copied phase; a fresh empty stage keeps native 1-bar admission history.
+No changes to S060SavedState, engine mapping, oil topology or shared native
+adhesion code relative to this task's baseline.
+
+Adhesion proof: installed native dry coefficient is .20*1.3=.26; all four axles
+already use current native WeightPerAxle correctly. Keep full adhesive share:
+127.53kN grip at50t,144.36kN at56.6t, with native wet/sand/slip behavior. Native
+resource mass uses actual water/coal amounts. Capacity Apply/Dispose now calls
+native TrainMassController.UpdateTrainCarMass immediately after amount changes,
+instead of leaving stale mass until the native120s timer. Missing early-load
+owners safely defer to native initialization. Trace adds native/live coefficients
+and bogie rolling/stress values at its existing bounded cadence; no drag patch.
+
+Frozen candidate: build/meyer-physics-20261111/candidate/RearrangedS060.dll,
+SHA256 20946D1620AB423CDF2D05BE8808BB68D459F51FB7DAF96383CD804925793340.
+Build has0warnings/errors. Test.Runtime -RuntimePath isolates it from concurrent
+Shay builds. This is NOT a complete matched release/UMM/Nexus package. Source
+still includes ongoing Shay authoring; do not claim Meyer proof accepts it.
+
+Proof manifest: build/meyer-physics-20261111/validation.json. All13 Meyer-relevant
+native Unity suites passed27,633checks against that same DLL. First7 proofs are
+in runtime-audits-20261111-210143; refill+remaining5 in210408. The new refill host
+first failed because C#?? misses Unity's fake-null Rigidbody; corrected fixture
+to Unity==null, then reran only affected/remaining suites. No production rebuild
+for this fixture correction. Native mass/refill28, cocks248 and collision7062
+include actual installed native implementations in an offline Editor host.
+Managed:2346engine-bank checks(includes59native adhesion),40compound,18native
+Meyer adapter,201functional,162capture-window; transition/getter/allocation checks
+also pass. The functional Shay diameter assertion was stale at.7105064 and now
+checks the approved.80m. Independent final mechanics/save review found no issue.
+
+Fixed-supply16barabs/200C/fullgear mean Meyer available kN at.1/1/5/10/15/20/30kmh:
+150.42/169.91/149.32/114.95/88.87/70.56/47.63. These are unclipped machinery
+benchmarks, NOT measured drawbar or guaranteed all-phase static TE. Native grip
+limits apply; expect James to verify starts/rollback, wet/dry/sanded slip and the
+same known consist on1.5% grade, plus hot save/reload and arrangement switching.
+Current installed0.23.4 hash remains50D4C3D99678246B1350828B22DF4CAD2327EDCA78CB643B8F2BB365179EF1C7.
+Do not install until separately authorised. See docs/PHYSICS-0.24.0.md.
+
+## 0.24.0 physics work / final Shay model handoff — 11 November 2026
+
+James authorised the physics pass, agents and offline tests, explicitly NO
+installation. The installed runtime remains 0.23.4, SHA256
+50D4C3D99678246B1350828B22DF4CAD2327EDCA78CB643B8F2BB365179EF1C7.
+The source includes the uninstalled 0.23.5 visual work below; never reset it.
+
+Fixtures corrected FIRST: Build.Radio previously passed the Dockside donor as
+stock and the force envelope used an obsolete Shay radius. New
+tests/Articulated/Prepare.NativeCalibration.py extracts actual installed
+LocoS060/[sim]/steamEngine (pathID331222,420x610mm,200L,2kg/s) with native hashes.
+The managed fixture compares all9 arrangements at the same road speeds, actual
+radii, steam rates and explicit grade budgets. Corrected pre-tuning evidence:
+build/physics-20261111/fixture-baseline-envelope.json. Preserve its separately
+built baseline-engine-bank/Native.dll: it produces actual old Shay/Dockside slot
+saves for cross-version loading tests, not a manufactured JSON approximation.
+
+Initial candidate tuned Dockside to340x470.919mm,115L and1kg/s per engine
+(combined stock-engine2kg/s ceiling), and Shay to210x300.808mm/30L/1.2kg/s with
+the old43:19 gearset. Private source meshes fitted its engine motion. That
+candidate19385781... passed all15 native suites/30,099checks at
+build/radio-0.24.0/runtime-audits-20261111-195306 plus managed437 engine,201
+functional,162 trace,628 oil,1151 geometry,35 transaction and25 compound checks.
+Earlier actual geometry failures justified guide windows, valve-chest movement
+and connected branch clearances; no tolerance/geometry checks were waived.
+The native rear-wheel fit gate was stale only because the0.23.5 native fixture
+added rod meshes; rerunning Audit.InwardLayout.py retained21.5446mm clearance.
+
+James correctly challenged the initial63kN Shay versus116kN Dockside role.
+Do not preserve43:19 just because the prototype mesh used it. He has a separate
+modelling session waiting, so agents STOPPED further gear authoring/export.
+He then selected0.80m wheels and larger cylinders for approximately150kN start.
+FINAL PHYSICS SPEC: three252x300.808mm cylinders,45L combined chest,1.2kg/s cap,
+86:20 gears(reduced43:10=4.3:1),92% efficiency; native gauge and wheel width.
+The actual native benchmark passes480 checks including old43:19 saves loaded
+unchanged, native slip, flow budgets and43-engine-turn=10-wheel-turn period.
+Evidence: build/physics-20261111/final-080-150kn-engine-envelope.json and checks.
+At16barabs/200C/fullgear, meanShay kN at.1/1/5/10/15/20/30kmh is
+156.5/151.6/135.2/64.1/38.9/25.1/11.3; at13bar124.6/122.0/108.1/64.1/38.9/25.1/11.3.
+Nominal effort is not guaranteed drawbar pull: native adhesion still limits it.
+Stock and Meyer compound calibration stay unchanged; conventional040 has.76
+effective adhesive share at50t design datum, other conventional shares retain
+1 or.75. No mass/CoM/boiler/identity or saved-schema changes. Diagnostics now
+start their180s active budget at first regulator-open sample, retaining2Hz/120cap.
+
+AUTHORITATIVE HANDOFF: docs/shay/REGEAR-MODELLING-BRIEF.md. The model session
+must return a NEW fully authored engine/truck/transmission bundle. Old procedural
+engine fitter is archived at archive/physics-first-fit/S060ShayPowerGeometry.cs;
+it must not be applied twice. Motion reads cylinderPitch/valveAxisX from new
+metadata. S060ShayAssets rejects missing/mismatching revision2/bore/stroke/radius/
+gear and shaft metadata before conversion. Runtime radially sizes live DV wheel
+aliases to.80m, retaining X/gauge. Engine/shaft/pivot fit still needs the modeller's
+final contract and integration; compilation is not geometric acceptance.
+
+The draftregear-source directory under build/physics-20261111 is an UNACCEPTED
+earlier.71m study, not the final.80m contract. Its first source-only fixture
+flagged132 gear contacts and narrowbore margin; no Unity export or new bundle
+was made. Original LLW modules are unchanged. Read its README-DRAFT-NOT-ACCEPTED.
+
+CURRENT STATUS: source version0.24.0 compiles,480 managed engine/save checks pass,
+new assets/full native geometry/package acceptance PENDING modelling handoff.
+Do NOT claim the earlier15-suite proof validates this new.80m/150kN source.
+First candidate build/physics-pass-20261111/candidate-0.24.0 is marked SUPERSEDED;
+do not install it. Final-spec evidence is in080-150kn-spec alongside it. No
+game launch, installation, push or publication. When models return, integrate
+actual datums, update candidate geometry fixtures to the new contract, validate
+both LODs/gear mesh/shaft articulation/native wheels/saves, then make a complete
+matched UMM package. James performs DV testing; installation needs his separate
+instruction. Existing CORE_README/Nexus release copy still describe0.23.4 and
+must be revised before packaging0.24.0; don't bypass those version guards.
+
+## 0.23.5 Meyer visual repair candidate — 11 November 2026, not installed
+
+James requested four visual repairs using his screenshots: rear beam z-fighting,
+the tall hopper-side texture seam, remaining fixed loose gear, and insubstantial
+rods. Work applies to the installed 0.23.4 maintenance line in this canonical
+repository. The Documents workspace's separate v0.3-work six-axle experiment is
+unchanged. James owns gameplay acceptance; no DV session or installation occurred.
+
+Confirmed causes and bounded corrections:
+
+- The R2 beam's iron bearers shared its exposed front/rear planes. Recess those
+  faces by 6 mm inside the beam; ladder ends also avoid the shared front plane.
+  Beam dimensions, buffer locations and coupling alignment remain fixed.
+- SkinMap wrapped only vertices above the native tank's height, so the hopper's
+  fan triangles interpolated discontinuous UV rows. Map the whole tall side
+  affinely into the native tank island. This is a UV correction, not a normal
+  recalculation or new texture. Both side fits have maximum UV error 1.23e-7.
+- Retire eight exact native s060_body islands: the old guide end cheek, two
+  separate bolts and outer valve-support pivot on each side. Their 228 source
+  triangles become zero. Existing main journals/caps and new brackets remain.
+- Native B99 s060_mech_wheels_connect and s060_mech_push_rod_to_connect are
+  CPU-readable. Reuse their actual profiles, bevels, UV islands and live material
+  instead of adding another model bundle or guessing thicker primitive rods.
+  Keep two terminal coupling eyes and one web; shorten the main web while keeping
+  its bearing ends. Both units retain their original animated pin planes and
+  lengths, native wheel size/gauge/phase and steam simulation.
+
+Stock bearing faces are closed at their original offset. Bore 59.5 mm-radius
+eyes for the Meyer's existing through-pins. The thicker coupling web initially
+contacted the small native axle-centre caps: compress only its hidden inboard
+half to 12 mm (outer half stays 36.683 mm), leaving 5.48 mm lateral clearance.
+Apply the inboard choice by actual side, not a shared mesh-X assumption. Move
+existing guide rails onto the outer crosshead face; adapt cup mounting heights
+to the actual larger bosses. Meshes and all moved guide transforms restore on
+disposal. No new simulation ports, save fields, colliders or dependencies.
+
+Final runtime SHA256:
+339722A415545D8946C9897097B1CD2A2CD812A30D4B98C80BFCB62E91E2E509.
+Build.Runtime.ps1 passes with zero warnings/errors. Final offline Unity suites:
+phase/full gear 2,332 and inward pipes/bodywork 15,655 (17,987 total), including
+both engines/sides, actual rod/pin/mount/guide triangles, wrapped native clips,
+exact mesh/guide restoration, 228 -> 0 obsolete triangles, no shared beam faces,
+and the continuous hopper UV map. Evidence:
+build/radio-0.23.5/runtime-audits-20261111-155312. Four lit detail previews were
+visually reviewed. They use the native green QA atlas, not James's blue skin or
+an actual DV scene. Only the existing S060SteamPipes.destroying Editor warning
+is known; the runtime build itself is clean.
+
+Baseline: installed 0.23.4 DLL 50D4C3D... passed the existing pipe (15,642) and
+phase (1,966) suites before production edits. Earlier candidate 89B19344... passed
+body 119 and rear-coupling 64 checks at runtime-audits-20261111-154122. Those
+classes stayed unchanged during later rod-only fitting; these are retained
+earlier-candidate reports, not reruns on the final DLL. Managed functional 194,
+measured geometry 1,151 and oil migration 628 pass; later rod-only changes do
+not enter these targets. This task did not repeat the full release/fleet suite.
+
+Fixture corrections: an initial spatial loose-part count also included four
+retained crossmember faces; identify the eight source islands instead. Contact
+testing exposed a second independent fixture defect: Vector3.Normalize zeros
+area normals shorter than 1e-5, falsely treating valid small clipped faces as
+coplanar. SteamMeshContact now divides by the measured nonzero length after its
+existing degeneracy guard. A regression uses the actual separated rod/shaft
+triangles in both directions. Rod/pin sweeps use sampled donor clips and the
+front fitter, never unsampled prefab defaults. These corrections do not relax
+production geometry, journal retention or acceptance tolerances.
+
+Candidate files: build/meyer-visual-polish-20261111/candidate-0.23.5, containing
+the DLL, Info.json, build receipt, validation.json, four previews and READ-ME.txt.
+This is a two-file runtime update candidate, not a full Nexus ZIP. All model
+bundles are retained; the installed DLL still hash-matches 0.23.4. Only five
+runtime source files differ from its build receipt (bodywork, clearance, gear
+mounts, rods and oil-cup visual mounting); protected simulation/save sources match.
+
+Local preservation branch: codex/meyer-visual-polish-20261111. It snapshots the
+current maintenance source, including earlier uncommitted 0.23.3/0.23.4 work;
+the active branch and normal index are retained. No push, package publication or
+installation. James's checks after separately authorised installation: inspect
+the four defects on both sides, roll both directions through a full wheel cycle,
+inspect on a curve, check eight oil cups, and switch to stock/Dockside to verify
+native restoration. Gameplay acceptance remains pending.
+
+## 0.23.4 Nexus package prepared — 11 November 2026, not published
+
+James requested packaging the installed 0.23.4 for Nexus. Canonical archive:
+build/nexus-0.23.4-single/RearrangedS060-0.23.4-UMM.zip. SHA256:
+681EB4E1500FAA9072F02925DF4578318B58EB43E03135A4B0950C78D79A109E.
+Desktop copy: C:/Users/james/Desktop/Rearranged S060 0.23.4-beta.zip.
+Nexus release copy and pinned installation FAQ are alongside it, with the
+RearrangedS060-0.23.4 prefix. Release copy compares against public 0.22.2-beta.
+
+The exact installed/tested DLL 50D4C3D99678246B1350828B22DF4CAD2327EDCA78CB643B8F2BB365179EF1C7
+was reused; no runtime rebuild or model export. Three bundles are byte-identical
+to the verified 0.23.3 package. Updated CORE_README, INSTALL, Meyer README and
+Nexus text describe 0.23.4 coupling alignment and CCL dependency troubleshooting.
+One UMM mod root, eleven payload files, no nested archives, Settings.xml, native
+game DLLs or private fixtures. Uses the established single-folder manifest and
+native ZIP writer; receipts distinguish new runtime evidence from retained
+0.23.3 evidence rather than claiming every native suite reran on 0.23.4.
+
+Exact ZIP passes 57 native UMM read/install/update/uninstall/migration checks.
+The fixture now accepts -LegacyArchive so migration uses the genuine existing
+0.23.3 three-part archive instead of manufacturing a 0.23.4 legacy package.
+Hidden command-line Unity reopens the actual UMM-extracted bundles: 38 checks
+pass. No mouse control, DV launch, real installation or publication. Provenance:
+build/nexus-0.23.4-single/nexus-package-receipt.json, release-validation.json,
+umm-proof-20261111-134323/native-umm-validation.json and
+combined-bundle-validation.json. Desktop copy hashes match the tested archive.
+Source/docs checkpoint: codex/nexus-0.23.4-20261111, active branch/index retained.
+Gameplay acceptance remains James's; packaging does not establish it.
+
+## 0.23.4 installed for James's coupling test — 11 November 2026
+
+James explicitly authorised installation. Two host process gates confirmed DV
+closed. Installed only the previously validated 0.23.4 DLL and Info.json from
+build/meyer-rear-coupling-20261111/candidate-0.23.4; both installed hashes match.
+Runtime SHA256: 50D4C3D99678246B1350828B22DF4CAD2327EDCA78CB643B8F2BB365179EF1C7.
+All three installed bundles match the original 0.23.3 release evidence and were
+retained. Settings and every other protected mod file are hash-unchanged. Removed
+only RearrangedS060.dll.50935.cache. No backup, rebuild, release ZIP, publication,
+UI automation or game launch. Receipt: build/meyer-rear-coupling-20261111/
+candidate-0.23.4/install-receipt-latest.json. Offline validation.json retains its
+historical pre-install status; the installation receipt is the current authority.
+This is the existing 0.23 maintenance line, with the flipped front Meyer unit;
+the isolated v0.3-work copy was not modified. Floor remains unchanged. James's
+rear-hook/air-connection gameplay test is pending. Earlier not-installed notes
+below describe preparation, superseded by this installation record.
+
+## 0.23.4 rear coupling alignment — 11 November 2026, not installed
+
+James authorised the rear hook/air connection repair, offline build and Unity
+Editor checks, with no mouse control or installation. Floor is explicitly out
+of scope. Exact native geometry confirms the old hook/hose shift was -3.700 m,
+but the R2 hook plate moved -3.995 m. This left a 295 mm pocket mismatch and the
+angle-cock lever inward of the new sill. Move the native physical anchor and
+hook/hose rig together to Z -8.565, preserving their stock relative offsets.
+The existing native buffer anchors are rebound with inverse compensation, so
+buffer heads and their fixed native stem ends stay at their proven positions.
+The existing support path updates native bounds/intercoupler/logical length
+(13.135 m) and prepares the anchor before saved connections load. No new save
+field, loading hook or bundle export. Legacy donor metadata remains at -8.27;
+normal play copies its engine frames onto the native S060. Floor/bodywork source
+is hash-identical to before this repair. The earlier CCL warning change is included.
+
+Build.Runtime.ps1: zero warnings/errors, runtime 0.23.4 SHA256
+50D4C3D99678246B1350828B22DF4CAD2327EDCA78CB643B8F2BB365179EF1C7.
+Focused exact-native baseline reproduced the old 295.007 mm pocket error and
+223.561 mm inward cock position; its other buffer/restoration checks passed.
+Fixture correction before relying on baseline: keep references to the native
+buffer heads after the production binder reparents their anchors. The corrected
+baseline and candidate use identical exported native fixture bytes. Candidate
+passes 64 checks, including nested and native-reparented chain/hoses, rotated
+car roots, repeated apply/restore, front coupling and unchanged rear buffers.
+Maximum pocket error 0.006 mm, buffer-position error 0.005 mm; all lever vertices
+are at least 71.442 mm behind the sill. Existing lamp/stem/buffer audit passes
+7,596 checks including compression, yaw, LODs and restoration. Measured geometry/
+native logical-length checks 1,151 and conversion-boundary checks 35 also pass.
+The Unity Editor logs only the existing S060SteamPipes.destroying CS0414 warning.
+
+Evidence: build/meyer-rear-coupling-20261111/baseline-host-fixed-fixture and
+build/radio-0.23.4/runtime-audits-20261111-131733/meyer-rear-coupling. The focused
+case is reusable through Test.Runtime.ps1 -SkipBuild -Only meyer-rear-coupling.
+Initial sandboxed Unity licensing failed; normal host licence access allowed
+the hidden command-line Editor checks. No licence changes or UI automation.
+Older full-suite/bundle evidence below remains bound to its original binaries;
+this task reran the affected checks, not the entire fleet or all 14 suites.
+
+Built candidate: build/meyer-rear-coupling-20261111/candidate-0.23.4. Installed
+0.23.3 DLL hash is unchanged. No game launch, release ZIP, installation, push or
+publication. James owns gameplay acceptance: inspect and operate the rear hook
+and angle cock, couple/uncouple, save/reload a coupled Meyer, then switch back to
+stock/Dockside and check native restoration. Local checkpoint branch:
+codex/meyer-rear-coupling-20261111; active branch/index retained.
+
+## Asset-pack warning and Nexus installation FAQ — 11 November 2026
+
+James requested clearer guidance after a user reported installed packs being
+unavailable. The existing ResolveFrames lookup reports absent/unloaded prefabs;
+it does not establish missing files or a specific CCL failure. Replace only its
+generic install instruction with guidance naming Custom Car Loader (CCL), its
+dependencies including DV Language Helper, a game restart, bundled packs and
+Player.log. The same exception reaches both radio and UMM through TryApply.
+No loader, dependency, conversion or save behavior changes.
+
+Nexus-ready draft: docs/nexus/PINNED_INSTALLATION_FAQ.txt (BBCode). It covers the
+single-ZIP install, dependencies, pack-load troubleshooting, legacy standalone
+pack removal and the log needed for support. The reported user's cause remains
+unconfirmed without their log. Existing local Player.log records both donors
+loading successfully with installed 0.23.3 and CCL 3.1.11; this is evidence from
+James's installation, not reproduction of that user's problem.
+
+Build.Runtime.ps1 passes with zero warnings/errors. This is a message-only source
+change on the current 0.23.3 working tree; build/stage7 contains the candidate and
+build receipt. No new tests or geometry/bundle audits were needed for the text
+edit. Existing full-suite evidence below remains bound to its original DLL.
+The new warning's in-game layout has not been checked. Version is unchanged;
+no release ZIP, installation, DV session, push or Nexus publication performed.
+The narrow text-only checkpoint is on codex/asset-pack-warning-faq-20261111,
+based on tracked HEAD; it excludes unrelated existing 0.23.3 work. Build evidence
+applies to the live working tree. The active branch and normal index are retained.
+
+## 0.23.3 Meyer running-gear supports — 9 November 2026
+
+James identified unsupported guides/springs and a loose short crank arm on BOTH
+engine units. Native mesh inspection confirmed two unused native01 return-crank
+islands, two obsolete body valve-gear supports and FIVE stock spring assemblies.
+Keep the 51-vertex main crank journal and closed bearing cap; do not substitute
+wheel02 or assume six stock spring assemblies. The old parts retire Meyer-only.
+
+S060MeyerGearMounts adds one combined live-material support mesh to each powered
+frame: gusseted between-axle crossbeam above the rod sweep, outer guide carriers
+and end returns, spring seats and hangers. Existing leaves and upper frame edges
+move inboard to absX .61 (leaf outer .66; measured wheel back plane .685701).
+Per-unit owned native wheel copies remove only the two unused return-crank
+islands; original wheel meshes and suspension positions restore on disposal.
+The firebox enclosure, native wheel size/gauge/clocking and compound sim remain.
+No new colliders, ports or save fields. Runtime compiles without warnings/errors.
+
+Completed offline validation: all 14 native suites / 27,738 checks pass against
+runtime SHA256 83FE0005C9DDEA1E97C2BCA8FBC68FBE8BC8827CD4C193B03679309B8AC72F5D.
+Evidence: build/radio-0.23.3/runtime-audits-20261109-111433. Phase audit now covers
+both frames over 14 phases, actual mount/wheel/main-rod/coupling-rod/crosshead
+clearance, physical guide/frame/seat connections, main journal/end-cap retention,
+return-crank removal and exact mesh/position restoration. Pipe audit includes
+mounts/leaves in the existing 27-pose clearance sweep and posed native preview.
+Managed checks pass: functional194, native engines351, oil628, geometry1151,
+transactions35, compound25 and existing transition/allocation cases. Native
+donor18/17, UMM57, extracted bundles38 and isolated installer18 also pass.
+The first isolated installer attempt ran before its required bundle receipt
+existed; no game files touched. Repeated after the bundle check: all18 passed.
+
+Installed 0.23.3 only after both host process gates confirmed DV closed, no backup.
+All11 installed payload files hash-match; Settings.xml preserved. Three asset
+bundles remain byte-identical to 0.23.2. Ten protected sim/save/oiling/refill source
+hashes still match the prior compatibility proof. Exact evidence and receipt:
+build/nexus-0.23.3-single/release-validation.json and install-receipt-latest.json.
+ZIP: build/nexus-0.23.3-single/RearrangedS060-0.23.3-UMM.zip, SHA256
+76E3909C99162088FF695C9B638809BA73E7F3B4CD2D97D359662ECF4023BF9F.
+Reviewed offline posed image: same folder/Meyer-0.23.3-offline-preview.png.
+No DV session, commit, push or Nexus publication performed. James checks both
+units at several crank positions, on curves, and restoration when returning to
+stock/Dockside. Gameplay acceptance remains with James.
+
+## 0.23.2 Meyer firebox-base enclosure — 9 November 2026
+
+James reported 0.23.1 looks good but native fire particles show through the
+opened firebox-base side gaps. Bounded repair: two fixed closed cheek bars added
+to the existing S060MeyerClearance body copy, using its live S060 material and
+existing renderer. No particle, fire simulation, geometry fitting, wheel, pipe,
+control or save changes. Bars occupy absX .40.. .44, Y1.28..1.72 and
+Z-2.25..-.45; overlap the retained frame and upper shell to close seams. The
+moving casting sweep remains outside absX .473853. Root checked the original
+native fire emitter under LocoS060_Interior/Indicators/I_FireboxCoal; its authored
+settings were only read, never changed. Normal cab fire remains intended.
+
+Candidate 0.23.2 builds with zero runtime warnings/errors. All 14 native suites /
+26,142 checks pass, including new covers against actual cylinder and pipe sweeps:
+build/radio-0.23.2/runtime-audits-20261109-020503. Runtime SHA256
+97208B76F82F985EE10EAC71DB4976579A4FF2DE2FC0C5122E323C082DE6C819.
+Installed 0.23.2 after host process gates confirmed DV closed; no backup and all 11 installed payload files hash-match. Settings preserved. Managed tests passed (functional 194, engine 351, oil 628, geometry 1,151, transaction 35, compound 25 and existing transition/allocation cases). Native donor 18/17, UMM 57, bundle reopening 38 and isolated installer 18 pass. Receipts: build/nexus-0.23.2-single/install-receipt-latest.json and release-validation.json. ZIP SHA256: 8C779433D61A59B4D71C5A0340AD4E431ABB3BDA1CBEFCBFE85D9735EFEB2318. James owns actual
+lit-fire side-view acceptance; no DV session was launched by the agent.
+## 0.23.1 Meyer front fit and redundant stock gear — 9 November 2026
+
+James reported full-size HP cylinders overlapping drivers, a stray forward
+hanger/slide bars, empty original cylinder space and duplicated high steam pipe.
+The user-owned screenshots are the acceptance reference. Work is bounded to
+those defects. No DV session is launched; James owns gameplay acceptance.
+
+Front wheels/supports and rear unit remain fixed. S060MeyerLayout now places the
+HP castings 850 mm cabward (local cylinderZ2.23), with 2 m main rods. New
+S060MeyerFrontMotion is a cached late geometric pass after native animation,
+using actual animated wheel pins. It fits rods/crossheads/piston rods, moves
+existing guides/saddles/effect holders and extends the existing frame rails.
+Crank phase, steam model, save fields and driver gauge remain unchanged.
+Conservative native-flange clearance is 50.9 mm. Native shaft axis was checked
+directly (.712937 m); do not infer piston height from raised stock guide rails.
+
+The new cylinder lever arm changes its yaw sweep. Measured all5,010 referenced
+vertices /108poses before sizing clearance: frameinner.44, floorinner.60,
+coverreturninner.55. Native floor guard29.54mm; frame guard33.85mm. Old0.23.0
+clearance coordinates cannot simply be moved aft while keeping the old widths.
+Evidence: build/meyer-polish-20261109/front-casting-sweep-measurement.json.
+S060MeyerClearance retains UVs/normals/tangents/material sections and caps actual
+cut sections. Steam-joint openinginner.48 follows its rendered27pose sweep;
+service-bandminabsX.50536 leaves25mm. Source-only bodypreflight passed108poses.
+
+Confirmed forward strays: two connected native frame/hanger islands retain an
+unsupported low forward drop after the stock mechanism is hidden; the highlighted
+assembled native preview identified the exact pieces. OnlyZ>2.05/Y<1.50 drop is
+retired; upper frame is kept and cut ends capped. James then circled FOUR separate
+20-vertex native s060_body slide-bar islands: absX1.037513..1.067644,
+Z1.111250..2.733013; Y.865920.. .947393 or1.021003..1.102477. These are obsolete
+stock static guides, not the new moving rods or fitted cabward guides. Retire
+those exact islands in Meyer only. Native body fixture proves40triangles before,
+zero afterwards, and original Mesh identities restored on exit.
+
+Pipe fitter trims the former S282 front upper course above lower+.33 (aboutY1.82)
+while retaining the chest/transfer flange. One lower admission course X±1.50,
+Y1.60 ends atZ-.30/Y1.42 and a small swivelling feed to each measured HP stem.
+The LP single-chimney roof return and Dockside routing stay unchanged. New
+S060MeyerFrontEquipment fills the original front cylinder space with a mounted
+steam air pump (left), reservoir (right), closed plate extensions and bearers.
+It uses one merged rigid mesh/renderer and the live S060 material. Visual only:
+no second compressor, capacity or new brake simulation. Reference for equipment
+category: https://collection.sciencemuseumgroup.org.uk/objects/co207667/air-compressor-westinghouse-type-f
+No external model or texture was copied.
+
+New pipe fixture checks actual triangle/box contact, not AABB overlap as final
+cab-entry rejection. The air pump steam service intentionally shares the native
+left boiler tee: exact bounded triangle clipping permits that connection only;
+every other equipment/admission intersection remains checked. Preview samples
+actual donor clips and reapplies the production front fitter before rendering;
+unsampled prefab rods otherwise lie at authored default positions. Camera-side
+lighting was corrected in the existing RenderWide utility. These are fixture
+corrections, not changes to the native simulation or loosened entry limits.
+
+Final validation and installation completed. All 14 native suites / 26,142 checks
+pass against runtime SHA256
+63F422BA53F9FAB30F46B75FD6AD7B22E7E29E0FE0C69E851E25B40FD6BEDE1D.
+Evidence: build/radio-0.23.1/runtime-audits-20261109-012811. Affected native suites:
+pipes 14,936; body 119 (108 poses, zero contacts, old slide triangles 40 ->0,
+original four mesh identities restored); phase/full gear 1,076. Managed checks
+pass: functional 194, native engines 351, oil 628, geometry 1,151, transactions 35,
+compound 25, and existing transition/allocation checks. Donor component tests 18/17,
+actual UMM 57, extracted bundle reopening 38 and isolated installer 18 also pass.
+All three donor model bundles are byte-identical to 0.23.0. Ten protected sim,
+save, oil topology, selection and refill source hashes match the installed 0.23.0
+baseline: build/meyer-polish-20261109/compatibility-validation.json.
+
+Installed 0.23.1 after both host process gates confirmed DV closed. No backup;
+all 11 installed payload files hash-match the package. Settings.xml remains
+A89B908441E9E9984D0D08D8B7C5B516475D22BAE344ED7E21CE770631E78BD9.
+Evidence: build/nexus-0.23.1-single/install-receipt-latest.json and
+release-validation.json. Nexus ZIP:
+build/nexus-0.23.1-single/RearrangedS060-0.23.1-UMM.zip; SHA256
+C32BCB48AE60D1941D9F5690B4B8691006755D7FFC34EE7A0608D30275445508.
+Reviewed posed offline preview (native materials, sampled donor clips):
+build/nexus-0.23.1-single/Meyer-0.23.1-offline-preview.png.
+No DV session, commit, push or Nexus publication was performed. James tests
+actual driving, curves, cocks/drips, arrangement switching and save/reload.
+Older partial candidate evidence is historical and cannot validate a later DLL.
+## 0.23.0 inward-facing Meyer — 8 November 2026
+
+James authorised the inward-facing arrangement, offline validation and installation
+with no backup, only with DV closed. Gameplay belongs to James; do not launch DV.
+This section is the current task; older candidate/install notes below are history.
+
+The front visual engine turns Y180, while native bogie/support orientation stays
+forward. The complete rear running gear is 65 mm aft; its real native axles follow
+those visual axle positions. Bodywork, rear buffer beam, lamps, coupler, native
+support pivots and save IDs stay fixed. The guarded exported-native wheel sweep
+passes 27,864 poses with minimum rear-beam gap 21.5446 mm. A 75 mm draft was rejected
+after correcting a fixture that used the old collision beam height instead of R2.
+Evidence: build/meyer-inward-layout/rear-wheel-fit.json and Audit.InwardLayout.py.
+
+Actual inward native castings contacted the stock frame/footplate in the first
+108-pose test. LMS masks were checked against the installed splitter; the contact
+was real. S060MeyerClearance uses reversible per-car mesh copies for exact obsolete
+hanger islands and local plate relief, including split floor/tank-rail ownership.
+The measured local lower-frame relief retains a 1.06 m central spine and caps its cut crossmember ends. The complete casting sweep retains 32.69 mm to that spine. Native normals/tangents/UV/material sections survive; pipe service openings use
+measured donor geometry. Apply clearance before S060SteamPipes, unwind pipes first.
+Do not shrink the castings, widen the wheel gauge or relax masks to hide contacts.
+
+Front presentation uses the native absolute-time multiplier -1/offset .75. B99
+FloorMod(1f) wraps this before Animator.Play. Physical cylinder outlet/hiss holders
+swap with the reversed local sides; native valve masks, crank ports and reverser
+are unchanged. Oil cup local geometry follows each wheel, but persistent circuit
+assignment uses physical car side, avoiding swapped left/right front circuits.
+
+S060MeyerInwardPipes adds body admission feeds and short local transfer elbows,
+reusing existing manifold/drypipe spans and LP chimney return. All three model
+bundles remain byte-identical. The new runtime is 0.23.0; donor packs remain 0.7.0.
+Compound cycle, engine mapping/state, calibration, save schemas, selection, oil
+circuit topology and native refill logic match the installed rebuilt 0.22.4 source
+receipt; evidence: build/meyer-inward-layout/compatibility-source-validation.json.
+
+Final offline validation: all 14 native suites / 22,149 assertions pass against
+runtime E3FE9A0BC6DB95B079EF32B935D643C8C2694BDDCBD03545BA3FA5BAC05810EA.
+Evidence: build/radio-0.23.0/runtime-audits-20261108-120034. New suites: inward
+pipes 11,684; body 117 (108 poses, zero contacts); phase/oil-side mapping 337.
+Managed checks also pass: functional/save 194, native engine bank 351, oil migration
+628, geometry 1,151, conversion transaction 35, compound 25, and production axle
+cache/transition/allocation checks. Both retained donor native component suites
+pass (Meyer 18, Dockside 17). Exact ZIP passes UMM 57, bundle reopening 38 and
+isolated installer 18 checks. No DV session was launched.
+
+Installed 0.23.0 after host process gates confirmed DV closed. No backup created;
+all eleven real installed payload files match the package. Settings.xml remains
+A89B908441E9E9984D0D08D8B7C5B516475D22BAE344ED7E21CE770631E78BD9.
+Receipts: build/nexus-0.23.0-single/install-receipt-latest.json and
+release-validation.json. Single-folder Nexus ZIP:
+build/nexus-0.23.0-single/RearrangedS060-0.23.0-UMM.zip, SHA256
+0607F3DD45454996391B14F89792CE051E5B2C58576BE4AC8AF1F7705A35366A.
+It remains unpublished. Changelog is since public 0.22.2-beta. All earlier
+uncommitted source work was preserved; no commit or push was made by this task.
+
+James's gameplay acceptance remains pending: drive both directions, cycle cocks,
+inspect rods and pipes on curves, inspect eight oil cups, save/reload Meyer and
+switch Meyer -> stock/Dockside while retaining vehicle/resources/damage. See
+docs/RADIO-ARTICULATED-TESTING.md. Offline geometry/native fixtures do not establish
+cab FPS, driving, native-world import or audible playback acceptance.
+
+Fixture lessons: the original rear-clearance measurement used the old collision
+beam height; actual R2 dimensions limited the safe shift to 65 mm. The asymmetric
+native boiler cut's area centroid is not its pipe axis: retain the measured cut
+boundary axis, not a guessed centroid. Phase validation compares actual original
+and reversed donor world quaternion deltas rather than assuming a sign or relying
+on a tiny-angle extraction. The first contact fixture timed out; compact actual
+used cylinder vertices and restrict candidates by the measured sweep, retaining
+the existing triangle test. Validate actual LMS split ownership for floor/rails.
+
+## Rebuilt 0.22.4 refill fix installed — 7 November 2026
+
+James confirmed DV was closed and authorised the rebuilt 0.22.4 installation
+with no backup. Install.Nexus.ps1 completed its host process gates and verified
+all eleven installed files; Settings.xml is unchanged, backupCreated=false.
+Installed runtime SHA256:
+93F07680D4DECE5A9ADBE0839324442EF19048A81F1D9A90CA51DAAD34BE5755.
+Receipt: build/nexus-0.22.4-single/install-receipt-latest.json.
+James will test Meyer coal/water filling through the original S060 points,
+expecting combined limits of 8,800 L water and 3,500 kg coal. Gameplay acceptance
+is pending; no game was launched. Earlier uninstalled/pre-fix notes below are
+historical. The release remains unpublished by this chat.
+
+## 0.22.4 Meyer refill correction — 6 November 2026, unpublished rebuild
+
+James reported a 0.22.2 user unable to refill above stock amounts. Confirmed B99
+integration defect: SimulatedCarPitStopParameters caches LocoParameterData.maxValue
+at initialization, while RefreshParameters updates only current amounts. The
+Meyer enlarged ResourceContainer.capacity/CAPACITY but left station maxima at
+4,500 L / 1,200 kg. Native purchase limits therefore blocked the extra supplies.
+
+S060MeyerCapacity now refreshes those existing cache objects on apply/restore,
+using the same native resource containers. The original S060 filling points
+serve combined 8,800 L water / 3,500 kg coal stores. No extra filling point,
+separate bogie store, servicing hook, CCL change or save migration is required.
+Late-created native servicing components initialize from the enlarged containers;
+lookup on teardown restores their stock maxima too. Full Meyer stores still
+clamp to stock capacity when switching away, as previously documented.
+
+Baseline fixture build/meyer-refill-baseline-224557 reproduced the failure with
+the installed pre-fix 0.22.4 DLL. The focused candidate native fixture passes
+22 checks: retained station-data identities, actual purchase limits and refill
+ports, native fraction save/load ordering, repeated switches and late servicing.
+Current native evidence: build/radio-0.22.4/runtime-audits-20261106-224723.
+The release remains 0.22.4 because it is unpublished; the rebuilt ZIP is under
+build/nexus-0.22.4-single. The installed pre-refill-fix DLL is still
+7F6C5071EE4B4AF280CFEC6A3965CFD6C3E01188B2AF98CAAAC068B85AD70618.
+No new installation or DV gameplay test is authorised or performed by this task.
+
+Rebuilt refill-fix runtime SHA256: 93F07680D4DECE5A9ADBE0839324442EF19048A81F1D9A90CA51DAAD34BE5755.
+Final ZIP SHA256: 5909CD473EC3FFAD2C01CDAA3B7B16F371F47F79D35D7F08781E23956C0A0ABE.
+All 11 native suites / 10,011 checks pass, including refill 22. Managed/native
+component checks pass (functional/save 194, engine 351, oiling 628 and existing
+transition/geometry/trace suites); final ZIP passes actual UMM 57 checks.
+Proof: build/nexus-0.22.4-single/umm-proof-20261106-225004.
+Unchanged model hashes retain the earlier 38-check bundle-reopen evidence.
+The installed pre-fix 0.22.4 is unchanged; this rebuilt release is not installed.
+
+## 0.22.4 installed for James's testing — 6 November 2026
+
+James confirmed DV was closed and authorised installing 0.22.4 with no backup.
+Install.Nexus.ps1 checked the host game process before preparation and again
+before copying. Installation completed with backupCreated=false; all eleven
+installed files match the final package receipt and Settings.xml is unchanged.
+Installed runtime SHA256:
+7F6C5071EE4B4AF280CFEC6A3965CFD6C3E01188B2AF98CAAAC068B85AD70618.
+Receipt: build/nexus-0.22.4-single/install-receipt-latest.json.
+James will test cab performance, oil cups and arrangement switching. Gameplay
+acceptance remains pending; no game was launched and no release was published.
+The preparation/earlier installation statements below are historical.
+
+## 0.22.4 release candidate preparation — 6 November 2026
+
+James authorised updating current docs, correcting the Shay wheel description,
+building/testing offline and preparing the single UMM Nexus ZIP. No installation
+or publication is authorised. This supersedes the earlier hold on packaging the
+0.22.3 performance work. James performs all DV gameplay acceptance.
+
+The Shay description and native wheel implementation now share the unchanged
+0.3552532 m rolling-radius datum (about 0.71 m diameter). Runtime metadata is
+0.22.4 to distinguish it from the installed pre-performance 0.22.3. Save schemas,
+arrangement/circuit IDs, wheel physics and steam calibration remain unchanged.
+Current docs describe Meyer R2's real capacities and stock-capacity overflow
+clamp, nine choices, six-cup Shay exception and included model bundles. R1 Shay
+material is explicitly historical. Changelog baseline is public 0.22.2-beta, corrected by James on 6 November. The earlier 0.19.1 baseline was stale.
+
+The installed DLL remains 373C455B9A15FDEB34FC227D460E188E1553558182D53444ED9E42A4435AC833.
+Candidate runtime/native evidence is under build/radio-0.22.4 and the final UMM
+archive/receipts under build/nexus-0.22.4-single. Reuse the verified unchanged
+Meyer/Dockside/Shay model bytes; no model rebuild is justified by these edits.
+Final offline validation passes: ten native suites / 9,989 checks, functional/save
+194 (including the Shay diameter regression), engine/save/ECS 351, oiling 628,
+geometry 1,151, axle/cache regressions, bounded trace 145, transactions 35 and
+compound 25. Asset-pack native checks pass Meyer 18 / Dockside 17. The final ZIP
+passes actual UMM extraction/update/uninstall/migration 57 and extracted-bundle
+reopen 38; isolated installer fixtures pass 24 legacy / 18 single-folder checks.
+No DV scene, real installation or publication was performed. Runtime compile
+has zero warnings/errors; unchanged model bytes retain prior export evidence.
+
+Runtime SHA256: 7F6C5071EE4B4AF280CFEC6A3965CFD6C3E01188B2AF98CAAAC068B85AD70618.
+Documentation-only package correction: changelog now compares against James's last public 0.22.2-beta. Runtime/native and model reopen evidence is retained for identical binary payload; the corrected archive passed fresh UMM 57 checks.
+Final UMM ZIP SHA256: 30B41EA98AB6D624F7F260F3ECF7EF412F45589D3F37E06AD4F2104F75536A3C.
+Native evidence: build/radio-0.22.4/runtime-audits-20261106-122415.
+UMM evidence: build/nexus-0.22.4-single/umm-proof-20261106-123235.
+Bundle reopen: build/nexus-0.22.4-single/combined-bundle-validation.json.
+Release copy/changelog: docs/nexus/NEXUS_RELEASE_COPY.txt and CHANGELOG-0.22.4.txt.
+The independent agent review covered the shared-radius change, save/ID stability,
+current docs, oil/capacity exceptions and package contents/receipt consistency.
+
+## Open 0.22.3 candidate: performance audit fixes — 31 October 2026
+
+James authorised the axle-allocation, pipe-update/error and exhaust-lifecycle
+fixes, with save compatibility and all available checks short of loading DV.
+Keep this candidate open for more changes: no release packaging, installation,
+push or publication. Existing uncommitted 0.22.3 bodywork/oiling edits remain.
+See [the performance-fix record](PERFORMANCE-FIXES-2026-10-31.md) for scope,
+native-first cleanup rationale, exact validation evidence and limitations.
+
+Save schemas, arrangement/circuit IDs and simulation calibration are unchanged.
+Repeated clean axle reads now retain the cache without allocating. Pipe updates
+recover from invalid poses and use a bounded fitting budget. Audio bindings undo
+partial native subscriptions and handle repeated Init/Deinit without accumulating
+copies/listeners. Two existing R2 layout constants now live in MeyerPlan so the
+authoring helper can compile without importing native TrainCar code; values are
+unchanged. Test.Runtime and future Build.Radio require the new pipe and exhaust
+failure-injection audits. Cab FPS/user-report attribution remains unverified.
+
 ## 0.20.2: Shay gear-clock trace — 27 October 2026 (Claude)
 
 James reports the Shay gears, pinions and U-joints do not turn. The 0.20.1

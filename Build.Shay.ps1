@@ -1,28 +1,22 @@
-param([string]$SourcesRoot = 'B:\LLW CONVERT\locos\s060-shay')
+param([string]$SourcesRoot = (Join-Path $PSScriptRoot 'Shay\ModelSource'))
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'Build.Config.ps1')
 $config=Get-S060BuildConfig
 $contract=(Get-FileHash (Join-Path $SourcesRoot 'shared\fit-contract.json')).Hash
-if($contract -ne '5D8C009809CBBE4481720359F8EABA5FC23B3448D345BEF7BF97DA3876C40264'){throw 'Runtime geometry is calibrated to the frozen R2 fit contract. Review a contract change before rebuilding.'}
+if($contract -ne '617AE50BEBEC7759064FDDAED09CBE26D258072A1836A48BBEC2B52EC4407F77'){throw 'Runtime geometry is calibrated to the frozen R3 fit contract. Review a contract change before rebuilding.'}
 $contacts=Join-Path $PSScriptRoot 'build\shay\combined-contact.json'
-& $config.Python (Join-Path $PSScriptRoot 'Shay\tools\Check.Assembly.py') $SourcesRoot $contacts
+& $config.Python -B (Join-Path $PSScriptRoot 'Shay\ModelSource\generate.py')
+if($LASTEXITCODE -ne 0){throw 'Original R3 model generation failed.'}
+& $config.Python -B (Join-Path $PSScriptRoot 'Shay\tools\Validate.R3.py') --source $SourcesRoot --output $contacts
 if($LASTEXITCODE -ne 0){throw 'Combined Shay transmission/truck geometry failed.'}
-$project=Join-Path $PSScriptRoot 'Meyer\UnityProject'
-$sources=Join-Path $project 'Assets\ShaySources'
-New-Item -ItemType Directory -Path $sources -Force | Out-Null
-'{"name":"S060.Shay.ModelSource"}' | Set-Content (Join-Path $sources 'S060.Shay.ModelSource.asmdef') -Encoding UTF8
-foreach($item in @(
-    @{source='engine\unity\Assets\EngineStudy\Generated'; target='Engine'},
-    @{source='trucks\unity\Assets\ShayTrucks'; target='Trucks'},
-    @{source='transmission\unity\Assets\Transmission\Generated'; target='Transmission'}
-)) {
-    $target=Join-Path $sources $item.target
-    New-Item -ItemType Directory -Path $target -Force | Out-Null
-    Get-ChildItem -LiteralPath (Join-Path $SourcesRoot $item.source) -Force | ForEach-Object { Copy-Item -LiteralPath $_.FullName -Destination $target -Recurse -Force }
+$project=Join-Path $PSScriptRoot 'build\shay-r3-authoring\UnityProject'
+foreach($folder in @('Assets\Editor','Packages','ProjectSettings')) { New-Item -ItemType Directory -Path (Join-Path $project $folder) -Force | Out-Null }
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Meyer\UnityProject\ProjectSettings\ProjectVersion.txt') -Destination (Join-Path $project 'ProjectSettings') -Force
+'{"dependencies":{"com.unity.modules.assetbundle":"1.0.0","com.unity.modules.jsonserialize":"1.0.0","com.unity.modules.imageconversion":"1.0.0","com.unity.modules.physics":"1.0.0"}}' | Set-Content (Join-Path $project 'Packages\manifest.json') -Encoding UTF8
+foreach($name in @('ShayBundleBuild.cs','ShayR3ModelBuild.cs')) {
+    Copy-Item -LiteralPath (Join-Path $PSScriptRoot ('Shay\Authoring\'+$name)) -Destination (Join-Path $project 'Assets\Editor') -Force
 }
-Copy-Item -LiteralPath (Join-Path $SourcesRoot 'transmission\unity\Assets\Transmission\ShayTransmissionPreview.cs') -Destination $sources -Force
-Copy-Item -LiteralPath (Join-Path $SourcesRoot 'transmission\unity\Assets\Transmission\ShayTransmissionPreview.cs.meta') -Destination $sources -Force
-Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Shay\Authoring\ShayBundleBuild.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
+$env:S060_SHAY_SOURCE=(Resolve-Path -LiteralPath $SourcesRoot).Path
 $output=Join-Path $PSScriptRoot ('build\shay\bundle-'+[DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss'))
 New-Item -ItemType Directory -Path $output -Force | Out-Null
 $env:S060_SHAY_BUNDLE_OUTPUT=$output

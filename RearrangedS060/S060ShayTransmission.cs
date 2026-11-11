@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 using UnityEngine;
+using Newtonsoft.Json.Linq;
 
 // Articulation solver from the original Shay model study. Native bogies own pose;
 // the geared native steam engine owns the clock. This class applies visuals only.
@@ -15,23 +17,35 @@ internal sealed class S060ShayTransmission : MonoBehaviour
     public double rearPhaseErrorDegrees, frontPhaseErrorDegrees, wheelDisagreementDegrees;
     public float rearEngagement, frontEngagement, rearJointAngle, frontJointAngle;
     const double Tau = Math.PI * 2;
-    const double G = 43.0 / 19.0;
+    const double G = (double)S060SteamCalibration.Shay.RingTeeth / S060SteamCalibration.Shay.PinionTeeth;
     readonly double[] output = new double[2];
     readonly Vector3[] a = new Vector3[2], b = new Vector3[2], d = new Vector3[2], u = new Vector3[2], v = new Vector3[2], w = new Vector3[2];
     readonly float[] engagement = new float[2];
     readonly Quaternion[] middle = new Quaternion[2];
+    private Vector3[] engineEnds, truckEnds;
+    private float memberLength, jointAllowance;
+    internal void Configure(JObject data)
+    {
+        Vector3 V(string name)
+        {var p=data[name]??throw new InvalidOperationException("Shay shaft datum missing: "+name);return new Vector3((float)p["x"],(float)p["y"],(float)p["z"]);}
+        engineEnds=new[]{V("rearEngineEnd"),V("frontEngineEnd")};truckEnds=new[]{V("rearTruckEnd"),V("frontTruckEnd")};
+        memberLength=(float?)data["memberLength"]??0;jointAllowance=(float?)data["jointEndAllowance"]??0;
+        if(!(memberLength>.15f&&memberLength<.6f&&jointAllowance>0&&jointAllowance<.15f)||
+            engineEnds.Concat(truckEnds).Any(p=>float.IsNaN(p.sqrMagnitude)||float.IsInfinity(p.sqrMagnitude)))
+            throw new InvalidOperationException("Invalid authored Shay shaft geometry.");
+    }
     internal double RearWheelTurns => -output[0] / G;
     internal double FrontWheelTurns => output[1] / G;
     public void Evaluate()
     {
-        if (rearTruck == null || frontTruck == null || parts == null) return;
+        if (rearTruck == null || frontTruck == null || parts == null || engineEnds == null) return;
         for(int j=0;j<2;j++)
         {
             Transform truck = j==0 ? rearTruck : frontTruck;
             double input = (j==0 ? 1 : -1) * engineTurns;
             double theta = (input % 1) * Tau;
-            a[j] = transform.TransformPoint(j==0 ? new Vector3(1.10f,.52f,-.19f) : new Vector3(1.10f,.37f,.42f));
-            b[j] = truck.TransformPoint(j==0 ? new Vector3(1.0325581f,.3552532f,.42f) : new Vector3(1.0325581f,.3552532f,.315f));
+            a[j] = transform.TransformPoint(engineEnds[j]);
+            b[j] = truck.TransformPoint(truckEnds[j]);
             Vector3 axis = (b[j]-a[j]).normalized;
             // Work with the link's positive-Z direction, irrespective of endpoint order.
             d[j] = axis * (j==0 ? -1 : 1);
@@ -41,7 +55,7 @@ internal sealed class S060ShayTransmission : MonoBehaviour
             double principal = Math.Atan2(Vector3.Dot(w[j],truck.up),Vector3.Dot(w[j],truck.right))/Tau;
             output[j] = input + Wrap(principal - input);
             middle[j] = Frame(v[j], d[j]);
-            engagement[j] = (3*.34f - (Vector3.Distance(a[j],b[j])-.204f))/2;
+            engagement[j] = (3*memberLength - (Vector3.Distance(a[j],b[j])-2*jointAllowance))/2;
             float bend = Mathf.Max(Vector3.Angle(d[j],transform.forward), Vector3.Angle(d[j],truck.forward));
             if(j==0) { rearEngagement=engagement[j];rearJointAngle=bend;rearPhaseErrorDegrees=(output[j]-input)*360; }
             else { frontEngagement=engagement[j];frontJointAngle=bend;frontPhaseErrorDegrees=(output[j]-input)*360; }
@@ -60,9 +74,9 @@ internal sealed class S060ShayTransmission : MonoBehaviour
             }
             else if(p.role=="member")
             {
-                j=p.index/3; int member=p.index%3; float length=.34f;
+                j=p.index/3; int member=p.index%3; float length=memberLength;
                 Vector3 direction=(b[j]-a[j]).normalized;
-                p.transform.position=a[j]+direction*(.102f+member*(length-engagement[j]));
+                p.transform.position=a[j]+direction*(jointAllowance+member*(length-engagement[j]));
                 // Local +Z goes from body to truck. Cross sections share one rigid phase.
                 p.transform.rotation=Frame(v[j],direction);
             }

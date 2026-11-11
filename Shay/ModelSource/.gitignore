@@ -1,0 +1,12 @@
+**/unity/
+**/export/
+**/evidence/
+**/__pycache__/
+engine/rig-markers.json
+engine/material-slots.json
+engine/contract-receipt.json
+trucks/source/*recipe.json
+trucks/marker-axes.json
+trucks/native-attachments.json
+transmission/meshes/
+transmission/kinematic-markers.json

@@ -5,6 +5,8 @@ namespace RearrangedS060
     // Circuit identity is simulation data, never a consequence of streamed cup
     // geometry. Original guide/crosshead/big-end slots stay 0..5; added big ends
     // occupy the same per-side slots whenever an axle is present again.
+    // Two cups per driven axle, no more (James, 2026-10-28): each side runs one circuit
+    // per driven axle, the native big end, guide and crosshead first, then the extras.
     internal static class S060OilingTopology
     {
         internal const int NativePoints = 6, ExtraPerSide = 4, TotalPoints = 14;
@@ -27,6 +29,15 @@ namespace RearrangedS060
 
         internal static int NativeBigEndIndex(bool left) => left ? 2 : 5;
 
+        // One side's live circuits, in the order cups are given to its axles.
+        internal static int[] SideCircuits(S060Arrangement arrangement, bool left)
+        {
+            int axles = DrivenAxles(arrangement);
+            var circuits = new System.Collections.Generic.List<int> { NativeBigEndIndex(left), left ? 0 : 3, left ? 1 : 4 };
+            for (int slot = 0; circuits.Count < axles; slot++) circuits.Add(ExtraIndex(left, slot));
+            return circuits.GetRange(0, axles).ToArray();
+        }
+
         internal static int ExtraIndex(bool left, int slot)
         {
             if (slot < 0 || slot >= ExtraPerSide) throw new ArgumentOutOfRangeException(nameof(slot));
@@ -37,12 +48,10 @@ namespace RearrangedS060
         internal static bool[] ActiveMask(S060Selection selection)
         {
             var active = new bool[TotalPoints];
-            for (int i = 0; i < NativePoints; i++) active[i] = true;
             // Shay R2: six upright cups serve exactly the six native circuits; extras stay dormant.
-            if (selection.Arrangement == S060Arrangement.Shay) return active;
-            int extra = DrivenAxles(selection.Arrangement) - 1;
-            for (int slot = 0; slot < extra; slot++)
-                active[ExtraIndex(true, slot)] = active[ExtraIndex(false, slot)] = true;
+            if (selection.Arrangement == S060Arrangement.Shay) { for (int i = 0; i < NativePoints; i++) active[i] = true; return active; }
+            foreach (bool left in new[] { true, false })
+                foreach (int index in SideCircuits(selection.Arrangement, left)) active[index] = true;
             return active;
         }
     }

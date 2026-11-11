@@ -224,6 +224,12 @@ public static class CockNativeAudit
             var setup = Activator.CreateInstance(setupType);
             foreach (string side in new[] { "front", "rear" })
             { var leaf = new GameObject(side); leaf.transform.SetParent(root.transform, false); leaf.AddComponent<ParticleSystem>(); leaf.SetActive(false); setupType.GetField(side + "ParticlesParent").SetValue(setup, leaf); setupType.GetField(side+"ActivityCurve").SetValue(setup,AnimationCurve.Linear(0,1,1,1)); }
+            if(shay)foreach(string end in new[]{"front","rear"})
+            {
+                var holder=(GameObject)setupType.GetField(end+"ParticlesParent").GetValue(setup);
+                var native=new GameObject("GasWispy native rotated child");native.transform.SetParent(holder.transform,false);native.transform.localRotation=Quaternion.Euler(0,90,0);
+                var ps=native.AddComponent<ParticleSystem>();var main=ps.main;main.startLifetime=1;main.startSpeed=6;main.startSize=.3f;main.gravityModifier=-1;
+            }
             var setups = Array.CreateInstance(setupType, 1); setups.SetValue(setup, 0); cockType.GetField("cylinderSetups").SetValue(cock, setups);
             var portType = sim.GetType("LocoSim.Implementations.Port", true);
             var definitionType = sim.GetType("LocoSim.Definitions.PortDefinition", true);
@@ -270,7 +276,7 @@ public static class CockNativeAudit
                 audioType.GetField("cylCockAudio").SetValue(audio,layers);
                 var markers=new System.Collections.Generic.Dictionary<string,Transform>();
                 for(int i=1;i<=3;i++)foreach(string end in new[]{"FRONT","REAR"})
-                {string name="COCK_C"+i+"_"+end;var go=new GameObject(name);go.transform.SetParent(root.transform,false);go.transform.localPosition=new Vector3(1.36f,end=="FRONT"?2.43f:1.93f,(i-1)*.24f);markers.Add(name,go.transform);}
+                {string name="COCK_C"+i+"_"+end;var go=new GameObject(name);go.transform.SetParent(root.transform,false);go.transform.localPosition=new Vector3(1.24f,end=="FRONT"?2.23f:1.73f,.11f+(i-2)*.35f);go.transform.localRotation=Quaternion.LookRotation(Vector3.down,Vector3.forward);markers.Add(name,go.transform);}
                 mod.GetType("RearrangedS060.S060ShayEffects",true).GetMethod("Fit",BindingFlags.Static|BindingFlags.NonPublic).Invoke(null,new object[]{root,root.transform,new Func<string,Transform>(name=>markers[name])});
                 Check(!root.activeSelf,"Production fitting must not activate partially assembled native audio",ref checks);
                 root.SetActive(true);
@@ -285,7 +291,17 @@ public static class CockNativeAudit
                 {
                     var item=fitted.GetValue(i);
                     foreach(string end in new[]{"front","rear"})
-                    {var holder=(GameObject)setupType.GetField(end+"ParticlesParent").GetValue(item);Check(Vector3.Distance(holder.transform.position,markers["COCK_C"+(i+1)+"_"+end.ToUpperInvariant()].position)<1e-6f,"Shay outlet seats on the actual drain marker",ref checks);}
+                    {
+                        var holder=(GameObject)setupType.GetField(end+"ParticlesParent").GetValue(item);var marker=markers["COCK_C"+(i+1)+"_"+end.ToUpperInvariant()];
+                        Check(Vector3.Distance(holder.transform.position,marker.position)<1e-6f,"Shay outlet seats on the actual drain marker",ref checks);
+                        foreach(var ps in holder.GetComponentsInChildren<ParticleSystem>(true))
+                        {
+                            Check(Vector3.Dot(ps.transform.forward,Vector3.down)>.9999f,"Actual native rotated particle leaves point down the drain, not sideways",ref checks);
+                            Check(Vector3.Distance(ps.transform.position,marker.position)<1e-6f,"Every native jet leaf starts at its physical drain mouth",ref checks);
+                            if(ps.name.StartsWith("GasWispy",StringComparison.Ordinal))
+                            {Check(Math.Abs(ps.main.startSpeedMultiplier-1.5f)<1e-5f&&Math.Abs(ps.main.startSizeMultiplier-.054f)<1e-5f,"Native jet speed and width fit the compact upright cylinders",ref checks);Check(Math.Abs(ps.main.gravityModifierMultiplier+.0625f)<1e-5f,"Short jets retain proportionate native buoyancy",ref checks);}
+                        }
+                    }
                 }
             }
             runtime.GetMethod("PrepareCockParticles", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, new[] { controller });

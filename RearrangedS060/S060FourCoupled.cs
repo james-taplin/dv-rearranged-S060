@@ -49,15 +49,17 @@ namespace RearrangedS060
             droppedAxle.gameObject.SetActive(false);
             Parts.BogieFor(DroppedDriver).axles = null;
 
-            // Two powered axles out of two, all the weight on them: a tank engine
-            // carries nothing that is not on a driver, so total adhesion is
-            // unchanged from stock and only the per-axle load doubles.
+            // Two physical powered axles remain. Use the authored 38 t effective
+            // adhesive allowance at the fixed 50 t design datum, rather than
+            // granting stock grip to two overloaded driver axles. Native mass,
+            // brakes and suspension are not changed by this design allowance.
             var powered = new[] { Parts.PoweredFor(1), Parts.PoweredFor(3) };
             if (powered.Any(p => p == null))
                 throw new InvalidOperationException("Drivers 1 and 3 must both keep a PoweredWheel.");
             foreach (int driver in new[] { 1, 3 })
                 AxlePairs.Add((Parts.AxleFor(driver), Parts.RightWheel(driver)));
-            Physics.Apply(Scale.DriverRadius, powered, totalAxles: 2, driverWeightFraction: 1f);
+            Physics.Apply(Scale.DriverRadius, powered, totalAxles: 2,
+                driverWeightFraction: ConventionalPhysics.RatedDriverWeightFraction(2, 2));
         }
 
         protected override void Undo()

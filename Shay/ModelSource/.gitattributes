@@ -1,0 +1,2 @@
+# Build.Shay pins this contract's exact delivery bytes, including line endings.
+shared/fit-contract.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

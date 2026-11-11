@@ -46,7 +46,8 @@ namespace RearrangedS060
                 AxlePairs.Add((Parts.AxleFor(driver), Parts.RightWheel(driver)));
             Physics.Apply(Scale.DriverRadius,
                 new[] { Parts.PoweredFor(1), Parts.PoweredFor(2), Parts.PoweredFor(3) },
-                S060TrailingLayout.TotalAxles, S060TrailingLayout.DriverWeightFraction);
+                S060TrailingLayout.TotalAxles, ConventionalPhysics.RatedDriverWeightFraction(
+                    S060TrailingLayout.PoweredAxles, S060TrailingLayout.TotalAxles));
             Main.Logger.Log("S060 0-6-2 donor: " + donor.Axle.name + ", native pony radius " + donor.Radius +
                 ", rear centre Z " + S060TrailingLayout.CentreZ + ". In-game truck/frame clearance remains unverified.");
         }
