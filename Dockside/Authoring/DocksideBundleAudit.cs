@@ -21,6 +21,7 @@ public static class DocksideBundleAudit
         try
         {
             var pack = bundle.LoadAllAssets<CustomCarPack>().Single();
+            Require(pack.Version == "0.8.1", "Current wider Dockside pack must be 0.8.1.");
             Require(pack.Cars.Length == 1 && pack.Cars[0].liveries.Count == 1, "One canonical car/livery required.");
             var type = pack.Cars[0]; var variant = type.liveries[0]; var root = variant.prefab;
             SteamPipeAuthoring.Validate(root);
@@ -58,7 +59,7 @@ public static class DocksideBundleAudit
             // Cube/Cylinder are built-in Unity shapes used by SDK couplers and
             // dummy plates; the other four are supplied by the existing SDK.
             var sdkMeshes = new[] { "Buffer07", "HookPlate", "CableBase_01", "HeadEndPowerConnectorBase", "Cube", "Cylinder" };
-            Require(franklinMeshes.Length > 0 && meshes.All(m => franklinMeshes.Contains(m) || sdkMeshes.Contains(m.name) || m.name.StartsWith("DocksideRod") || m.name.StartsWith("SteamManifold") || m.name.StartsWith("SteamTransfer")), "Unexpected mesh outside custom Franklin geometry and standard SDK coupler models: " + string.Join(",", meshes.Select(m => m.name)));
+            Require(franklinMeshes.Length > 0 && meshes.All(m => franklinMeshes.Contains(m) || sdkMeshes.Contains(m.name) || m.name.StartsWith("DocksideDetail") || m.name.StartsWith("DocksideRod") || m.name.StartsWith("SteamManifold") || m.name.StartsWith("SteamTransfer")), "Unexpected mesh outside custom Franklin geometry and standard SDK coupler models: " + string.Join(",", meshes.Select(m => m.name)));
             bool first = true; Bounds bounds = default(Bounds);
             foreach (var filter in gear.SelectMany(t => t.GetComponentsInChildren<MeshFilter>(true)).Where(f => f.GetComponent<Renderer>()?.enabled == true))
             {
@@ -70,11 +71,14 @@ public static class DocksideBundleAudit
                 }
             }
             Require(!first && bounds.min.z >= -4.295f && bounds.max.z <= 4.004f && bounds.min.x >= -1.672f && bounds.max.x <= 1.672f, "Franklin fit extends outside the S060 body envelope: " + bounds);
+            DocksideDetailAudit.Validate(root, Path.GetDirectoryName(report));
+            DocksideSpacingAudit.Validate(root, Path.GetDirectoryName(report), false);
+            DocksideBoundaryMeasure.Measure(root, Path.GetDirectoryName(report), true);
             DocksideMotionAudit.Validate(root, Path.GetDirectoryName(report));
             SteamPipeAudit.Validate(root, Path.GetDirectoryName(report));
             SteamEffectsAudit.Validate(root, Path.GetDirectoryName(report), false);
             Require(Hash(path) == bundleHash, "Bundle changed while its reopened content was being validated.");
-            File.WriteAllText(report, "{\"passed\":true,\"reopenedBundle\":true,\"bundleSha256\":\"" + bundleHash + "\",\"nativeSimpleEngines\":2,\"poweredAxles\":4,\"driverDiameter\":1.0,\"wheelWidthScaled\":false,\"franklinAssemblies\":4,\"allGearUnderLoco\":true,\"bothBoilerIntakesSummed\":true,\"bothExhaustsSummed\":true,\"cockReaders\":2,\"cockSoundAliases\":4,\"customFranklinMeshes\":" + franklinMeshes.Length + ",\"sdkCouplerMeshes\":" + (meshes.Length - franklinMeshes.Length) + ",\"nativeBodyAndWheelMeshesBundled\":0,\"runtimeValidated\":false,\"franklinBoundsMin\":[" + Vec(bounds.min) + "],\"franklinBoundsMax\":[" + Vec(bounds.max) + "]}\n");
+            File.WriteAllText(report, "{\"passed\":true,\"reopenedBundle\":true,\"bundleSha256\":\"" + bundleHash + "\",\"nativeSimpleEngines\":2,\"poweredAxles\":4,\"driverDiameter\":1.0,\"wheelWidthScaled\":false,\"franklinAssemblies\":4,\"allGearUnderLoco\":true,\"bothBoilerIntakesSummed\":true,\"bothExhaustsSummed\":true,\"cockReaders\":2,\"cockSoundAliases\":4,\"customFranklinMeshes\":" + franklinMeshes.Length + ",\"sdkCouplerMeshes\":" + meshes.Count(m => sdkMeshes.Contains(m.name)) + ",\"nativeBodyAndWheelMeshesBundled\":0,\"runtimeValidated\":false,\"franklinBoundsMin\":[" + Vec(bounds.min) + "],\"franklinBoundsMax\":[" + Vec(bounds.max) + "]}\n");
             File.WriteAllText(Path.Combine(Path.GetDirectoryName(report), "native-wiring.json"),
                 "{\"references\":[" + string.Join(",", graph.portReferenceConnections.Select(c => "{\"reference\":\"" + c.portReferenceId + "\",\"source\":\"" + c.portId + "\"}")) +
                 "],\"execution\":[" + string.Join(",", graph.executionOrder.Select(c => "\"" + c.ID + "\"")) + "]}\n");

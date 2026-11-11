@@ -127,13 +127,7 @@ namespace RearrangedS060
             =>AddFitting(Hollow(new[]{centre-axis*width/2,centre+axis*width/2},new[]{radius,radius},new[]{radius<.078f?.059f:.069f,radius<.078f?.059f:.069f}));
         private void Sleeve(Vector3 socket,float nativeRadius)
         {
-            // An open reducer over the actual cut sleeve, with a rolled lip and a
-            // continuous inner wall. No cap closes the steam passage.
-            float r=nativeRadius+.004f;
-            var y=new[]{.010f,-.008f,-.030f,-.072f,-.095f,-.110f};
-            var outer=new[]{r,r,r-.004f,.074f,.068f,.068f};
-            var inner=outer.Select(v=>v-.008f).ToArray();
-            Render("Shay hollow tapered sleeve "+(socket.x<0?"offside":"engine side"),Hollow(y.Select(v=>socket+Vector3.up*v).ToArray(),outer,inner,32),iron);
+            Render("Shay hollow tapered sleeve "+(socket.x<0?"offside":"engine side"),S060SteamSleeve.Create(socket,nativeRadius),iron);
         }
         private void Flange(Vector3 centre,Vector3 axis,float radius,float width)
         {

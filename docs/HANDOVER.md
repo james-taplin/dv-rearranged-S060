@@ -1,5 +1,37 @@
 # Rearranged S060 — handover
 
+## Franklin Dockside 0.8.1 — wider wheelbase and Shay sleeves, 11 November 2026, STAGED ONLY
+
+James revised the earlier decision: increase the wheelbase to reduce bogie
+contact, and add the fitted Shay smokebox sleeves. Completed on the appearance
+transfer; this supersedes the contact-limited 0.8.0 entry below. No installation
+or DV launch. [Detailed handover](dockside/FRANKLIN-0.8.1.md).
+
+Engine-frame centres ±1.75 m (3.50 m apart), axle centres -2.35/-1.15/+1.15/+2.35:
+4.70 m driven wheelbase, 1.20 m intra-unit pitch. The fixture reads actual native
+support pivots +.925/-1.40 and rotates the offset frames about those supports.
+Final mechanical gap >=33.4479 mm across sampled native-pivot stresses; targeted
+rod/crank/cylinder contacts 0/320. Existing native axle/support lifecycle retained.
+
+Both native smokebox ports carry hollow rolled-lip sleeves with the Shay finish.
+James rejected the first oversized circular cup: a clearance/envelope pass was
+not evidence of a fitted joint. It is superseded by actual native-profile upper
+lips and lower cuffs following the existing moving manifold. Both-side close-up
+renders were checked. Independent profile distances stay within 0.71 mm through
+sampled ±15-degree native support poses; default Shay geometry is bit-identical.
+Build: 0 warnings/errors. Corrected exact-DLL checks: sleeves4,602/pipes1,118/
+cleanup145/Shay-effects23 =5,888. Earlier clock/cock checks retain their original
+provenance; no gameplay acceptance. Asset geometry/motion/oil/effect checks and
+native engine17 pass. No simulator, save schema, oil identity or cylinder tune change.
+
+Candidate: build/dockside-franklin-wheelbase-20261111/candidate/RearrangedS060.
+Runtime0.24.0 0AAF86EE687473EF87665C695EA85AC6E86D34EB1773D0F5CEE0297A5B91D65F; Dockside0.8.1 bundle 5672D551FB02DF36143810B98774E4F9B7334CDE9B3F73C41BA1CB118D7253FF.
+This carries the latest frozen Shay R3 running-gear candidate and preceding staged
+Meyer/physics work; no whole-release acceptance is implied. James owns actual
+curve/appearance/servicing/save-reload tests after separately authorized installation.
+Final ZIP, fitted-preview, receipts and local source checkpoint are in the stage folder.
+
+
 ## Shay visible bogies and front compressor — 11 November 2026, STAGED ONLY
 
 James clarified coil springs rather than leaves. The model now has raised paired

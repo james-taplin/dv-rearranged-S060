@@ -5,7 +5,7 @@ public static class DocksidePlan
     public const string CarName = "Rearranged S060 Franklin Dockside";
     public const float DriverRadius = RearrangedS060.S060SteamCalibration.Dockside.DriverRadius;
     public const float NativeDriverRadius = RearrangedS060.S060SteamCalibration.Dockside.NativeDriverRadius;
-    public const float BogieCentre = 1.40f;
+    public const float BogieCentre = 1.75f;
     public const float AxlePitch = 1.20f;
     public const float Bore = RearrangedS060.S060SteamCalibration.Dockside.Bore;
     // Measured native S060 wheel's crank-pin cap centre, not a guessed throw.

@@ -18,6 +18,13 @@ $env:S060_PIPE_SOURCE = Join-Path $PSScriptRoot 'AuthoringData\S282BranchPipes.j
 Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'Authoring') -Filter '*.cs' -File |
     Copy-Item -Destination (Join-Path $project 'Assets\Editor')
 Copy-Item -LiteralPath (Join-Path $repo 'RearrangedS060\S060PipeGeometry.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
+Copy-Item -LiteralPath (Join-Path $repo 'RearrangedS060\S060SteamSleeve.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
+Copy-Item -LiteralPath (Join-Path $repo 'RearrangedS060\S060MeyerLayout.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
+Copy-Item -LiteralPath (Join-Path $repo 'RearrangedS060\S060MeyerFrontMotion.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
+Copy-Item -LiteralPath (Join-Path $repo 'RearrangedS060\S060MeyerGearMounts.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
+Copy-Item -LiteralPath (Join-Path $repo 'RearrangedS060\S060MeyerFrontEquipment.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
+Copy-Item -LiteralPath (Join-Path $repo 'RearrangedS060\S060MeyerClearance.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
+Copy-Item -LiteralPath (Join-Path $repo 'RearrangedS060\S060MeyerInwardPipes.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
 Copy-Item -LiteralPath (Join-Path $repo 'RearrangedS060\S060SteamCalibration.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
 foreach ($file in @('S060SteamPipes.cs','S060BodyPipes.cs','S060MeyerLights.cs','S060MeyerExhaustPipe.cs')) { Copy-Item -LiteralPath (Join-Path $repo "RearrangedS060\$file") -Destination (Join-Path $project 'Assets\Editor') -Force }
 Copy-Item -LiteralPath (Join-Path $repo 'RearrangedS060\S060OilCupGeometry.cs') -Destination (Join-Path $project 'Assets\Editor') -Force

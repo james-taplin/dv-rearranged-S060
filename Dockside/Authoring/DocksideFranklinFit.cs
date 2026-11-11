@@ -15,12 +15,8 @@ public static class DocksideFranklinFit
             var root = SteamBogieVisuals.Group(unit, "[Franklin fitted supports " + suffix + "]");
             var gear = unit.Find("Franklin fit " + suffix);
             var input = unit.InverseTransformPoint(gear.Find("transmission_box").position);
-            // A transverse axle sleeve fills the old unsupported gap between
-            // the native wheel hub and the outboard Franklin reduction box.
-            float wheelFace = .90f, length = Mathf.Abs(input.x) - wheelFace;
-            var collar = SteamBogieVisuals.Part(root, "Axle gearbox bearing sleeve", PrimitiveType.Cylinder,
-                new Vector3(side * (wheelFace + length / 2), DocksidePlan.DriverRadius, -DocksidePlan.AxlePitch / 2), new Vector3(.18f, length / 2, .18f), iron);
-            collar.localRotation = Quaternion.Euler(0, 0, 90);
+            // A measured wheel-driven input replaces the former solid axle sleeve.
+            DocksideDriveDetail.Fit(unit, root, gear, suffix, side, folder, steel);
             SteamBogieVisuals.Part(root, "Gearbox frame mounting foot", PrimitiveType.Cube,
                 new Vector3(input.x, DocksidePlan.DriverRadius + .26f, input.z), new Vector3(.16f, .08f, .24f), iron);
             var joint = unit.InverseTransformPoint(gear.Find("cylinder/u_joint_mapped").position);

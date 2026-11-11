@@ -60,12 +60,14 @@ public static class DocksideMotionAuthoring
                 }
                 foreach (var unit in new[] { front, rear }) CreateRods(unit, suffix, side, material, folder);
                 string rods = "[Dockside rods " + suffix + "]";
+                Curve(clip, EditorCurveBinding.FloatCurve("Franklin return crank " + suffix, typeof(Transform), "localEulerAnglesRaw.x"), t => (t + quarter) * 360);
                 Position(clip, rods + "/Coupling rod", t => Coupling(t + quarter, side));
                 Position(clip, rods + "/Main rod", t => (MainPin(t + quarter, side) + Crosshead(t + quarter, side)) / 2);
                 Curve(clip, EditorCurveBinding.FloatCurve(rods + "/Main rod", typeof(Transform), "localEulerAnglesRaw.x"), t => MainAngle(t + quarter));
                 Curve(clip, EditorCurveBinding.FloatCurve(rods + "/Main rod", typeof(Transform), "localEulerAnglesRaw.y"), t => 0);
                 Curve(clip, EditorCurveBinding.FloatCurve(rods + "/Main rod", typeof(Transform), "localEulerAnglesRaw.z"), t => 0);
                 Position(clip, rods + "/Crosshead", t => Crosshead(t + quarter, side));
+                Position(clip, rods + "/Crosshead bearing pin", t => Crosshead(t + quarter, side));
                 Position(clip, rods + "/Piston rod", t => (PistonCrosshead(t + quarter, side) + new Vector3(side * DocksidePlan.PistonAxisX, DocksidePlan.DriverRadius, DocksidePlan.CylinderZ + .05f)) / 2);
                 Curve(clip, EditorCurveBinding.FloatCurve(rods + "/Piston rod", typeof(Transform), "m_LocalScale.z"), t => DocksidePlan.CylinderZ + .05f - Crosshead(t + quarter, side).z);
                 foreach (string axis in new[] { "x", "y" })
@@ -121,19 +123,22 @@ public static class DocksideMotionAuthoring
             var part = new GameObject(rod.Name); part.transform.SetParent(parent, false);
             part.transform.localScale = new Vector3(1, 1, rod.Length);
             part.AddComponent<MeshFilter>().sharedMesh = DocksideRodGeometry.Create(folder, rod.Asset, rod.Length);
-            part.AddComponent<MeshRenderer>().sharedMaterial = material;
+            var renderer = part.AddComponent<MeshRenderer>(); renderer.sharedMaterial = material; SteamBogieVisuals.LiveMaterial(renderer);
         }
-        Primitive(parent, "Crosshead", PrimitiveType.Cube, new Vector3(.13f, .10f, .15f), material);
-        Primitive(parent, "Piston rod", PrimitiveType.Cube, new Vector3(.035f, .035f, 1), material);
+        var crosshead = DocksideDriveDetail.Part(parent, "Crosshead", DocksideDriveDetail.Save(folder, DocksideDetailMesh.Slider("DocksideDetailCrosshead")), SteamBogieVisuals.Metal(folder, "CastIron", new Color(.095f, .105f, .11f), .55f, .28f), false);
+        crosshead.localScale = new Vector3(.13f, .10f, .15f);
+        DocksideDriveDetail.Part(parent, "Crosshead bearing pin", DocksideDriveDetail.Save(folder, DocksideDetailMesh.Tube("DocksideDetailCrossheadPin", .020f, .005f, -.071f, .071f)), material);
+        var piston = DocksideDriveDetail.Part(parent, "Piston rod", DocksideDriveDetail.Save(folder, DocksideDetailMesh.Piston("DocksideDetailPiston")), material);
+        piston.localScale = new Vector3(.035f, .035f, 1);
         foreach (string end in new[] { "Rear", "Front" })
         {
-            var eye = Primitive(parent, end + " crank eye", PrimitiveType.Cylinder, new Vector3(.12f, .0075f, .12f), material);
-            eye.localRotation = Quaternion.Euler(0, 0, 90);
+            DocksideDriveDetail.Part(parent, end + " crank eye", DocksideDriveDetail.Save(folder, DocksideDetailMesh.Tube("DocksideDetailCrankWasher", .060f, .042f, -.0075f, .0075f)), material);
         }
-        foreach (int sign in new[] { -1, 1 })
+        foreach (int sign in new[] { -1, 1 }) foreach (int cheek in new[] { -1, 1 })
         {
-            var rail = Primitive(parent, sign < 0 ? "Lower crosshead guide" : "Upper crosshead guide", PrimitiveType.Cube, new Vector3(.055f, .025f, .78f), material);
-            rail.localPosition = new Vector3(side * DocksidePlan.MainRodPlaneX, DocksidePlan.DriverRadius + sign * .0675f, .80f);
+            string guide = (cheek < 0 ? "Inner " : "") + (sign < 0 ? "Lower crosshead guide" : "Upper crosshead guide");
+            var rail = Primitive(parent, guide, PrimitiveType.Cube, new Vector3(.037f, .025f, .78f), material);
+            rail.localPosition = new Vector3(side * (DocksidePlan.MainRodPlaneX + cheek * .0465f), DocksidePlan.DriverRadius + sign * .0675f, .80f);
         }
         // Crosshead guides now have fixed end brackets tied to the frame,
         // rather than appearing as two unsupported rectangular strips.

@@ -114,10 +114,12 @@ public static class SteamPipeAuthoring
     }
     private static Transform Marker(Transform parent, string name, Vector3 position)
     { var go = new GameObject(name); go.transform.SetParent(parent, false); go.transform.localPosition = position; return go.transform; }
-    public static Vector3 FaceCentre(Mesh mesh, Vector3 normal)
+    public static Vector3 FaceCentre(Mesh mesh, Vector3 normal, Vector3? socketPlane = null)
     {
         var vertices = mesh.vertices; var triangles = mesh.triangles; Vector3 centre = Vector3.zero; float area = 0;
-        float plane = vertices.Max(p => Vector3.Dot(p, normal));
+        // A fitted boiler course can pass behind the transfer socket. The
+        // authored socket plane identifies the cap without a global-extreme guess.
+        float plane = socketPlane.HasValue ? Vector3.Dot(socketPlane.Value, normal) : vertices.Max(p => Vector3.Dot(p, normal));
         for (int i = 0; i < triangles.Length; i += 3)
         {
             var a = vertices[triangles[i]]; var b = vertices[triangles[i + 1]]; var c = vertices[triangles[i + 2]];

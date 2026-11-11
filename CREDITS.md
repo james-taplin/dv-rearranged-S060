@@ -6,7 +6,9 @@ Re:Arranged fork, which is based on Peter Schinske's original Rearranged S282.
 - **Peter Schinske / SatiricRug** — original Rearranged S282, the wheel-arrangement
   foundation and inherited custom Franklin running gear and pipework.
 - **JimTaplin / james-taplin** — Rearranged S282 B99/Re:Arranged fork development and the
-  S060 adaptation, arrangements and integration.
+  S060 adaptation, arrangements and integration. The Dockside 0.8.1 continuous
+  rod/web design and wheel-input presentation adapt the later S282 2.1 Franklin
+  work to S060-specific geometry, materials and native crank authoring.
 - **discorddraconequus** — Verde compound locomotive and the stage-specific chuff
   and sound-tuning reference adapted for the Meyer. Verde was supplied as a
   compound template with the author's invitation. Its native stage controls,

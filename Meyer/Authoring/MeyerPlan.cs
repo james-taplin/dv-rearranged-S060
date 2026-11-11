@@ -10,12 +10,17 @@ public static class MeyerPlan
     public const float FrontCentre = .90f;
     public const float RearCentre = -6.10f;
     public const float RearCouplerZ = -8.27f;
+    // Runtime R2 hook/hose correction to the fixed hook pocket. The legacy
+    // donor prefab datum above stays unchanged; only its engine frames are used.
+    public const float RearCouplingCorrectionZ = -.295f;
     public const float DeckCentreZ = -.075f;
     public const float DeckLength = 3.05f;
     public const float RearLampGlassZ = -1.87f;
     public const float NativeRearLampGlassZ = -4.22f;
     public const float RearBeamCentreZ = -1.80f;
     public const float RearBeamDepth = .16f;
+    // Shared R2 body/lighting datums; authoring must not depend on TrainCar code.
+    public const float BulkheadRear = -7.96f, BulkheadTop = 2.95f;
     public const double AxlePitch = 1.60;
     public const float CrankRadius = RearrangedS060.S060SteamCalibration.Meyer.NativeCrankRadius;
     public const float PistonStroke = RearrangedS060.S060SteamCalibration.Meyer.NativeStroke;

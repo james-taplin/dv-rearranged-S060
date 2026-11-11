@@ -12,6 +12,13 @@
   <ItemGroup>
     <Compile Include="..\Authoring\*.cs" />
     <Compile Include="..\..\RearrangedS060\S060PipeGeometry.cs" />
+    <Compile Include="..\..\RearrangedS060\S060SteamSleeve.cs" />
+    <Compile Include="..\..\RearrangedS060\S060MeyerLayout.cs" />
+    <Compile Include="..\..\RearrangedS060\S060MeyerInwardPipes.cs" />
+    <Compile Include="..\..\RearrangedS060\S060MeyerClearance.cs" />
+    <Compile Include="..\..\RearrangedS060\S060MeyerFrontMotion.cs" />
+    <Compile Include="..\..\RearrangedS060\S060MeyerGearMounts.cs" />
+    <Compile Include="..\..\RearrangedS060\S060MeyerFrontEquipment.cs" />
     <Compile Include="..\..\RearrangedS060\S060SteamCalibration.cs" />
     <Compile Include="..\..\RearrangedS060\S060OilCupGeometry.cs" />
     <Compile Include="..\..\RearrangedS060\S060RodMesh.cs" />

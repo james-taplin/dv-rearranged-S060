@@ -66,11 +66,7 @@ public static class SteamOilCupAudit
                     m.Wheel = axle.Cast<Transform>().Single(t => t.name.Contains("driver " + suffix));
                     m.X = side * (axle == axles[0] ? S060OilCupGeometry.MainRodPlaneX : S060OilCupGeometry.CouplingRodPlaneX); m.Lift = axle == axles[0] ? .12f : .11f; m.Boss = name.StartsWith("meyer", StringComparison.Ordinal) ? .085f : .067f;
                 }
-                if (frame == front)
-                {
-                    var guide = Cup(frame, simple); guide.Guide = rods.Find("Upper crosshead guide") ?? rods.Find("Crosshead guide 1");
-                    var cross = Cup(frame, crossCup); cross.Crosshead = rods.Find("Crosshead"); cross.Side = side; cross.Orientation = side > 0 ? Quaternion.Euler(0, 180, 0) : Quaternion.identity;
-                }
+                // Runtime 0.22.3: one upright cup per axle per side, no guide/crosshead cups.
             }
         }
         int assertions = 0; float maxGap = 0, minFootplateGap = float.PositiveInfinity;
@@ -112,7 +108,7 @@ public static class SteamOilCupAudit
                 { reader.transform.localRotation = Quaternion.Euler(0, reader.transform == front ? yaw : -yaw, 0); reader.GetComponent<Animator>().runtimeAnimatorController.animationClips.Single().SampleAnimation(reader.gameObject, sample / 128f); }
                 Update(true);
             }
-        Require(mounts.Count(m => m.Wheel != null) == 8 && mounts.Count == 12, "Two big-end oil cups per driven axle plus native guide/crosshead cups required."); assertions++;
+        Require(mounts.Count(m => m.Wheel != null) == 8 && mounts.Count == 8, "Exactly two oil cups per driven axle required."); assertions++;
         // Test production pin mounting in mirrored, radially scaled conventional
         // layouts too, including 0-4-0, stock/short 0-6-0, 0-6-2 and 0-8-0.
         foreach (int axles in new[] { 2, 3, 4 }) foreach (float scale in new[] { .8f, 1f }) foreach (int side in new[] { -1, 1 })
@@ -135,7 +131,7 @@ public static class SteamOilCupAudit
         }
         foreach (var reader in readers) { reader.transform.localRotation = Quaternion.identity; reader.GetComponent<Animator>().runtimeAnimatorController.animationClips.Single().SampleAnimation(reader.gameObject, 0); }
         Update(false);
-        File.WriteAllText(Path.Combine(output, "oilcup-geometry-validation.json"), "{\"passed\":true,\"reopenedBundle\":true,\"checks\":" + assertions + ",\"bigEndCups\":8,\"nativeGuideCrossheadCups\":4,\"sampledTurnsPerYaw\":129,\"yawDegrees\":[-12,0,12],\"maxSupportGapMetres\":" + maxGap.ToString("R", System.Globalization.CultureInfo.InvariantCulture) + ",\"minimumFootplateGapMetres\":" + minFootplateGap.ToString("R", System.Globalization.CultureInfo.InvariantCulture) + ",\"nativeCupMeshesPackaged\":false,\"functionalControlsRuntimeTested\":false}");
+        File.WriteAllText(Path.Combine(output, "oilcup-geometry-validation.json"), "{\"passed\":true,\"reopenedBundle\":true,\"checks\":" + assertions + ",\"bigEndCups\":8,\"nativeGuideCrossheadCups\":0,\"sampledTurnsPerYaw\":129,\"yawDegrees\":[-12,0,12],\"maxSupportGapMetres\":" + maxGap.ToString("R", System.Globalization.CultureInfo.InvariantCulture) + ",\"minimumFootplateGapMetres\":" + minFootplateGap.ToString("R", System.Globalization.CultureInfo.InvariantCulture) + ",\"nativeCupMeshesPackaged\":false,\"functionalControlsRuntimeTested\":false}");
         SteamNormalRodAudit.Validate(output);
         return () => Update(false);
     }

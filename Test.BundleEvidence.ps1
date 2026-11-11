@@ -7,6 +7,13 @@ $bundleEntries = @($receipt.files | Where-Object relative -Like '*\ccl_bundle')
 if ($bundleEntries.Count -ne 1) { throw 'Exactly one bundle must be validated.' }
 $pack = Split-Path $bundleEntries[0].relative -Parent
 if ($pack -eq 'RS060_Meyer_0440') { $requiredReports += 'meyer-lights-validation.json' }
+$packInfo = Get-Content (Join-Path $root (Join-Path $pack 'Info.json')) -Raw | ConvertFrom-Json
+if ($pack -eq 'RS060_Franklin_Dockside_0440' -and [version]$packInfo.Version -ge [version]'0.8.0') {
+    $requiredReports += 'franklin-detail-validation.json'
+}
+if ($pack -eq 'RS060_Franklin_Dockside_0440' -and [version]$packInfo.Version -ge [version]'0.8.1') {
+    $requiredReports += @('spacing-validation.json','boundary-validation.json')
+}
 $required = @($requiredReports) + @((Join-Path $pack 'ccl_bundle'), (Join-Path $pack 'Info.json'))
 foreach ($name in $required) { if (@($receipt.files | Where-Object relative -eq $name).Count -ne 1) { throw "Missing/duplicate evidence: $name" } }
 if (@($receipt.files).Count -ne $required.Count) { throw 'Unexpected evidence entries.' }

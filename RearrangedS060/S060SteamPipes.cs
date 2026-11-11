@@ -22,6 +22,7 @@ namespace RearrangedS060
             internal Mesh Original, Owned; internal Vector3[] Source, Work;
             internal float[] Weights; internal Vector3 Mount, Previous; internal Quaternion PreviousRotation;
             internal float MaxWeight, WeightedRadius; internal bool Initialized;
+            internal Vector3[] NativeTop, NativeCut; internal Mesh Sleeve;
         }
         private sealed class Span
         {
@@ -39,6 +40,11 @@ namespace RearrangedS060
         private S060MeyerInwardPipes inwardPipes;
         internal S060MeyerExhaustPipe ExhaustReturn => meyerExhaust;
         internal S060MeyerInwardPipes InwardPipes => inwardPipes;
+        internal float BoilerSocketRadius(int side) => oldBranches.BoilerSocketRadius(side);
+        private readonly List<(GameObject part, Mesh mesh)> boilerSleeves = new List<(GameObject, Mesh)>();
+#if UNITY_EDITOR
+        private Material sleevePreviewMaterial;
+#endif
         private bool disposed, destroying;
         internal static S060SteamPipes Bind(Transform body, Transform front, Transform rear, Transform nativeShell)
         {
@@ -53,6 +59,7 @@ namespace RearrangedS060
             try
             {
                 bool inward = S060MeyerInwardPipes.IsInward(body, front);
+                bool dockside = front.Find("Franklin fit R") != null;
                 foreach (int side in new[] { -1, 1 })
                 {
                     string suffix = side < 0 ? "L" : "R";
@@ -93,13 +100,14 @@ namespace RearrangedS060
                 }
                 if (nativeShell != null)
                 {
-                    owner.oldBranches = S060BodyPipes.Apply(nativeShell, Vector3.zero, true);
+                    owner.oldBranches = S060BodyPipes.Apply(nativeShell, Vector3.zero, true, !dockside);
                     foreach (var manifold in owner.fronts)
                     {
                         int side = manifold.Side;
                         manifold.Mount = body.InverseTransformPoint(nativeShell.TransformPoint(owner.oldBranches.BoilerSocket(side)));
                     }
                     var live = nativeShell.GetComponentsInChildren<MeshRenderer>(true).FirstOrDefault(r => r.name == "s060_body")?.sharedMaterial;
+                    if (dockside) owner.AddBoilerSleeves(live ?? front.GetComponentInChildren<MeshRenderer>().sharedMaterial, nativeShell);
                     if (live != null)
                         foreach (var renderer in front.GetComponentsInChildren<MeshRenderer>(true).Concat(rear.GetComponentsInChildren<MeshRenderer>(true)))
                             if (renderer.sharedMaterial != null && renderer.sharedMaterial.name.StartsWith("LocoS060", StringComparison.Ordinal)) renderer.sharedMaterial = live;
@@ -117,6 +125,29 @@ namespace RearrangedS060
                 owner.UpdateGeometry(); return owner;
             }
             catch { owner.Dispose(); throw; }
+        }
+        private void AddBoilerSleeves(Material template, Transform nativeShell)
+        {
+#if UNITY_EDITOR
+            sleevePreviewMaterial = new Material(Shader.Find("Standard")) { color = new Color(.21f, .215f, .22f) };
+            sleevePreviewMaterial.SetFloat("_Metallic", .55f); sleevePreviewMaterial.SetFloat("_Glossiness", .28f);
+            var material = sleevePreviewMaterial;
+#else
+            var material = S060ShayFinish.Gunmetal(template);
+#endif
+            foreach (var manifold in fronts)
+            {
+                manifold.NativeTop = oldBranches.BoilerSection(manifold.Side, S060PipeGeometry.BoilerCutY + .012f)
+                    .Select(p => body.InverseTransformPoint(nativeShell.TransformPoint(p))).ToArray();
+                manifold.NativeCut = oldBranches.BoilerSection(manifold.Side, S060PipeGeometry.BoilerCutY)
+                    .Select(p => body.InverseTransformPoint(nativeShell.TransformPoint(p))).ToArray();
+                var mesh = manifold.Sleeve = new Mesh(); mesh.MarkDynamic();
+                mesh.name = "Dockside fitted hollow smokebox sleeve";
+                var part = new GameObject("[Dockside smokebox sleeve " + (manifold.Side < 0 ? "L" : "R") + "]");
+                boilerSleeves.Add((part, mesh)); part.transform.SetParent(body, false);
+                part.AddComponent<MeshFilter>().sharedMesh = mesh;
+                part.AddComponent<MeshRenderer>().sharedMaterial = material;
+            }
         }
         internal void UpdateGeometry()
         {
@@ -138,6 +169,13 @@ namespace RearrangedS060
                 }
                 m.Owned.vertices = m.Work; m.Owned.RecalculateBounds(); m.Owned.RecalculateNormals();
                 m.Previous = delta; m.PreviousRotation = rotation; m.Initialized = true;
+                if (m.Sleeve != null)
+                {
+                    var matrix = body.worldToLocalMatrix * m.Part.localToWorldMatrix;
+                    var fitted = m.Work.Select(matrix.MultiplyPoint3x4).ToArray(); var triangles = m.Owned.triangles;
+                    S060SteamSleeve.Fit(m.Sleeve, m.NativeTop, m.NativeCut,
+                        S060SteamSleeve.Section(fitted, triangles, m.Mount.y-.095f), S060SteamSleeve.Section(fitted, triangles, m.Mount.y-.110f));
+                }
             }
             foreach (var s in spans)
             {
@@ -170,6 +208,15 @@ namespace RearrangedS060
                 if (s.Part != null) { s.Part.localPosition = s.Position; s.Part.localRotation = s.Rotation; s.Part.localScale = s.Scale; }
                 if (s.Owned != null) Release(s.Owned);
             }
+            foreach (var sleeve in boilerSleeves)
+            {
+                if (sleeve.part != null) { sleeve.part.SetActive(false); Release(sleeve.part); }
+                if (sleeve.mesh != null) Release(sleeve.mesh);
+            }
+            boilerSleeves.Clear();
+#if UNITY_EDITOR
+            if (sleevePreviewMaterial != null) Release(sleevePreviewMaterial);
+#endif
             fronts.Clear(); spans.Clear(); oldBranches?.Dispose(); oldBranches = null;
 #if !UNITY_EDITOR
             if (!destroying) Release(this);

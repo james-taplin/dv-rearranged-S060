@@ -13,6 +13,9 @@ New-Item -ItemType Directory -Path $output -Force | Out-Null
 $env:DOCKSIDE_OUTPUT = $output
 $env:DOCKSIDE_FRANKLIN_BUNDLE = $FranklinBundle
 $env:S060_NATIVE_PREVIEW = Join-Path $repo 'build\qa\native-preview.json'
+$env:S060_DOCKSIDE_SUPPORTS = Join-Path $repo 'build\qa\s060-support-pivots.json'
+& $config.Python -B (Join-Path $PSScriptRoot 'tools\Prepare.Supports.py') --game $config.GamePath --output $env:S060_DOCKSIDE_SUPPORTS
+if ($LASTEXITCODE -ne 0) { throw 'Native S060 support fixture export failed.' }
 $env:DOCKSIDE_WHEEL_COMPARISON = Join-Path $repo 'build\qa\s282-wheels-comparison.json'
 $env:S060_PIPE_SOURCE = Join-Path $repo 'Meyer\AuthoringData\S282BranchPipes.json'
 $sourceFolder = Join-Path $project 'Assets\DocksideSource'
@@ -22,6 +25,7 @@ foreach ($source in @((Join-Path $repo 'Meyer\Authoring'), (Join-Path $PSScriptR
     Get-ChildItem -LiteralPath $source -Filter '*.cs' -File | Copy-Item -Destination (Join-Path $project 'Assets\Editor') -Force
 }
 Copy-Item -LiteralPath (Join-Path $repo 'RearrangedS060\S060PipeGeometry.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
+Copy-Item -LiteralPath (Join-Path $repo 'RearrangedS060\S060SteamSleeve.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
 Copy-Item -LiteralPath (Join-Path $repo 'RearrangedS060\S060SteamCalibration.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
 foreach ($file in @('S060SteamPipes.cs','S060BodyPipes.cs','S060MeyerExhaustPipe.cs')) { Copy-Item -LiteralPath (Join-Path $repo "RearrangedS060\$file") -Destination (Join-Path $project 'Assets\Editor') -Force }
 Copy-Item -LiteralPath (Join-Path $repo 'RearrangedS060\S060OilCupGeometry.cs') -Destination (Join-Path $project 'Assets\Editor') -Force

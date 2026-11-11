@@ -60,7 +60,7 @@ public static class CleanupNativeAudit
                 var bodyFilter = new GameObject("s060_body").AddComponent<MeshFilter>(); bodyFilter.transform.SetParent(body.transform);
                 var bodySource = Triangle(); bodyFilter.sharedMesh = bodySource;
                 var pipeType = assembly.GetType("RearrangedS060.S060BodyPipes", true);
-                var pipes = pipeType.GetMethod("Apply", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, new object[] { body.transform, new Vector3(0, 0, .2f), false });
+                var pipes = pipeType.GetMethod("Apply", BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, new object[] { body.transform, new Vector3(0, 0, .2f), false, true });
                 var pipeCopy = bodyFilter.sharedMesh;
                 var fittingsType = assembly.GetType("RearrangedS060.S060CylinderFittings", true);
                 var fittings = Activator.CreateInstance(fittingsType, true); fittingsType.GetField("pipes", Instance).SetValue(fittings, pipes);

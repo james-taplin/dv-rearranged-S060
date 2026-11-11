@@ -13,6 +13,7 @@ namespace RearrangedS060
         private readonly Dictionary<int, Vector3> sockets = new Dictionary<int, Vector3>();
         private readonly Dictionary<int, float> socketRadii = new Dictionary<int, float>();
         private bool capSockets;
+        private Transform body;
         internal Vector3 BoilerSocket(int side) => sockets.TryGetValue(side, out var value) ? value : throw new InvalidOperationException("Actual S060 boiler neck section missing.");
         internal float BoilerSocketRadius(int side) => socketRadii[side];
         internal static bool InBranch(Vector3 p) => Math.Abs(p.x) >= .52f && Math.Abs(p.x) <= 1.50f &&
@@ -25,7 +26,7 @@ namespace RearrangedS060
         }
         internal static S060BodyPipes Apply(Transform body, Vector3 delta, bool remove = false, bool capSockets = true)
         {
-            var owner = new S060BodyPipes { capSockets = capSockets };
+            var owner = new S060BodyPipes { capSockets = capSockets, body = body };
             try
             {
                 foreach (var filter in body.GetComponentsInChildren<MeshFilter>(true).Where(f => f.name == "s060_body").OrderByDescending(f => f.sharedMesh == null ? 0 : f.sharedMesh.vertexCount))
@@ -114,6 +115,24 @@ namespace RearrangedS060
             copy.vertices = vertices.ToArray(); if (hasUv) copy.uv = uv.ToArray();
             for (int sub = 0; sub < output.Length; sub++) copy.SetTriangles(output[sub], sub);
             copy.RecalculateNormals(); if (hasUv) copy.RecalculateTangents();
+        }
+        // Unmodified native triangle sections, including the mounting edges.
+        // Keep the segment connectivity: a bounding radius loses the pipe shape.
+        internal Vector3[] BoilerSection(int side, float y)
+        {
+            foreach (var home in meshes)
+            {
+                var local = home.original.vertices.Select(v => body.InverseTransformPoint(home.filter.transform.TransformPoint(v))).ToArray();
+                var indices = home.original.triangles; var section = new List<Vector3>();
+                for (int t = 0; t < indices.Length; t += 3)
+                {
+                    int a = indices[t], b = indices[t + 1], c = indices[t + 2];
+                    if (!InBranch(local[a]) || !InBranch(local[b]) || !InBranch(local[c]) || Math.Sign(local[a].x) != side) continue;
+                    S060SteamSleeve.CutTriangle(local[a], local[b], local[c], y, section);
+                }
+                if (section.Count >= 12) return section.ToArray();
+            }
+            throw new InvalidOperationException("Actual native boiler pipe profile missing.");
         }
         public void Dispose()
         {

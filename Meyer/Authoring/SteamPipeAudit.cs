@@ -14,6 +14,9 @@ public static class SteamPipeAudit
         try
         {
             var front = clone.transform.Find("BogieF/bogie_car"); var rear = clone.transform.Find("BogieR/bogie_car");
+            bool dockside = front.Find("Franklin fit R") != null;
+            var frontHome = clone.transform.InverseTransformPoint(front.position); var rearHome = clone.transform.InverseTransformPoint(rear.position);
+            var sleeveY = new[] { -.008f, -.030f, -.072f, -.095f, -.110f }; var sleeveRadius = new float[sleeveY.Length];
             var native = SteamNativePreview.CreatePipeFixture(clone.transform, owned);
             var caps = new Dictionary<string, int[]>();
             foreach (string side in new[] { "L", "R" })
@@ -37,11 +40,32 @@ public static class SteamPipeAudit
                 foreach (float bodyYaw in new[] { 0, 73f })
                 {
                     clone.transform.SetPositionAndRotation(new Vector3(120, 20, -73), Quaternion.Euler(0, bodyYaw, 0));
-                    front.localRotation = Quaternion.Euler(0, yaw, 0); rear.localRotation = Quaternion.Euler(0, -yaw, 0);
+                    if (dockside)
+                    {
+                        SteamBogiePoseAudit.Pose(clone.transform, front, frontHome, true, yaw);
+                        SteamBogiePoseAudit.Pose(clone.transform, rear, rearHome, false, -yaw);
+                    }
+                    else { front.localRotation = Quaternion.Euler(0, yaw, 0); rear.localRotation = Quaternion.Euler(0, -yaw, 0); }
                     owner.UpdateGeometry();
                     foreach (string side in new[] { "L", "R" })
                     {
                         var manifold = front.Find("[S060 manifold " + side + "]"); var fitted = manifold.GetComponent<MeshFilter>().sharedMesh;
+                        if (dockside)
+                        {
+                            var matrix = clone.transform.worldToLocalMatrix * manifold.localToWorldMatrix;
+                            var points = fitted.vertices.Select(matrix.MultiplyPoint3x4).ToArray(); var indices = fitted.triangles;
+                            var socket = S060PipeGeometry.BoilerSocket(side == "L" ? -1 : 1);
+                            for (int ring = 0; ring < sleeveY.Length; ring++)
+                                for (int triangle = 0; triangle < indices.Length; triangle += 3)
+                                    for (int edge = 0; edge < 3; edge++)
+                                    {
+                                        var a0 = points[indices[triangle + edge]]; var b0 = points[indices[triangle + (edge + 1) % 3]]; float plane = socket.y + sleeveY[ring];
+                                        if ((a0.y < plane) == (b0.y < plane) || Mathf.Abs(b0.y - a0.y) < .000001f) continue;
+                                        var point = Vector3.LerpUnclamped(a0, b0, (plane - a0.y) / (b0.y - a0.y));
+                                        float radius = new Vector2(point.x - socket.x, point.z - socket.z).magnitude;
+                                        sleeveRadius[ring] = Mathf.Max(sleeveRadius[ring], radius);
+                                    }
+                        }
                         var capVertices = fitted.vertices; var triangles = fitted.triangles; Vector3 centre = Vector3.zero; float area = 0;
                         var target = clone.transform.TransformPoint(S060PipeGeometry.BoilerSocket(side == "L" ? -1 : 1));
                         foreach (int face in caps[side])
@@ -57,8 +81,8 @@ public static class SteamPipeAudit
                         var a = rear.Find("[S060 manifold " + side + "]/[transfer socket]").position;
                         var b = front.Find("[S060 manifold " + side + "]/[transfer socket]").position;
                         var rearManifold = rear.Find("[S060 manifold " + side + "]");
-                        var actualRear = rearManifold.TransformPoint(SteamPipeAuthoring.FaceCentre(rearManifold.GetComponent<MeshFilter>().sharedMesh, Vector3.forward));
-                        var actualFront = manifold.TransformPoint(SteamPipeAuthoring.FaceCentre(fitted, Vector3.back));
+                        var actualRear = rearManifold.TransformPoint(SteamPipeAuthoring.FaceCentre(rearManifold.GetComponent<MeshFilter>().sharedMesh, Vector3.forward, rearManifold.Find("[transfer socket]").localPosition));
+                        var actualFront = manifold.TransformPoint(SteamPipeAuthoring.FaceCentre(fitted, Vector3.back, manifold.Find("[transfer socket]").localPosition));
                         var pipeMesh = pipe.GetComponent<MeshFilter>().sharedMesh;
                         var pipeRear = pipe.TransformPoint(SteamPipeAuthoring.FaceCentre(pipeMesh, Vector3.back));
                         var pipeFront = pipe.TransformPoint(SteamPipeAuthoring.FaceCentre(pipeMesh, Vector3.forward));
@@ -90,6 +114,7 @@ public static class SteamPipeAudit
                         }
                     }
                 }
+            if (dockside) File.WriteAllText(Path.Combine(output, "sleeve-fit-measurement.json"), "{\"nativeRadius\":" + owner.BoilerSocketRadius(1).ToString("R", System.Globalization.CultureInfo.InvariantCulture) + ",\"y\":[" + string.Join(",", sleeveY.Select(v => v.ToString("R", System.Globalization.CultureInfo.InvariantCulture))) + "],\"maximumManifoldRadius\":[" + string.Join(",", sleeveRadius.Select(v => v.ToString("R", System.Globalization.CultureInfo.InvariantCulture))) + "]}");
             owner.Dispose();
             Require(sources.All(p => p.f == null || p.f.sharedMesh == p.sharedMesh), "Disposal must restore every original source mesh."); checks++;
             string returnReport = "null";

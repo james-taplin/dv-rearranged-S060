@@ -42,7 +42,7 @@ $simDll = Get-ChildItem (Join-Path $repo 'RearrangedS060\obj\Release\net48\Publi
 $checks = @()
 foreach ($entry in @(
     @{ id='RS060_Meyer_0440'; version='0.7.0'; evidence=$MeyerEvidence; readme='Meyer\README.md'; test='Meyer'; extra=@('-p:BaseIntermediateOutputPath=obj/native/') },
-    @{ id='RS060_Franklin_Dockside_0440'; version='0.7.0'; evidence=$DocksideEvidence; readme='Dockside\README.md'; test='Dockside'; extra=@() }
+    @{ id='RS060_Franklin_Dockside_0440'; version='0.8.1'; evidence=$DocksideEvidence; readme='Dockside\README.md'; test='Dockside'; extra=@() }
 )) {
     & (Join-Path $repo 'Test.BundleEvidence.ps1') -Evidence $entry.evidence
     $reports = @('bundle-validation.json','motion-validation.json','steam-pipe-validation.json','oilcup-geometry-validation.json','normal-rod-validation.json','native-pin-fit-validation.json','steam-effects-validation.json')

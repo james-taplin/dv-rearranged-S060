@@ -11,7 +11,19 @@ using UnityEngine;
 public static class SteamNativePreview
 {
     [Serializable] private class Data { public Entry[] meshes = Array.Empty<Entry>(); }
-    [Serializable] private class Entry { public string name = ""; public Vector3[] vertices = Array.Empty<Vector3>(); public Vector2[] uv = Array.Empty<Vector2>(); public int[] triangles = Array.Empty<int>(); }
+    [Serializable] private class Entry { public string name = ""; public Vector3[] vertices = Array.Empty<Vector3>(), normals = Array.Empty<Vector3>(); public Vector2[] uv = Array.Empty<Vector2>(); public int[] triangles = Array.Empty<int>(); }
+    public static void RodSources(Transform body, List<UnityEngine.Object> owned)
+    {
+        var data = JsonUtility.FromJson<Data>(File.ReadAllText(Environment.GetEnvironmentVariable("S060_NATIVE_PREVIEW")));
+        foreach (var entry in data.meshes.Where(m => m.name == "s060_mech_wheels_connect" || m.name == "s060_mech_push_rod_to_connect"))
+        {
+            var mesh = new Mesh { name = entry.name, vertices = entry.vertices, uv = entry.uv, triangles = entry.triangles };
+            if (entry.normals.Length == entry.vertices.Length) mesh.normals = entry.normals; else mesh.RecalculateNormals();
+            mesh.RecalculateBounds(); owned.Add(mesh);
+            var go = new GameObject(entry.name + " (hidden native source QA)"); go.transform.SetParent(body, false); go.SetActive(false); owned.Add(go);
+            go.AddComponent<MeshFilter>().sharedMesh = mesh;
+        }
+    }
     public static bool Apply(GameObject clone, List<UnityEngine.Object> owned)
     {
         string path = Environment.GetEnvironmentVariable("S060_NATIVE_PREVIEW");

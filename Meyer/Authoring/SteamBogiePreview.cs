@@ -61,9 +61,11 @@ public static class SteamBogiePreview
             var focus = new Vector3(0, nativePreview ? 1.75f : 1.0f, extended ? -2f : 0);
             var camera = cameraObject.AddComponent<Camera>(); camera.scene = scene; camera.cullingMask = 1 << 31; camera.orthographic = true; camera.orthographicSize = extended ? 3.9f : 2.6f;
             camera.clearFlags = CameraClearFlags.SolidColor; camera.backgroundColor = new Color(.87f, .90f, .93f);
+            var fillObject = new GameObject("Bogie preview fill"); SceneManager.MoveGameObjectToScene(fillObject, scene);
+            var fill = fillObject.AddComponent<Light>(); fill.type = LightType.Directional; fill.intensity = .7f; fill.transform.rotation = Quaternion.Euler(20,145,0);
             var light = lightObject.AddComponent<Light>(); light.type = LightType.Directional; light.intensity = 1.3f; light.transform.rotation = Quaternion.Euler(45, -25, 0);
             RenderSettings.ambientLight = new Color(.57f, .57f, .57f);
-            for (int frame = 0; frame < (extended ? 5 : 3); frame++)
+            for (int frame = 0; frame < (name == "dockside" ? 7 : extended ? 5 : 3); frame++)
             {
                 foreach (var reader in clone.GetComponentsInChildren<AnimatorPortReaderProxy>(true))
                 {
@@ -75,15 +77,51 @@ public static class SteamBogiePreview
                 updateOilCups();
                 pipes.UpdateGeometry();
                 camera.transform.position = offset + focus + (frame >= 3 ? new Vector3(-8, 2.1f, 4) : frame == 0 ? new Vector3(8, 1.25f, .1f) : new Vector3(7, 2.4f, 5));
-                camera.transform.LookAt(offset + focus);
-                var target = new RenderTexture(1600, 900, 24); camera.targetTexture = target; camera.Render();
-                var old = RenderTexture.active; RenderTexture.active = target;
-                var pixels = new Texture2D(1600, 900, TextureFormat.RGB24, false); pixels.ReadPixels(new Rect(0, 0, 1600, 900), 0, 0); pixels.Apply();
-                File.WriteAllBytes(Path.Combine(output, name + "-running-gear-" + frame + ".png"), pixels.EncodeToPNG());
-                RenderTexture.active = old; camera.targetTexture = null; Object.DestroyImmediate(pixels); Object.DestroyImmediate(target);
+                if (!extended && name == "dockside" && frame >= 3)
+                {
+                    var close = new Vector3(0, 1.15f, DocksidePlan.BogieCentre + .35f);
+                    camera.orthographicSize = 1.25f;
+                    camera.transform.position = offset + close + new Vector3(frame == 3 ? 6 : -6, .65f, .75f);
+                    camera.transform.LookAt(offset + close);
+                    light.transform.rotation = Quaternion.Euler(35, frame == 3 ? -40 : 40, 0);
+                }
+                else camera.transform.LookAt(offset + focus);
+                if (!extended && name == "dockside" && frame >= 5)
+                {
+                    var neck = new Vector3(frame == 5 ? .705f : -.705f, 2.07f, 3.17f); camera.orthographicSize = .30f;
+                    camera.transform.position = offset + neck + new Vector3(frame == 5 ? 4 : -4, .85f, 4);
+                    camera.transform.LookAt(offset + neck);
+                    light.transform.rotation = Quaternion.Euler(35, frame == 5 ? -40 : 40, 0);
+                }
+                Capture(camera, Path.Combine(output, name + "-running-gear-" + frame + ".png"), 1600, 900);
+            }
+            if (name == "dockside")
+            {
+                var close = new Vector3(0, 1.15f, DocksidePlan.BogieCentre + .35f); camera.orthographicSize = 1.25f;
+                camera.transform.position = offset + close + new Vector3(6, .65f, .75f); camera.transform.LookAt(offset + close);
+                light.transform.rotation = Quaternion.Euler(35, -40, 0);
+                for (int frame = 0; frame < 16; frame++)
+                {
+                    foreach (var reader in clone.GetComponentsInChildren<AnimatorPortReaderProxy>(true))
+                    {
+                        reader.transform.localRotation = Quaternion.identity;
+                        bool front = reader.portId.StartsWith(MeyerSteamAuthoring.Lp);
+                        reader.GetComponent<Animator>().runtimeAnimatorController.animationClips.Single().SampleAnimation(reader.gameObject, frame / 16f + (front ? .125f : 0));
+                    }
+                    updateOilCups(); pipes.UpdateGeometry();
+                    Capture(camera, Path.Combine(output, "dockside-cycle-" + frame.ToString("D2") + ".png"), 1000, 600);
+                }
             }
         }
         finally { if (pipes != null) pipes.Dispose(); RenderSettings.ambientLight = previousAmbient; EditorSceneManager.ClosePreviewScene(scene); Object.DestroyImmediate(wheel); Object.DestroyImmediate(ground); if (guide != null) Object.DestroyImmediate(guide); foreach (var item in owned) if (item != null) Object.DestroyImmediate(item); }
+    }
+    private static void Capture(Camera camera, string path, int width, int height)
+    {
+        var target = new RenderTexture(width, height, 24); camera.targetTexture = target; camera.Render();
+        var old = RenderTexture.active; RenderTexture.active = target;
+        var pixels = new Texture2D(width, height, TextureFormat.RGB24, false); pixels.ReadPixels(new Rect(0, 0, width, height), 0, 0); pixels.Apply();
+        File.WriteAllBytes(path, pixels.EncodeToPNG());
+        RenderTexture.active = old; camera.targetTexture = null; Object.DestroyImmediate(pixels); Object.DestroyImmediate(target);
     }
     private static string MeshName(Renderer renderer)
     { var filter = renderer.GetComponent<MeshFilter>(); return filter != null && filter.sharedMesh != null ? filter.sharedMesh.name : "no mesh"; }

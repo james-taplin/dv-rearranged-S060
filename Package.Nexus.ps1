@@ -31,7 +31,7 @@ Copy-Item -LiteralPath (Join-Path $repo 'docs\nexus\CORE_README.txt') -Destinati
 Copy-Item -LiteralPath (Join-Path $repo 'docs\nexus\INSTALL.txt') -Destination $stage -Force
 $assets = @(
     @{ id='RS060_Meyer_0440'; directory='Meyer'; version='0.7.0'; readme='MEYER_README.txt' },
-    @{ id='RS060_Franklin_Dockside_0440'; directory='Dockside'; version='0.7.0'; readme='DOCKSIDE_README.txt' }
+    @{ id='RS060_Franklin_Dockside_0440'; directory='Dockside'; version='0.8.1'; readme='DOCKSIDE_README.txt' }
 )
 $payload = @([ordered]@{ relative='RearrangedS060.dll'; hash=$runtimeEntry[0].Hash; kind='runtime' })
 foreach ($asset in $assets) {
