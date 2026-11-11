@@ -1,3 +1,6 @@
+Latest model candidate adds visible coil suspension, brakes and front compressor equipment;
+see [R3-RUNNING-GEAR-DETAIL.md](R3-RUNNING-GEAR-DETAIL.md). Staged only.
+
 R3 model/detail candidate is now staged with matching assets and offline checks;
 see [R3-DETAIL-PASS.md](R3-DETAIL-PASS.md). No install or gameplay acceptance.
 

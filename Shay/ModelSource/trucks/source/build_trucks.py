@@ -65,26 +65,35 @@ def extrude_x(x0,x1,poly):
     return mesh(v,t)
 
 def spring(x,z,y0,y1,n):
-    # Helix with its endpoints entering spring seat plates, no floating coil.
-    steps=28 if n>8 else 12;rad=.033;wire=.009;v=[];t=[]
+    # Exposed heavy coil, including round wire and seated end turns.
+    steps=84 if n>8 else 36;sides=6 if n>8 else 4;rad=.042;wire=.0115;v=[];t=[]
     for j in range(steps+1):
-        q=j/steps*math.tau*3;center=np.array([x+rad*math.cos(q),y0+(y1-y0)*j/steps,z+rad*math.sin(q)])
-        u=np.array([math.cos(q),0,math.sin(q)]);w=np.array([0,1,0])
-        for k in range(4):v.append(center+wire*(u*math.cos(k*math.pi/2)+w*math.sin(k*math.pi/2)))
+        f=j/steps;q=f*math.tau*3.5
+        h=(y1-y0)*f
+        centre=np.array([x+rad*math.cos(q),y0+h,z+rad*math.sin(q)])
+        tangent=np.array([-rad*math.sin(q)*math.tau*3.5,(y1-y0),rad*math.cos(q)*math.tau*3.5]);tangent/=np.linalg.norm(tangent)
+        u=np.array([math.cos(q),0,math.sin(q)]);w=np.cross(tangent,u);w/=np.linalg.norm(w)
+        for k in range(sides):v.append(centre+wire*(u*math.cos(k*math.tau/sides)+w*math.sin(k*math.tau/sides)))
     for j in range(steps):
-        for k in range(4):a=j*4+k;b=j*4+(k+1)%4;t.extend([[a,b,b+4],[a,b+4,a+4]])
-    t.extend([[0,2,1],[0,3,2],[steps*4,steps*4+1,steps*4+2],[steps*4,steps*4+2,steps*4+3]])
+        for k in range(sides):a=j*sides+k;b=j*sides+(k+1)%sides;t.extend([[a,b,b+sides],[a,b+sides,a+sides]])
+    for k in range(1,sides-1):t.extend([[0,k+1,k],[steps*sides,steps*sides+k,steps*sides+k+1]])
     return mesh(v,t)
 
-def shoe(side,sign,n):
-    v=[];t=[];angles=np.linspace(-.145,.145,9 if n>8 else 5);m=len(angles)
-    for x in [side*.731,side*.791]:
-        for r in [0.407596629617,0.436871525667]:
+
+def shoe(side,sign,n,back=False):
+    v=[];t=[];angles=np.linspace(-.35,.35,15 if n>8 else 9);m=len(angles)
+    # The actual tread runs between X=.708 and .800. Keep the rubbing block
+    # across that tread; its cast back and pin project beyond the wheel face.
+    xs=[side*.718,side*(.829 if back else .794)]
+    radii=[.464,.491] if back else [.411,.461]
+    for x in xs:
+        for r in radii:
             for a in angles:v.append([x,AY+r*math.sin(a),sign*r*math.cos(a)])
     for j in range(m-1):
         for a,b in [(0,m),(m,3*m),(3*m,2*m),(2*m,0)]:t.extend([[a+j,a+j+1,b+j+1],[a+j,b+j+1,b+j]])
     for j in [0,m-1]:t.extend([[j,m+j,3*m+j],[j,3*m+j,2*m+j]])
     return mesh(v,t)
+
 
 def add(name,parent,fn,material='frame_painted',supports=(),category='frame'):
     lod=[]
@@ -136,38 +145,65 @@ for ti,tr in enumerate(C['trucks']):
         for s in [-1,1]:
             side='L' if s<0 else 'R'
             ab=node(an+'_AXLEBOX_'+side,root,[s*.52,AY,zz],'nonspinning journal follows truck; suspension owner may move this group')
-            cyl(an+'_journal_'+side,ab,[-.064,0,0],[.064,0,0],.143,inner=.085,supports=['spring base','horn guides','native axle through bore'],category='axlebox')
-            cyl(an+'_bearing_cap_'+side,ab,[s*.061,0,0],[s*.079,0,0],.148,inner=.085,material='shaft_steel',supports=['journal housing flange'],category='axlebox')
+            cyl(an+'_journal_'+side,ab,[-.048,0,0],[.048,0,0],.131,inner=.112,supports=['spring base','horn guides','native axle through bore'],category='axlebox')
+            cyl(an+'_bearing_cap_'+side,ab,[s*.049,0,0],[s*.067,0,0],.140,inner=.112,material='shaft_steel',supports=['journal housing flange'],category='axlebox')
             for zsg in [-1,1]:
-                cube(an+'_horn_'+side+str(zsg),root,[s*.52-.048,AY-.01,zz+zsg*.174-.027],[s*.52+.048,.9,zz+zsg*.174+.027],supports=['cast side web','journal sliding guide'],category='frame')
-                cyl(an+'_cap_bolt_'+side+str(zsg),ab,[s*.077,.09,zsg*.085],[s*.092,.09,zsg*.085],.014,supports=['cap flange'],material='shaft_steel',category='detail')
-            cube(an+'_spring_base_'+side,ab,[-.073,.122,-.125],[.073,.151,.125],supports=['journal casting upper shoulders'],category='axlebox')
-            for zs in [-.075,.075]:
-                add(an+'_spring_'+side+str(zs),ab,lambda n,zs=zs:spring(0,zs,.147,.267,n),material='shaft_steel',supports=['journal spring base','frame spring top'],category='spring')
-            cube(an+'_spring_top_'+side,ab,[-.07,.26,-.126],[.07,.289,.126],supports=['springs','side web at y=.815'],category='spring')
+                cube(an+'_horn_'+side+str(zsg),root,[s*.52-.047,AY-.01,zz+zsg*.180-.023],[s*.52+.047,AY+.425,zz+zsg*.180+.023],supports=['cast side web','journal sliding guide'],category='frame')
+                cyl(an+'_cap_bolt_'+side+str(zsg),ab,[s*.063,.09,zsg*.085],[s*.079,.09,zsg*.085],.014,supports=['cap flange'],material='shaft_steel',category='detail')
+            # Two prominent seated coils over each supported inboard axlebox.
+            # The entire coil lies above the wheel silhouette and above the
+            # bevel ring. Springs and shoes are truck-owned, never wheel-spun.
+            cube(an+'_spring_saddle_riser_'+side,ab,[-.050,.128,-.054],[.050,.428,.054],supports=['journal upper shoulders','lower coil seat'],category='axlebox')
+            cx=-s*.21
+            cube(an+'_coil_lower_seat_'+side,ab,[min(-.069,cx-.08),.424,-.151],[max(.069,cx+.08),.442,.151],supports=['journal saddle','both coil ends'],category='spring')
+            for zzs in [-.087,.087]:
+                add(an+'_exposed_coil_'+side+str(zzs),ab,lambda n,zzs=zzs,s=s:spring(-s*.21,zzs,.450,.580,n),material='spring_steel',supports=['lower axlebox seat','upper truck seat'],category='spring_smooth')
+                cyl(an+'_coil_guide_'+side+str(zzs),ab,[cx,.433,zzs],[cx,.591,zzs],.012,material='shaft_steel',supports=['lower seat','upper retainer'],category='spring')
+            cube(an+'_coil_upper_seat_'+side,ab,[cx-.08,.590,-.205],[cx+.08,.610,.205],material='spring_steel',supports=['coil end turns','frame posts'],category='spring')
+            for end in [-1,1]:
+                lo,hi=sorted([s*.31,s*.58]);ez=zz+end*.180
+                cube(an+'_spring_outrigger_'+side+str(end),root,[lo,AY+.420,ez-.025],[hi,AY+.448,ez+.025],supports=['original side web','horn guide'],category='frame')
+                cube(an+'_spring_upper_post_'+side+str(end),ab,[cx-.049,.420,end*.180-.024],[cx+.049,.599,end*.180+.024],supports=['outrigger','upper spring seat'],category='spring')
             # Inboard cup ear and riser: accessible from the open bay; not on wheel.
             cube(an+'_oil_ear_'+side,ab,[-s*.09-.07,.105,-.035],[-s*.09+.07,.135,.035],supports=['journal inner side wall, 44 mm overlap in X'],category='axlebox')
             cyl(an+'_oil_riser_'+side,ab,[-s*.12,.125,0],[-s*.12,.185,0],.014,supports=['oil ear'],category='detail')
             marker('OIL_CUP_'+str(ai+1)+'_'+side,ab,[-s*.12,.229,0],purpose='upright oil-cup seat on the riser top; runtime places native cups (R2: five chosen seats)')
-        # Two tread shoes outside the truck ends, common cross beam and supported
-        # swing arms. Carrier translation is an integration interface only.
-        sg=-1 if ai%2==0 else 1;carrier=node(an+'_BRAKE',root,[0,0,zz],'released carrier; applied travel -sign*.012 Z')
-        for s in [-1,1]:
-            side='L' if s<0 else 'R'
-            add(an+'_shoe_'+side,carrier,lambda n,s=s,sg=sg:shoe(s,sg,n),material='brake_iron',supports=['shoe back lug','brake beam'],category='brake')
-            cube(an+'_shoe_lug_'+side,carrier,[s*.761-.035,AY-.035,sg*.443-.015],[s*.761+.035,AY+.035,sg*.443+.015],supports=['shoe back','beam'],category='brake')
-            cyl(an+'_brake_hanger_'+side,carrier,[s*.54,.94,sg*.19],[s*.54,AY,sg*.448],.018,supports=['truck end transom hanger pin','brake beam'],category='brake')
-            cyl(an+'_hanger_pin_'+side,root,[s*.54-.034,.94,zz+sg*.19],[s*.54+.034,.94,zz+sg*.19],.026,supports=['end transom'],category='frame')
-        cyl(an+'_brake_beam',carrier,[-.79,AY,sg*.448],[.79,AY,sg*.448],.023,supports=['both hangers','both shoe lugs'],category='brake')
-        cyl(an+'_pull_link',carrier,[0,AY,sg*.448],[0,.84,sg*.15],.013,supports=['brake beam','equalizer lever'],category='brake')
-        cube(an+'_equalizer',carrier,[-.09,.825,sg*.15-.025],[.09,.855,sg*.15+.025],supports=['pull link','frame-supported pivot'],category='brake')
-        cyl(an+'_equalizer_mount',root,[0,.84,zz+sg*.15],[0,.925,zz+sg*.15],.02,supports=['equalizer','frame center transom/bolster via cross tie'],category='frame')
-        cube(an+'_equalizer_cross_tie',root,[-.53,.91,zz+sg*.15-.024],[.53,.94,zz+sg*.15+.024],supports=['both cast webs','equalizer pivot'],category='frame')
-        for s in [-1,1]:
-            lo=[s*.761-.043,AY-.10,zz+sg*.448-.04];hi=[s*.761+.043,AY+.10,zz+sg*.448+.04]
-            VOLUMES.append(dict(name=an+'_BRAKE_CLEARANCE_'+str(s),parent=root,min=lo,max=hi,travel=[0,0,-sg*.012],kind='shoe/beam swept reservation; no Collider'))
-        marker(an+'_BRAKE_ACTUATION',carrier,[0,.84,sg*.15],(0,0,-sg),'12 mm conservative applied travel; pivoted rigging requires integration articulation')
-        VOLUMES.append(dict(name=an+'_BRAKE_BEAM_CLEARANCE',parent=root,min=[-.82,AY-.05,zz+sg*.448-.05],max=[.82,AY+.05,zz+sg*.448+.05],travel=[0,0,-sg*.012],kind='complete beam swept reservation; no Collider'))
+        # One substantial tread shoe per wheel, with cast backing, outer
+        # hangers and a cross beam beyond the flange sweep between the two wheelsets.
+        sg=1 if ai%2==0 else -1;carrier=node(an+'_BRAKE',root,[0,0,zz],'released carrier; static visual rigging follows truck')
+        for side_sign in [-1,1]:
+            side='L' if side_sign<0 else 'R';xx=side_sign*.846
+            add(an+'_shoe_'+side,carrier,lambda n,s=side_sign,sg=sg:shoe(s,sg,n),material='brake_iron',supports=['cast shoe back','brake beam'],category='brake')
+            add(an+'_shoe_back_'+side,carrier,lambda n,s=side_sign,sg=sg:shoe(s,sg,n,True),material='spring_steel',supports=['rubbing block','hanger pin','cross beam'],category='brake')
+            cube(an+'_shoe_lug_'+side,carrier,[xx-.028,AY-.035,sg*.495-.019],[xx+.028,AY+.035,sg*.495+.019],supports=['shoe casting','beam'],category='brake')
+            cyl(an+'_brake_hanger_'+side,carrier,[xx,AY+.385,sg*.300],[xx,AY,sg*.495],.022,material='spring_steel',supports=['cantilever hanger bracket','shoe pin'],category='brake')
+            for y,z in [(AY+.385,sg*.300),(AY,sg*.495)]:
+                cyl(an+'_brake_pin_'+side+str(y),carrier,[xx-.037,y,z],[xx+.037,y,z],.028,material='shaft_steel',supports=['hanger eye','beam or top clevis'],category='brake')
+            lo,hi=sorted([side_sign*.51,side_sign*.88])
+            cube(an+'_hanger_top_bracket_'+side,root,[lo,AY+.36,zz+sg*.30-.035],[hi,AY+.405,zz+sg*.30+.035],supports=['end frame web','hanger clevis'],category='frame')
+            cyl(an+'_hanger_brace_'+side,root,[side_sign*.54,AY+.435,zz+sg*.19],[xx,AY+.385,zz+sg*.30],.019,material='spring_steel',supports=['end transom','top bracket'],category='frame')
+        cyl(an+'_brake_beam',carrier,[-.87,AY,sg*.500],[.87,AY,sg*.500],.024,material='spring_steel',supports=['both hanger eyes','shoe lugs'],category='brake')
+        cyl(an+'_pull_link',carrier,[0,AY,sg*.500],[0,AY+.255,sg*.16],.016,material='shaft_steel',supports=['brake beam','equalizer'],category='brake')
+        cube(an+'_equalizer',carrier,[-.19,AY+.235,sg*.16-.024],[.19,AY+.275,sg*.16+.024],material='spring_steel',supports=['pull rod','supported pivot'],category='brake')
+        cyl(an+'_equalizer_mount',root,[0,AY+.255,zz+sg*.16],[0,AY+.365,zz+sg*.16],.026,supports=['equalizer','cross tie'],category='frame')
+        cube(an+'_equalizer_cross_tie',root,[-.55,AY+.35,zz+sg*.16-.025],[.55,AY+.385,zz+sg*.16+.025],supports=['both cast webs','equalizer pivot'],category='frame')
+        marker(an+'_BRAKE_ACTUATION',carrier,[0,AY+.255,sg*.16],(0,0,-sg),'static connected visual brake rigging; native brakes retain operation')
+    # A cylinder, piston neck, transverse operating shaft and two pull rods
+    # connect the end brake beams. No independent brake simulation is added.
+    cyl(label+'_brake_cylinder',frame,[-.30,AY+.26,mid-.15],[-.30,AY+.26,mid+.10],.085,supports=['bolted cylinder saddle'],category='pressure_vessel')
+    for zz in [mid-.15,mid+.10]:
+        cyl(label+'_brake_cylinder_head_'+str(zz),frame,[-.30,AY+.26,zz-.013],[-.30,AY+.26,zz+.013],.099,material='shaft_steel',supports=['cylinder barrel'],category='detail')
+    cube(label+'_brake_cylinder_saddle',frame,[-.42,AY+.31,mid-.12],[-.18,AY+.365,mid+.06],supports=['brake barrel','centre transom'],category='frame')
+    cyl(label+'_brake_piston',frame,[-.30,AY+.26,mid+.1],[-.30,AY+.26,mid+.24],.021,material='shaft_steel',supports=['cylinder head','operating arm'],category='brake')
+    cyl(label+'_brake_crossshaft',frame,[-.52,AY+.26,mid+.24],[.52,AY+.26,mid+.24],.027,material='shaft_steel',supports=['both side frame bearing ears'],category='brake')
+    for end,station in [(-1,rear),(1,front)]:
+        cyl(label+'_brake_reachrod_'+str(end),frame,[.17*end,AY+.26,mid+.24],[.17*end,AY+.255,station-end*.16],.013,material='shaft_steel',supports=['crossshaft crank','end equalizer'],category='brake')
+    # Tapered transverse bolster ends show above the inter-wheel gap and enter
+    # the native centre-bearing stack, keeping the moving and rigid load paths.
+    for side_sign in [-1,1]:
+        lo,hi=sorted([side_sign*.50,side_sign*.84])
+        add(label+'_bolster_cheek_'+str(side_sign),frame,lambda n,lo=lo,hi=hi:extrude_x(lo,hi,[(AY+.40,mid-.11),(AY+.485,mid-.07),(AY+.485,mid+.07),(AY+.40,mid+.11)]),supports=['centre bolster','visible outer spring frame'],category='bolster')
+
 
 ROOTS={n['name'] for n in NODES if n['kind']=='native bogie_car attachment'}
 for n in NODES:
@@ -235,6 +271,86 @@ for z in [1.95,2.58]:
     cyl('BODY_strap_stud_'+str(z),detail,[-1.20,1.12,z],[-1.20,1.22,z],.012,material='shaft_steel',supports=['saddle','strap'],category='body_detail')
 cyl('BODY_reservoir_drain',detail,[-1.13,1.16,2.27],[-1.13,1.08,2.27],.018,material='pipe_copper',supports=['reservoir bottom boss'],category='body_detail')
 cyl('BODY_reservoir_delivery_union',detail,[-1.13,1.31,2.83],[-1.13,1.31,2.91],.025,material='pipe_copper',supports=['domed reservoir end'],category='body_detail')
+
+
+# Rigid front air-brake equipment, sized for the actual S060 front pocket.
+# The running game retains its native compressor and brake simulation.
+def barrel_y(cx,cz,stations,radii,n):
+    v=[[cx+r*math.cos(a),y,cz+r*math.sin(a)] for y,r in zip(stations,radii) for a in np.arange(n)*math.tau/n];t=[]
+    for ring in range(len(stations)-1):
+        for i in range(n):
+            j=(i+1)%n;a=ring*n+i;b=ring*n+j;t.extend([[a,b,b+n],[a,b+n,a+n]])
+    for end in [0,len(stations)-1]:
+        at=len(v);v.append([cx,stations[end],cz])
+        for i in range(n):t.append([at,end*n+i,end*n+(i+1)%n] if end else [at,(i+1)%n,i])
+    return mesh(v,t)
+
+def service(name,points,r=.016,material='pipe_copper'):
+    # Rounded centreline with a parallel-transport tube at each detail level.
+    points=[np.array(p,float) for p in points];centres=[points[0]]
+    for i in range(1,len(points)-1):
+        cut=min(.10,np.linalg.norm(points[i]-points[i-1])*.35,np.linalg.norm(points[i+1]-points[i])*.35)
+        a=points[i]+(points[i-1]-points[i])/np.linalg.norm(points[i-1]-points[i])*cut
+        b=points[i]+(points[i+1]-points[i])/np.linalg.norm(points[i+1]-points[i])*cut
+        for q in np.linspace(0,1,7):centres.append((1-q)**2*a+2*q*(1-q)*points[i]+q*q*b)
+    centres.append(points[-1])
+    def sweep(n):
+        v=[];t=[];old_t=None;old_u=None
+        for i,c in enumerate(centres):
+            tangent=centres[min(i+1,len(centres)-1)]-centres[max(i-1,0)];tangent/=np.linalg.norm(tangent)
+            if old_t is None:u=np.cross(tangent,[0,1,0] if abs(tangent[1])<.9 else [1,0,0]);u/=np.linalg.norm(u)
+            else:
+                u=old_u-tangent*np.dot(old_u,tangent);u/=np.linalg.norm(u)
+            w=np.cross(tangent,u);old_t=tangent;old_u=u
+            for q in np.arange(n)*math.tau/n:v.append(c+r*(u*math.cos(q)+w*math.sin(q)))
+            if i:
+                for k in range(n):a=(i-1)*n+k;b=(i-1)*n+(k+1)%n;t.extend([[a,b,b+n],[a,b+n,a+n]])
+        for k in range(1,n-1):t.extend([[0,k+1,k],[(len(centres)-1)*n,(len(centres)-1)*n+k,(len(centres)-1)*n+k+1]])
+        return mesh(v,t)
+    add(name,detail,sweep,material=material,supports=['explicit equipment ports and pipe clips'],category='service_smooth')
+
+px,pz=1.055,3.29
+cube('BODY_compressor_mounting_foot',detail,[.805,.770,3.03],[1.29,.820,3.52],supports=['front frame extension','mounting feet'],category='body_detail')
+for z in [3.085,3.475]:
+    cube('BODY_compressor_mounting_knee_'+str(z),detail,[.825,.785,z-.030],[.875,.985,z+.030],supports=['pump foot','15 mm seat into native frame sill'],category='body_detail')
+    cube('BODY_compressor_bearer_'+str(z),detail,[.70,.735,z-.038],[1.29,.785,z+.038],supports=['retained front saddle','pump mounting foot'],category='body_detail')
+    for x in [.86,1.24]:
+        cyl('BODY_pump_mount_bolt_'+str((x,z)),detail,[x,.794,z],[x,.840,z],.015,material='shaft_steel',supports=['mounting plate','bearer'],category='body_detail')
+add('BODY_pump_air_barrel',detail,lambda n:barrel_y(px,pz,[.82,.845,.87,1.105,1.13,1.15],[.175,.175,.153,.153,.175,.175],n),material='frame_painted',supports=['pump foot'],category='pressure_vessel')
+for y in np.linspace(.885,1.095,8):
+    cyl('BODY_pump_air_cooling_fin_'+str(y),detail,[px,y-.006,pz],[px,y+.006,pz],.164,material='spring_steel',supports=['air barrel casting'],category='pressure_vessel')
+add('BODY_pump_steam_barrel',detail,lambda n:barrel_y(px,pz,[1.30,1.32,1.34,1.49,1.51,1.53],[.135,.135,.116,.116,.135,.135],n),material='frame_painted',supports=['pump crosshead bridge','tie rods'],category='pressure_vessel')
+cyl('BODY_pump_piston_neck',detail,[px,1.14,pz],[px,1.32,pz],.025,material='shaft_steel',supports=['air/steam piston glands'],category='pressure_vessel')
+for sx in [-1,1]:
+    for sz in [-1,1]:
+        x,z=px+sx*.087,pz+sz*.087
+        cyl('BODY_pump_column_'+str((sx,sz)),detail,[x,1.135,z],[x,1.32,z],.013,material='shaft_steel',supports=['lower/upper head flanges'],category='pressure_vessel')
+for y,rad in [(.836,.149),(1.14,.149),(1.31,.109),(1.52,.109)]:
+    for i in range(8):
+        a=i*math.tau/8;x,z=px+rad*math.cos(a),pz+rad*math.sin(a)
+        cyl('BODY_pump_head_stud_'+str((y,i)),detail,[x,y-.014,z],[x,y+.014,z],.012,material='shaft_steel',supports=['head flange'],category='body_detail')
+cyl('BODY_pump_intake_body',detail,[px,.97,pz+.145],[px,.97,pz+.23],.042,material='spring_steel',supports=['air barrel intake boss'],category='pressure_vessel')
+cyl('BODY_pump_intake_cover',detail,[px,.97,pz+.23],[px,.97,pz+.245],.051,material='shaft_steel',supports=['filter housing'],category='pressure_vessel')
+cyl('BODY_pump_governor',detail,[1.20,1.34,3.21],[1.20,1.50,3.21],.035,material='pipe_copper',supports=['steam admission union'],category='pressure_vessel')
+service('BODY_pump_steam_service',[(.7052183,1.95,3.1679118),(.96,1.95,3.08),(1.31,1.95,3.08),(1.31,1.45,3.21),(1.20,1.45,3.21),(1.16,1.45,3.29)],.016)
+service('BODY_pump_exhaust_service',[(1.17,1.39,3.29),(1.32,1.39,3.48),(1.32,2.85,3.48),(1.31,2.85,3.45)],.019,material='spring_steel')
+service('BODY_compressor_air_delivery',[(1.19,.98,3.36),(1.30,.98,3.48),(1.30,.92,2.98),(-1.13,.92,2.98),(-1.13,1.31,2.91)],.016)
+for name,z,centre,axis,radius in [('steam',3.06,np.array([1.31,1.65,3.158]),np.array([0,-.5,.13]),.026),('exhaust',3.44,np.array([1.32,1.62,3.48]),np.array([0,1,0]),.032)]:
+    axis=axis/np.linalg.norm(axis)
+    cube('BODY_service_support_foot_'+name,detail,[.920,1.23,z-.08],[.990,1.265,z+.04],material='shaft_steel',supports=['chassis channel upper flange','diagonal support stay'],category='body_detail')
+    cyl('BODY_service_support_stay_'+name,detail,[.947,1.25,z],centre,.012,material='shaft_steel',supports=['bolted foot','pipe collar'],category='service_smooth')
+    cyl('BODY_service_pipe_collar_'+name,detail,centre-axis*.018,centre+axis*.018,radius,inner=radius-.011,material='shaft_steel',supports=['pipe','diagonal frame stay'],category='pressure_vessel')
+# Additional visible chassis channels, fasteners and bolted support knees.
+for side in [-1,1]:
+    for za,zb in [(-2.70,-.70),(.80,3.42)]:
+        lo,hi=sorted([side*.934,side*.960])
+        cube('BODY_outer_chassis_web_'+str((side,za)),detail,[lo,1.09 if side<0 else 1.04,za],[hi,1.25,zb],supports=['native sill','cross bearers'],category='body_detail')
+        lo,hi=sorted([side*.880,side*1.015])
+        for y in [1.085 if side<0 else 1.035,1.235]:
+            cube('BODY_chassis_channel_lip_'+str((side,za,y)),detail,[lo,y,za],[hi,y+.023,zb],supports=['web','cross bearers'],category='body_detail')
+        for z in np.arange(za+.10,zb-.05,.21):
+            for y in [1.087,1.208]:
+                cyl('BODY_chassis_rivet_'+str((side,z,y)),detail,[side*.958,y,z],[side*.972,y,z],.010,material='shaft_steel',supports=['chassis web'],category='body_detail')
 
 def abspos(name):
     if name=='ROOT':return np.zeros(3)

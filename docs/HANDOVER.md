@@ -1,5 +1,44 @@
 # Rearranged S060 — handover
 
+## Shay visible bogies and front compressor — 11 November 2026, STAGED ONLY
+
+James clarified coil springs rather than leaves. The model now has raised paired
+coils, substantial tread shoes and connected brake rigging, deeper chassis detail
+and a mounted front steam air-compressor assembly. Latest matching model/runtime:
+`build/shay-r3-runninggear-20261111/candidate`. See [running-gear handover](shay/R3-RUNNING-GEAR-DETAIL.md).
+24,472 wheel/body/equipment checks and 33,789 transmission/truck checks pass;
+the original source engine/gear suite passes 11,322 and the reopened native
+preview 42. Runtime is unchanged from the preceding validated R3 candidate.
+No installation, game launch or publication; James owns DV testing.
+
+
+## Franklin Dockside 0.8.0 appearance pass — 11 November 2026, STAGED ONLY
+
+James authorized implementation, offline build/validation and staging only.
+Later explicitly chose staging with the measured engine-boundary contacts
+recorded rather than expanding into cylinder/engine fitting. No install or DV
+launch. See [Franklin appearance handover](dockside/FRANKLIN-0.8.0.md).
+
+The later S282 2.1 donor supplies continuous rod/bearing construction and fitted
+wheel-input presentation, adapted in authoring to S060 datums. Forked crossheads,
+split guides, small-end pins and round piston rods use the existing native
+absolute-crank clips. No runtime source/calibration/save/identity changes.
+Candidate: build/dockside-franklin-20261111/candidate/RearrangedS060; runtime
+0.24.0 F594C549CC2FB9883B77E767F89686523E705092F92CA67169F39325EF6BDBA1,
+byte-identical to the staged Shay R3 runtime. Dockside bundle 0.8.0:
+600A9B6FAA8C743DCDA36FBB4B991F44A179E3019EDAC6C517DE0A3530F4763D.
+
+Offline: clean runtime build; 23,883 detailed geometry checks; 24,925 motion +
+8,923 seek/isolation; native pin68/oil10,849/pipes423/effects177; native engine17;
+exact-DLL native suites quartering115/pipes1,118/cocks284/cleanup145. Reports,
+source provenance, fixture corrections and limits are in the detailed handover.
+A real inter-unit contact limitation remains: 59 old/revised rod and 49 new
+crank contact cases in 320 sampled side/poses. Matching totals do not prove
+identical contacts or complete clearance. Explicitly accepted for staging;
+James owns gameplay/appearance acceptance. Candidate includes preceding staged
+Meyer/Shay work; it is not a complete release acceptance or publication.
+
+
 ## Shay R3 detail/model pass — 11 November 2026, STAGED ONLY
 
 The fully authored 0.80 m / 86:20 Shay model, substantial steam plumbing,

@@ -291,8 +291,11 @@ public static class ConventionalNativeAudit
         Check(finishes.Any(m=>m.name=="S060 Shay dirty gunmetal")&&finishes.Any(m=>m.name=="S060 Shay oily steel"),"Both Shay finishes are applied");
         if(Environment.GetEnvironmentVariable("S060_SHAY_PREVIEW_ONLY")=="1")
         {
+            File.WriteAllText(Path.Combine(output,"shay-fitted-body.json"),JsonUtility.ToJson(new Entry{name="Fitted native Shay body",vertices=bodyFilter.sharedMesh.vertices.Select(v=>root.transform.InverseTransformPoint(bodyFilter.transform.TransformPoint(v))).ToArray(),triangles=bodyFilter.sharedMesh.triangles}));
             RenderWide(root,"shay-offside",new Vector3(-9,1.7f,.3f),new Vector3(0,1.7f,.3f),2.7f);
             RenderWide(root,"shay-front-low",new Vector3(-5,.7f,8),new Vector3(0,1.0f,2.8f),1.6f);
+            RenderWide(root,"shay-bogie-detail",new Vector3(7,.68f,-1.56f),new Vector3(0,.68f,-1.56f),1.05f);
+            RenderWide(root,"shay-compressor-detail",new Vector3(5,1.25f,6),new Vector3(1.05f,1.17f,3.15f),.8f);
             Call(owner,"RestoreModels");Check(bodyFilter.sharedMesh==originalBody,"Preview restores exact native body mesh");
             Object.DestroyImmediate(root);bundle.Unload(true);return;
         }
@@ -344,7 +347,10 @@ public static class ConventionalNativeAudit
         // Exact triangle clipping keeps the rest of each long pipe in the test;
         // only the physical flange/port interfaces are permitted to intersect.
         var ports=markers.Where(t=>new[]{"STEAM_IN","EXHAUST_OUT","SMOKEBOX_RETURN"}.Contains(t.name))
-            .Select(t=>new Bounds(space.InverseTransformPoint(t.position),Vector3.one*.25f)).ToArray();
+            .Select(t=>new Bounds(space.InverseTransformPoint(t.position),Vector3.one*.25f))
+            // Small auxiliary compressor services tee into the existing full-size
+            // admission and exhaust courses at these physical junctions only.
+            .Concat(new[]{new Bounds(new Vector3(.7052183f,1.95f,3.1679118f),Vector3.one*.16f),new Bounds(new Vector3(1.31f,2.85f,3.45f),Vector3.one*.18f)}).ToArray();
         List<Vector3> Clip(List<Vector3> polygon,int axis,float edge,bool less)
         {
             var result=new List<Vector3>();

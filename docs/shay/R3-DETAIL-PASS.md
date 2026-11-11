@@ -1,4 +1,4 @@
-# Shay R3 model and detail pass — 11 November 2026
+# Shay R3 model and detail pass â€” 11 November 2026
 
 The model pass is staged, not installed or accepted in Derail Valley. James
 performs game testing. The active repository remains `rearranged-s060`; the

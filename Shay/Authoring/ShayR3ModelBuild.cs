@@ -91,7 +91,12 @@ public static class ShayR3ModelBuild
         var tn=new Dictionary<string,Transform>{{"ROOT",trucks}};
         foreach(var n in tr.nodes)tn.Add(n.name,Node(n.name,tn[n.parent],V(n.position)));
         var tm=new Dictionary<string,Material>();
-        foreach(var name in tr.parts.Select(p=>p.material).Distinct())tm[name]=Material(name,new Color(.23f,.24f,.24f));
+        foreach(var name in tr.parts.Select(p=>p.material).Distinct())
+        {
+            Color colour=name=="spring_steel"?new Color(.31f,.33f,.34f):name=="brake_iron"?new Color(.32f,.285f,.25f):name=="pipe_copper"?new Color(.43f,.28f,.15f):new Color(.23f,.24f,.24f);
+            tm[name]=Material(name,colour);
+            if(name=="brake_iron"){tm[name].SetFloat("_Metallic",.25f);tm[name].SetFloat("_Glossiness",.18f);EditorUtility.SetDirty(tm[name]);}
+        }
         string Owner(string name)
         {while(!new[]{"TRUCK_REAR","TRUCK_FRONT","REAR_BODY_ATTACHMENT","FRONT_BODY_ATTACHMENT","SHAY_FRAME_DETAILS"}.Contains(name))name=tr.nodes.Single(n=>n.name==name).parent;return name;}
         var buckets=new Dictionary<string,List<CombineInstance>>();
@@ -100,7 +105,7 @@ public static class ShayR3ModelBuild
             string owner=Owner(p.parent);
             for(int l=0;l<2;l++)
             {
-                var m=p.lods[l];var mesh=Mesh(p.name,m.vertices,m.triangles,flat:p.category!="pressure_vessel");
+                var m=p.lods[l];var mesh=Mesh(p.name,m.vertices,m.triangles,flat:p.category!="pressure_vessel"&&!p.category.EndsWith("_smooth"));
                 string key=owner+"|"+l+"|"+p.material;if(!buckets.ContainsKey(key))buckets.Add(key,new List<CombineInstance>());
                 buckets[key].Add(new CombineInstance{mesh=mesh,transform=tn[owner].worldToLocalMatrix*tn[p.parent].localToWorldMatrix});
             }
