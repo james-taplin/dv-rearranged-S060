@@ -106,6 +106,14 @@ public static class CleanupNativeAudit
             var root = new GameObject("LP return candidate lifetime");
             var rear = new GameObject("rear"); rear.transform.SetParent(root.transform, false); rear.transform.localPosition = new Vector3(0, 0, -6.1f);
             var source = GameObject.CreatePrimitive(PrimitiveType.Cube); source.name = "s060_body"; source.transform.SetParent(root.transform, false);
+            // Roof saddles now measure the real native roof. A unit cube is
+            // no longer a valid host for the production return-pipe binding.
+            var nativeBody = JsonUtility.FromJson<NativeBodyData>(File.ReadAllText(Environment.GetEnvironmentVariable("S060_NATIVE_PREVIEW")))
+                .meshes.Single(m => m.name == "s060_body");
+            var bodyMesh = new Mesh { indexFormat = UnityEngine.Rendering.IndexFormat.UInt32, vertices = nativeBody.vertices,
+                triangles = nativeBody.triangles, uv = nativeBody.uv };
+            bodyMesh.RecalculateBounds(); bodyMesh.RecalculateNormals();
+            source.GetComponent<MeshFilter>().sharedMesh = bodyMesh;
             var original = source.GetComponent<MeshFilter>().sharedMesh;
             var material = new Material(Shader.Find("Standard")); var replacement = new Material(material);
             source.GetComponent<MeshRenderer>().sharedMaterial = material;
@@ -149,9 +157,12 @@ public static class CleanupNativeAudit
                 if (owner != null) dispose.Invoke(owner, null);
                 if (root != null) UnityEngine.Object.DestroyImmediate(root);
                 UnityEngine.Object.DestroyImmediate(material); UnityEngine.Object.DestroyImmediate(replacement);
+                UnityEngine.Object.DestroyImmediate(bodyMesh);
             }
         }
     }
+    [Serializable] private sealed class NativeBodyData { public NativeBodyEntry[] meshes; }
+    [Serializable] private sealed class NativeBodyEntry { public string name; public Vector3[] vertices; public Vector2[] uv; public int[] triangles; }
     private static Mesh Triangle()
     {
         var mesh = new Mesh(); mesh.vertices = new[] { new Vector3(.8f, 1.7f, 3.1f), new Vector3(.9f, 1.8f, 3.1f), new Vector3(1f, 1.7f, 3.2f) };

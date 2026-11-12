@@ -13,12 +13,14 @@ meshes = []
 for obj in env.objects:
     if obj.type.name == 'Mesh':
         mesh = obj.read()
-        if mesh.m_Name not in ('s060_body', 's060_Wheels_01', 's060_Wheels_02'):
+        if mesh.m_Name not in ('s060_body', 's060_Wheels_01', 's060_Wheels_02',
+                               's060_mech_wheels_connect', 's060_mech_push_rod_to_connect'):
             continue
         handler = MeshHandler(mesh)
         handler.process()
         vectors = lambda values: [dict(zip('xyz', p)) for p in values]
         meshes.append(dict(name=mesh.m_Name, vertices=vectors(handler.m_Vertices),
+                           normals=vectors(handler.m_Normals),
                            uv=[dict(zip('xy', p)) for p in handler.m_UV0],
                            triangles=[i for sub in handler.get_triangles() for tri in sub for i in tri]))
     elif obj.type.name == 'Material':

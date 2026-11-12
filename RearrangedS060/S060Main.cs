@@ -25,6 +25,8 @@ namespace RearrangedS060
                 S060Lifecycle.Register(harmony);
 #if B99_S060_ARTICULATED
                 S060ArticulatedSimulation.Register(harmony);
+                S060IndependentDrive.Register(harmony);
+                S060GroupSlipEffects.Register(harmony);
                 S060ExhaustPresentation.Register(harmony);
                 S060NativeAudio.Register(harmony);
                 S060StockCocks.Register(harmony);

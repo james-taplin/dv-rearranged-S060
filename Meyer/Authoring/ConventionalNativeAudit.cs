@@ -504,9 +504,14 @@ public static class ConventionalNativeAudit
         var type=runtime.GetType("RearrangedS060.S060MeyerBodywork",true);
         var owner=type.GetMethod("Build",All,null,new[]{typeof(Transform),typeof(Transform),typeof(Transform)},null).Invoke(null,new object[]{root.transform,body,stub});
         var parts=((Transform)type.GetProperty("Root",All).GetValue(owner,null)).GetComponentsInChildren<MeshFilter>(true);
-        Check(parts.Length==4&&parts.All(f=>f.sharedMesh!=null&&f.sharedMesh.vertexCount>0),"Meyer R2 builds paintwork, ironwork, buffer beam and hopper tarpaulin");
-        Check(stub.Cast<Transform>().All(t=>!t.gameObject.activeSelf),"Meyer R2 retires the old bogie-borne deck, panniers and bunker box");
-        var verts=parts.SelectMany(f=>f.sharedMesh.vertices.Select(v=>root.transform.InverseTransformPoint(f.transform.TransformPoint(v)))).ToArray();
+        var upperParts=parts.Where(f=>f.name!="Meyer fixed tank-frame bearers").ToArray();
+        Check(parts.Length==5&&upperParts.Length==4&&parts.All(f=>f.sharedMesh!=null&&f.sharedMesh.vertexCount>0),"Meyer builds the original four upper body meshes and the new fixed tank-frame bearers");
+        var oldNames=new[]{"[Attached rear platform]","[Meyer rear pannier L]","[Meyer rear pannier R]","[Period rear chassis]"};
+        Check(stub.Cast<Transform>().Where(t=>oldNames.Contains(t.name)).Count()==4&&stub.Cast<Transform>().Where(t=>oldNames.Contains(t.name)).All(t=>!t.gameObject.activeSelf),"Meyer retires the original bogie-borne deck, panniers and bunker box");
+        Check(stub.GetComponentsInChildren<MeshFilter>(true).Count(f=>f.name=="Meyer rear plate frame and spring saddles"&&f.gameObject.activeSelf)==1,"New rear underframe belongs to the moving unit");
+        // Preserve this original upper-body envelope check. The two new lower
+        // frames are covered by the measured 27-pose underframe/contact suite.
+        var verts=upperParts.SelectMany(f=>f.sharedMesh.vertices.Select(v=>root.transform.InverseTransformPoint(f.transform.TransformPoint(v)))).ToArray();
         // Rear engine unit sweep (yaw +-6, pitch/roll +-1, +-20 mm): z -7.77..-4.13, top 1.61 m.
         Check(verts.Where(v=>v.z>-7.80f&&v.z<-4.10f).All(v=>v.y>=1.615f),"Meyer R2 bodywork stays above the rear unit's swept envelope");
         Check(verts.Max(v=>v.y)<3.87f&&verts.Min(v=>v.z)>-8.28f&&verts.Max(v=>Mathf.Abs(v.x))<1.42f,"Meyer R2 bodywork stays inside the cab roof, coupler and body width");
@@ -536,12 +541,17 @@ public static class ConventionalNativeAudit
     private static void RenderWide(GameObject body,string name,Vector3 from,Vector3 at,float size)
     {
         var scene=EditorSceneManager.NewPreviewScene(); var clone=Object.Instantiate(body); clone.SetActive(true); UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(clone,scene);
+        // Unity does not clone per-renderer property blocks. Preserve native
+        // brake emission in the preview instead of silently displaying cold shoes.
+        var originals=body.GetComponentsInChildren<Renderer>(true);var copies=clone.GetComponentsInChildren<Renderer>(true);
+        if(originals.Length!=copies.Length)throw new InvalidOperationException("Preview renderer hierarchy changed.");
+        for(int i=0;i<originals.Length;i++){var block=new MaterialPropertyBlock();originals[i].GetPropertyBlock(block);copies[i].SetPropertyBlock(block);}
         var cameraGo=new GameObject("QA camera"); UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(cameraGo,scene); var camera=cameraGo.AddComponent<Camera>(); camera.scene=scene; camera.orthographic=true; camera.orthographicSize=size;
         camera.clearFlags=CameraClearFlags.SolidColor; camera.backgroundColor=new Color(.84f,.88f,.92f); camera.transform.position=from; camera.transform.LookAt(at);
         var lightGo=new GameObject("QA light"); UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(lightGo,scene); var light=lightGo.AddComponent<Light>();light.type=LightType.Directional;light.intensity=1.4f;light.transform.rotation=Quaternion.Euler(45,from.x < at.x ? 150 : -30,0);
         var target=new RenderTexture(1800,900,24); camera.targetTexture=target; camera.Render(); var previous=RenderTexture.active;RenderTexture.active=target;
         var image=new Texture2D(1800,900,TextureFormat.RGB24,false);image.ReadPixels(new Rect(0,0,1800,900),0,0);image.Apply();File.WriteAllBytes(Path.Combine(output,name+"-native-preview.png"),image.EncodeToPNG());
-        RenderTexture.active=previous;Object.DestroyImmediate(image);Object.DestroyImmediate(target);EditorSceneManager.ClosePreviewScene(scene);
+        RenderTexture.active=previous;camera.targetTexture=null;Object.DestroyImmediate(image);Object.DestroyImmediate(target);EditorSceneManager.ClosePreviewScene(scene);
     }
 
     private static void Render(GameObject body,string name)
@@ -552,7 +562,7 @@ public static class ConventionalNativeAudit
         var lightGo=new GameObject("QA light"); UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(lightGo,scene); var light=lightGo.AddComponent<Light>();light.type=LightType.Directional;light.intensity=1.4f;light.transform.rotation=Quaternion.Euler(45,-30,0);
         var target=new RenderTexture(1600,900,24); camera.targetTexture=target; camera.Render(); var previous=RenderTexture.active;RenderTexture.active=target;
         var image=new Texture2D(1600,900,TextureFormat.RGB24,false);image.ReadPixels(new Rect(0,0,1600,900),0,0);image.Apply();File.WriteAllBytes(Path.Combine(output,name+"-native-preview.png"),image.EncodeToPNG());
-        RenderTexture.active=previous;Object.DestroyImmediate(image);Object.DestroyImmediate(target);EditorSceneManager.ClosePreviewScene(scene);
+        RenderTexture.active=previous;camera.targetTexture=null;Object.DestroyImmediate(image);Object.DestroyImmediate(target);EditorSceneManager.ClosePreviewScene(scene);
     }
     private static void Check(bool condition,string message){if(!condition)throw new InvalidOperationException(message);checks++;}
     private static string Hash(string path){using(var sha=SHA256.Create())using(var s=File.OpenRead(path))return BitConverter.ToString(sha.ComputeHash(s)).Replace("-","");}

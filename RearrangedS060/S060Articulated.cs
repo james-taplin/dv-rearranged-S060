@@ -35,10 +35,12 @@ namespace RearrangedS060
         private S060MeyerClearance meyerClearance;
         private S060MeyerFrontMotion meyerFrontMotion;
         private readonly List<S060MeyerGearMounts> meyerGearMounts = new List<S060MeyerGearMounts>();
+        private S060MeyerRunningGear meyerRunningGear;
         private S060MeyerFrontEquipment meyerFrontEquipment;
         private S060MeyerLights meyerLights;
         private S060NativeQuartering nativeQuartering;
         private S060MeyerBodywork bodywork;
+        private S060IndependentDrive independentDrive;
         private S060MeyerCapacity capacity;
 
         internal static Transform[] Preflight(bool meyer) => ResolveFrames(meyer, out _);
@@ -133,6 +135,7 @@ namespace RearrangedS060
             if (IsMeyer) meyerSupport.BindCollisionFrame(liveFrames[0]);
             if (IsMeyer) meyerFrontMotion = S060MeyerFrontMotion.Bind(liveFrames[1]);
             if (IsMeyer) foreach (var frame in liveFrames) meyerGearMounts.Add(S060MeyerGearMounts.Bind(frame, Parts.Body));
+            if (IsMeyer) meyerRunningGear=S060MeyerRunningGear.Bind(Parts.Car.transform,Parts.Body,liveFrames[1],liveFrames[0]);
             if (IsMeyer) nativeCylinders = S060NativeCylinders.Bind(Parts, liveFrames[1]);
             if (IsMeyer)
             {
@@ -154,6 +157,28 @@ namespace RearrangedS060
             simulation.Select(IsMeyer ? S060EngineMode.Meyer : S060EngineMode.Dockside);
             if (IsMeyer) capacity = S060MeyerCapacity.Apply(simulation.Flow, IsRestoring,
                 Parts.Car.gameObject);
+            // The native engine phases already drive each unit's absolute
+            // animation/effects. Give those same engines their own wheel RPM,
+            // grip and physical contact allocation after all fitting succeeds.
+            var groups = new S060IndependentDrive.Definition[liveFrames.Count];
+            for (int i = 0; i < groups.Length; i++)
+            {
+                var contacts = new int[Parts.Car.Bogies.Length];
+                foreach (var wheel in powered)
+                    if (wheel.wheelTransform.IsChildOf(liveFrames[i]))
+                    {
+                        int index = Array.FindIndex(Parts.Car.Bogies,
+                            b => wheel.transform.IsChildOf(b.transform));
+                        if (index < 0) throw new InvalidOperationException("Powered group has no native bogie contact.");
+                        contacts[index]++;
+                    }
+                groups[i] = new S060IndependentDrive.Definition {
+                    Slot = i == 0 ? simulation.Bank.PhysicalRear : simulation.Bank.PhysicalFront,
+                    EngineRoot = liveFrames[i], Contacts = contacts,
+                    Radius = IsMeyer ? S060Parts.DriverRadius : .5f,
+                    Role = IsMeyer ? (i == 0 ? "LP/rear" : "HP/front") : (i == 0 ? "rear" : "front") };
+            }
+            independentDrive = S060IndependentDrive.Attach(Parts.Car, simulation, groups);
         }
         private void Hide(GameObject item) { hidden.Add((item, item.activeSelf)); item.SetActive(false); }
         protected override void ReleasePresentationMeshes() => meyerLights?.ReleaseMeshes();
@@ -161,10 +186,18 @@ namespace RearrangedS060
         {
             var errors = new List<Exception>();
             bool Attempt(Action action) { try { action(); return true; } catch (Exception ex) { errors.Add(ex); return false; } }
+            // Release RPM/force leases before changing the selected engines,
+            // native axle registration, or deleting any frame/effect anchors.
+            if (independentDrive != null && Attempt(() => {
+                independentDrive.Release();
+                if (Application.isPlaying) UnityEngine.Object.Destroy(independentDrive);
+                else UnityEngine.Object.DestroyImmediate(independentDrive);
+            })) independentDrive = null;
             // Keep failed owners reachable. In particular, do not destroy a
             // frame while a native lamp/cylinder/audio emitter still belongs
             // beneath it because restoring that owner failed.
             if (meyerLights != null && Attempt(meyerLights.Dispose)) meyerLights = null;
+            if (meyerRunningGear != null && Attempt(meyerRunningGear.Dispose)) meyerRunningGear = null;
             if (bodywork != null && Attempt(bodywork.Dispose)) bodywork = null;
             if (nativeCylinders != null && Attempt(nativeCylinders.Dispose)) nativeCylinders = null;
             if (steamPipes != null && Attempt(steamPipes.Dispose)) steamPipes = null;

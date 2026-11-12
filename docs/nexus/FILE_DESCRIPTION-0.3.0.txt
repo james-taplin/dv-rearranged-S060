@@ -1,0 +1,1 @@
+Nine S060 layouts in one UMM ZIP. 0.3.0 rebuilds the Meyer, geared Shay and Franklin Dockside with revised steam physics, detailed suspension, brakes and fitted pipework. Requires Custom Car Loader and Loco Mesh Splitter.

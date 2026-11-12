@@ -164,6 +164,19 @@ internal static class Program
         Assert(S060TrailingLayout.PoweredAxles == 3 && S060TrailingLayout.TotalAxles == 4, "0-6-2 has one unpowered axle");
         Assert(ConventionalPhysics.FrictionForDriverWeight(.4f, S060TrailingLayout.DriverWeightFraction, 3, 4) == .4f,
             "native equal axle load leaves three quarters of weight on drivers");
+        Assert(ConventionalPhysics.ReferenceOperatingMassKg == 50000f,
+            "S060 adhesive design uses its 50 t working datum, not the S282's 124 t datum");
+        float fourAdhesion = ConventionalPhysics.RatedDriverWeightFraction(2, 2);
+        Assert(Math.Abs(fourAdhesion * ConventionalPhysics.ReferenceOperatingMassKg - 38000f) < .01f,
+            "0-4-0 uses a 38 t effective adhesive allowance instead of 25 t on each driver");
+        float fourFriction = ConventionalPhysics.FrictionForDriverWeight(.4f, fourAdhesion, 2, 2);
+        Assert(Math.Abs(fourFriction * 50000f * 9.81f - .4f * 38000f * 9.81f) < .02f,
+            "native friction conversion produces the authored 0-4-0 total grip without changing mass");
+        foreach (int axles in new[] { 3, 4, 5 })
+            Assert(ConventionalPhysics.RatedDriverWeightFraction(axles, axles) == 1f,
+                "short six/eight/ten-coupled layouts keep full native adhesive mass without an extra-axle grip bonus");
+        Assert(ConventionalPhysics.RatedDriverWeightFraction(3, 4) == S060TrailingLayout.DriverWeightFraction,
+            "0-6-2 retains its explicit conservative three-quarter driver share");
         Assert(S060TrailingLayout.CentreZ - .773f / 2f > -3.470f, "nominal pony wheel clears measured coupler box band");
         Assert(-1.3978f - S060TrailingLayout.CentreZ > (1.533f + .773f) / 2f, "nominal pony wheel clears rear driver flanges");
         Assert(new S060Selection(S060Arrangement.EightCoupled, 1f).Scale == .8f, "0-8-0 uses its fixed fitted drivers");
@@ -197,6 +210,8 @@ internal static class Program
             Assert(!state.Load(JObject.Parse("{\"version\":1,\"arrangement\":" + (int)id + ",\"driverScale\":1}")), "new arrangement cannot masquerade as version 1");
         }
         Assert(new S060Selection(S060Arrangement.Dockside, 1f).DriverDiameter == 1f, "radio reports Dockside's actual one-metre drivers");
+        Assert(Math.Abs(new S060Selection(S060Arrangement.Shay, 1f).DriverDiameter - .8f) < .000001f,
+            "Shay description reports the approved 0.80 m rolling diameter");
         Assert(S060WheelSlots.Map(new[] { -1, -1, -1, -1 }).SequenceEqual(new[] { 0, 1, 2, 3 }), "articulated axles take stable canonical wheel identities");
         Assert(S060WheelSlots.Map(new[] { 0, 1, 2, -1 }).SequenceEqual(new[] { 0, 1, 2, 3 }), "added 0-8-0 axle retains fourth damage slot");
         Assert(S060WheelSlots.Map(new[] { 0, 2 }).SequenceEqual(new[] { 0, 2 }), "0-4-0 retains the identities of its native wheels");

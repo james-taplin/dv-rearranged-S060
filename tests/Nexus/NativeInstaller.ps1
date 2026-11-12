@@ -1,6 +1,7 @@
 param(
     [string]$Installer = 'C:\Users\james\Desktop\Tools\UnityModManagerInstaller',
-    [string]$Version = ''
+    [string]$Version = '',
+    [string]$LegacyArchive = ''
 )
 $ErrorActionPreference = 'Stop'
 # Run in Windows PowerShell/.NET Framework for UMM's WinForms assembly. No form
@@ -119,7 +120,7 @@ try {
 
     # Actual UMM uninstall/update migration from the previous three-part layout.
     $migration = Join-Path $output 'migration-game'; Set-FakeGame $migration
-    $oldZip = Join-Path $repo "build\articulated-$Version\RearrangedS060-$Version-articulated-test.zip"
+    $oldZip = if ($LegacyArchive) { [IO.Path]::GetFullPath($LegacyArchive) } else { Join-Path $repo "build\articulated-$Version\RearrangedS060-$Version-articulated-test.zip" }
     Install-Native $oldZip $false $migration
     $reload.Invoke($form, @())
     Check ($mods.Count -eq 3) 'Legacy fixture must contain all three original mod identities.'

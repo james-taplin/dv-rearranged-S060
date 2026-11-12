@@ -9,7 +9,7 @@ $env:S060_AUDIT_MANAGED = Join-Path $config.GamePath 'DerailValley_Data\Managed'
 $env:S060_AUDIT_MODS = Join-Path $config.GamePath 'Mods'
 $output = Join-Path $PSScriptRoot ("build\radio-$($config.Version)\runtime-audits-" + [DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss'))
 $project = Join-Path $PSScriptRoot 'Meyer\UnityProject'
-foreach ($source in @('DocksideSleeveNativeAudit.cs','ExhaustNativeAudit.cs','ExhaustFailureNativeAudit.cs','PipeRuntimeAudit.cs','MeyerRefillNativeAudit.cs','MeyerRearCouplingNativeAudit.cs','CockNativeAudit.cs','CleanupNativeAudit.cs','TransactionsNativeAudit.cs','MeyerCollisionAudit.cs','ConventionalNativeAudit.cs','SteamNativePreview.cs','SteamMeshContact.cs','MeyerInwardBodyAudit.cs','MeyerInwardPhaseAudit.cs','InwardPipeRuntimeAudit.cs')) {
+foreach ($source in @('MeyerSmoothSteamAudit.cs','MeyerRearUnderframeAudit.cs','MeyerRunningGearAudit.cs','NativeCouplingPreview.cs','DocksideSleeveNativeAudit.cs','ExhaustNativeAudit.cs','ExhaustFailureNativeAudit.cs','PipeRuntimeAudit.cs','MeyerRefillNativeAudit.cs','MeyerRearCouplingNativeAudit.cs','CockNativeAudit.cs','CleanupNativeAudit.cs','TransactionsNativeAudit.cs','MeyerCollisionAudit.cs','ConventionalNativeAudit.cs','SteamNativePreview.cs','SteamMeshContact.cs','MeyerInwardBodyAudit.cs','MeyerInwardPhaseAudit.cs','InwardPipeRuntimeAudit.cs')) {
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot "Meyer\Authoring\$source") -Destination (Join-Path $project 'Assets\Editor') -Force
 }
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'RearrangedS060\S060MeyerCollision.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
@@ -30,9 +30,12 @@ $env:S060_DOCKSIDE_SUPPORTS = Join-Path $config.QAPath 's060-support-pivots.json
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Meyer\Authoring\SteamBogiePoseAudit.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
 $env:S060_COUPLING_FIXTURE = Join-Path $config.QAPath 'meyer-rear-coupling-native.json'
 $env:S060_COUPLING_BASELINE = '0'
-if (-not $Only.Count -or $Only -contains 'meyer-rear-coupling') {
+$env:S060_DETAIL_NATIVE = Join-Path $config.QAPath 'meyer-running-gear-native.json'
+if (-not $Only.Count -or $Only -contains 'meyer-rear-coupling' -or $Only -contains 'meyer-inward-pipes') {
     & $config.Python -B (Join-Path $PSScriptRoot 'Meyer\tools\Prepare.MeyerCouplingEvidence.py') --game $config.GamePath --output $env:S060_COUPLING_FIXTURE
     if ($LASTEXITCODE -ne 0) { throw 'Native rear coupling fixture export failed.' }
+    & $config.Python -B (Join-Path $PSScriptRoot 'Meyer\tools\Prepare.MeyerBrakeEvidence.py') --game $config.GamePath --output $env:S060_DETAIL_NATIVE
+    if ($LASTEXITCODE -ne 0) { throw 'Native running-gear fixture export failed.' }
 }
 $shayBundle=Get-ChildItem (Join-Path $PSScriptRoot 'build\shay') -Directory -Filter 'bundle-*' | Where-Object { Test-Path (Join-Path $_.FullName 'bundle-receipt.json') } | Sort-Object Name -Descending | Select-Object -First 1
 $env:S060_SHAY_AUDIT_BUNDLE=Join-Path $shayBundle.FullName 'shay_running_gear'
@@ -43,7 +46,7 @@ $env:S060_DOCKSIDE_AUDIT_BUNDLE=if ($DocksideBundle) { (Resolve-Path -LiteralPat
 $entries = @(
     @{ name='dockside-sleeves'; method='DocksideSleeveNativeAudit.RunBatch'; env='S060_DOCKSIDE_SLEEVE_OUTPUT'; report='dockside-sleeve-validation.json' },
     @{ name='meyer-rear-coupling'; method='MeyerRearCouplingNativeAudit.RunBatch'; env='S060_COUPLING_OUTPUT'; report='rear-coupling-validation.json' },
-    @{ name='meyer-inward-pipes'; method='InwardPipeRuntimeAudit.RunBatch'; env='S060_INWARD_PIPE_AUDIT_OUTPUT'; report='inward-pipe-runtime-validation.json' },
+    @{ name='meyer-inward-pipes'; method='MeyerSmoothSteamAudit.RunBatch'; env='S060_SMOOTH_STEAM_OUTPUT'; report='smooth-steam-validation.json' },
     @{ name='meyer-inward-body'; method='MeyerInwardBodyAudit.RunBatch'; env='S060_MEYER_INWARD_OUTPUT'; report='inward-native-cylinder-body-validation.json' },
     @{ name='meyer-inward-phase'; method='MeyerInwardPhaseAudit.RunBatch'; env='S060_MEYER_INWARD_PHASE_OUTPUT'; report='meyer-inward-phase-validation.json' },
     @{ name='exhaust'; method='ExhaustNativeAudit.RunBatch'; env='S060_EXHAUST_AUDIT_OUTPUT'; report='native-exhaust-validation.json' },

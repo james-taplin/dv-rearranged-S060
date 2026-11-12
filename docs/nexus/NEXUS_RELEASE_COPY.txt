@@ -1,194 +1,115 @@
-MOD NAME
 Rearranged S060 - Re:Arranged
+Version 0.3.0
 
-VERSION / FILE CATEGORY
-0.22.2 - Meyer skin, coal and pipework / Main file
+Give the S060 nine different layouts, from a compact four-coupled tank to a compound Meyer, geared Shay or Franklin Dockside. Change arrangements with WHEEL REARRANGER on the radio or through Unity Mod Manager, keeping the same locomotive, cab, livery and save.
 
-SHORT DESCRIPTION
-Give the S060 new wheel arrangements, a compound Meyer with extra tanks over a
-swinging rear engine, a two-truck Shay or a small-driver Franklin Dockside. Change layouts with the radio,
-with animated running gear, working oil cups and cab-controlled cylinder cocks.
+0.3.0 brings together the rebuilt Meyer, larger-engine Shay and revised Franklin Dockside, with new running-gear detail, fitted pipework and updated steam and traction tuning.
 
-DESCRIPTION PAGE - NEXUS BBCODE
+NINE ARRANGEMENTS
 
-[b]Rearranged S060 - Re:Arranged[/b]
+- 0-6-0 Stock - original 1.42m drivers.
+- 0-4-0 - four-coupled layout with stock-sized drivers.
+- 0-6-0 Short Wheelbase - closer axle spacing and fitted 1.14m drivers.
+- 0-8-0 - four powered axles with fitted 1.14m drivers.
+- 0-10-0 Tank - five powered axles and 1.00m drivers.
+- 0-6-2 - stock-sized drivers with a trailing carrying axle.
+- Meyer-style 0-4+4-0T Compound - two swivelling powered units, extra tanks and a coal hopper behind the cab.
+- Franklin Dockside 0-4-4-0T - two simple-expansion units, 1.00m drivers and animated Franklin gear beneath one tank locomotive.
+- Two-truck Shay - a three-cylinder side engine driving four axles through jointed shafts and bevel gears, now with 0.80m wheels.
 
-Give Derail Valley's S060 a different character: a compact four-coupled engine,
-a short-wheelbase six-coupled layout, an eight-coupled tank, a 0-6-2, a ten-coupled tank, a compound
-Meyer-style engine, a two-truck Shay or a small-driver Franklin Dockside.
+Each arrangement has its own fitted wheel size. There is no wheel-size slider.
 
-Rearranged S060 is a fork of my Rearranged S282 B99 / Re:Arranged fork,
-itself based on Peter Schinske / SatiricRug's original Rearranged S282. The fork
-retains the original MIT licence and copyright notices.
+MEYER COMPOUND
 
-[b]Nine arrangement choices[/b]
-[list]
-[*]0-6-0 Stock - original 1.42 m drivers.
-[*]0-4-0 - four-coupled layout with stock-sized drivers.
-[*]0-6-0 Short Wheelbase - closer axle spacing with fitted 1.14 m drivers.
-[*]0-8-0 - four powered axles using the same fitted 1.14 m drivers.
-[*]0-10-0 Tank - five powered axles with fitted 1.00 m drivers.
-[*]0-6-2 - stock-sized drivers with a trailing carrying axle.
-[*]Meyer-style 0-4+4-0T Compound - two driven axles beneath the S060 and two on a
-swinging rear engine unit under extra tanks and a coal hopper, sharing the same cab, locomotive identity and save.
-[*]Franklin Dockside 0-4-4-0T - two simple-expansion units, 1.00 m drivers and
-animated Franklin gear, all beneath one tank locomotive.
-[*]Two-truck Shay - three vertical cylinders, jointed drive shafts, bevel gears
-and four driven axles on stock S282 pony wheelsets.
-[/list]
+A fictional Meyer-inspired conversion, with inward-facing cylinder groups and a high-pressure engine exhausting through a finite receiver into a low-pressure engine. The LP stage supplies the exhaust and chuffs to the locomotive's single chimney.
 
-[b]Two-truck Shay[/b]
-A fictional S060 conversion with a three-cylinder side engine and 43:19 geared
-drive to two swivelling trucks. Steam and exhaust pipes connect the engine to
-the boiler and single chimney. All three cylinder-cock channels use the cab
-lever; six upright oil cups serve the shaft bearings, truck frames and crank. The Shay is
-available from the radio and UMM chooser, and is excluded from random spawning.
-This first version still needs gameplay acceptance, especially on tight curves.
+0.3.0 includes heavier fitted rods and bearing ends, supported guides, visible leaf-spring packs and hangers, native brake shoes connected to the game's brake-heating effects, and more complete underframes beneath both units. The rear LP return is a smooth connected trunk with fitted joints and supports. Firebox-base gaps, hopper texture seams and overlapping rear buffer-beam faces have been corrected, with the rear hook and air connection fitted to their mounting pocket. Air-brake machinery fills the vacated front cylinder space.
 
-[b]Meyer compound[/b]
-The Meyer has an HP engine, finite steam receiver and LP engine. Its LP exhaust
-and chuffs feed the locomotive's single chimney, with a jointed return pipe routed
-low along the cab roof and left tank top. Bodywork behind the cab adds a high coal
-hopper, side and well tanks and a rear end carrying all three rear lamps; the rear
-engine unit swings underneath. The Meyer carries about 8,800 L of water and
-3,500 kg of coal (stock 4,500 L and 1,200 kg). This is a fictional Meyer-inspired
-arrangement, rather than a replica of a particular historical locomotive.
+Low-speed starting now follows native crank, valve and cylinder-pressure mechanics within the existing HP/receiver/LP circuit. Hot saves retain cylinder admission pressure, and mass refreshes correctly when changing arrangements with different supply capacities. Grip still depends on the game's native adhesion, weather, sand and actual locomotive weight.
 
-[b]Franklin Dockside[/b]
-Both powered units receive boiler steam directly. Animated Franklin shafts,
-fitted rods, cylinders and connected steam pipes stay under the S060 body. Both
-units contribute exhaust and chuffs to one chimney. There is no rear appendage
-or separate companion vehicle.
+Rigid rear bodywork carries side and well tanks, a tarpaulin-covered coal hopper and all three rear lamps above the swinging rear engine. Capacity is about 8,800L water and 3,500kg coal, filled through the original S060 water and coal points. Returning to another layout keeps up to the stock 4,500L / 1,200kg; excess is discarded.
 
-[b]Working details[/b]
-[list]
-[*]Dedicated WHEEL REARRANGER radio mode and an arrangement chooser in UMM.
-[*]Optional random arrangements for newly spawned S060s, using a selectable pool.
-[*]Retained locomotive identity, livery, cab, fuel, water, damage and save ownership.
-[*]Independent articulated engine motion and effects, with both sets of cylinder
-cocks controlled by the existing cab lever.
-[*]Two functional big-end oil cups per driven axle, alongside the original guide/
-crosshead lubricators. Oil quantities and lid states persist across layout changes.
-[*]Fixed wheel sizes fitted to each arrangement; full-sized native front cylinders
-on the Meyer and live S060 material references.
-[*]Meyer LP sound tuning informed by discorddraconequus's Verde compound.
-[/list]
+The Meyer remains one locomotive, with the original cab, identity and save. Both sets of cylinder cocks use the existing cab lever.
 
-[b]Requirements and installation[/b]
-Requires [b]Derail Valley B99 on Windows[/b], [b]Unity Mod Manager 0.27.3+[/b],
-[url=https://www.nexusmods.com/derailvalley/mods/867]Locomotive Mesh Splitter[/url]
-and [url=https://www.nexusmods.com/derailvalley/mods/324]Custom Car Loader[/url].
-Install CCL's own requirements too, including DV Language Helper for the tested
-CCL 3.1.11. These dependencies are separate downloads. Rearranged S282 is not
-required to play this mod.
+TWO-TRUCK SHAY
 
-Close the game, then drag [b]RearrangedS060-0.22.2-UMM.zip directly into UMM[/b].
-One Rearranged S060 entry includes the runtime and both Meyer/Dockside bundles.
-There are no ZIPs inside the download and no separate asset-pack installs.
+The Shay has been rebuilt around 0.80m live S282 pony wheelsets, retaining the native gauge and wheel materials. A larger three-cylinder engine drives the two swivelling trucks through animated shafts, universal joints and 86:20 bevel gears, giving a 4.3:1 reduction.
 
-If you used an earlier three-part test build, first uninstall the old standalone
-RS060_Meyer_0440 and RS060_Franklin_Dockside_0440 entries through UMM. Keep
-RearrangedS060 itself and Settings.xml. This one-time step prevents duplicate
-asset IDs; future updates use the single ZIP normally. New users skip this step.
+The model and steam tuning now match three 252 x 300.8mm cylinders, a 45L steam chest and a 1.6kg/s steam-flow ceiling. The native boiler is retained; use the normal cab cutoff controls as speed rises.
 
-Select WHEEL REARRANGER on the radio and point at a native S060. Stop and close
-the regulator before switching. Before entering or leaving Meyer, uncouple its
-rear, disconnect the hose and leave clear track behind. Use the S060 radio for
-normal play; the asset packs' CCL spawner entries are debug asset donors.
+Substantial steam feeds replace the thin runs. The offside feed returns beneath the boiler to join the engine-side feed, with hollow tapered smokebox sleeve connections, top manifolds and a separate exhaust return to the single chimney.
 
-[b]Initial beta notes[/b]
-The new fifth-wheel state uses mod save version 3. Version 0.22.2 reads earlier
-saves; older mod versions cannot restore the new 0-10-0 arrangement.
+Visible paired coil springs, curved brake shoes, hangers and connected rigging, deeper chassis channels and a mounted front air compressor fill out the running gear. Cylinder-cock jets are seated at the six drain outlets, with corrected directions and smaller emitters. Custom meshes use their own finishes rather than the complete locomotive texture atlas.
 
-The latest collision correction passes automatic native and contact checks.
-The reported stopped Meyer bob and Meyer-to-Dockside window damage still need
-gameplay confirmation after that correction. Report repeats with the exact
-transition, Player.log and the mod's automatic diagnostic files. Existing damage
-is retained; switching layouts does not repair the locomotive.
+Six upright oil cups serve the existing circuits. The cab lever operates all three cylinder-cock channels. The Shay is available through the radio and UMM chooser and remains outside the random-spawn pool.
 
-Rear LP cock jets can be weak when receiver pressure is low, and drips require
-water in the cylinders. The new 0-10-0 requires in-game acceptance testing, particularly on tight curves.
-Original brake-shoe meshes are hidden on converted
-running gear where they do not fit. The 0-8-0 and 0-6-2 remain experimental.
+FRANKLIN DOCKSIDE
 
-[b]Credits and permissions[/b]
-[b]Peter Schinske / pjschinske / SatiricRug[/b] - original Rearranged S282, the
-wheel-arrangement foundation, inherited custom Franklin running gear and pipework.
-[b]JimTaplin / james-taplin[/b] - Rearranged S282 B99 / Re:Arranged fork, and this
-S060 adaptation, arrangements, simulation integration, fitting and testing.
-[b]discorddraconequus[/b] - Verde compound and the stage-specific chuff/sound-tuning
-reference adapted for the Meyer. Verde also informed the compound exhaust and
-native effects review. No Verde audio, meshes, textures or animation clips are
-included; the mod uses Derail Valley's native sounds and live asset references.
-[b]Niko Fox and Insprill / Derail Valley Modding[/b] - original mod template.
-[b]newman55 and contributors[/b] - Unity Mod Manager.
-[b]Katycat, Wiz, lassombra and contributors[/b] - Custom Car Loader.
-[b]Loco Mesh Splitter contributors[/b] - native locomotive mesh access.
-[b]Radu, Perfare and aelurum[/b] - AssetStudio.
-[b]Dummiesman[/b] - Runtime OBJ Importer.
-[b]Altfuture[/b] - Derail Valley and the original locomotive assets.
+Two simple-expansion engines receive boiler steam directly, with both contributing exhaust and chuffs to one chimney. Everything stays beneath the S060 body; there is no rear extension or companion vehicle.
 
-The fork's code is distributed under the included MIT licence. Use, modification
-and redistribution are permitted under that licence, with the copyright and
-licence notices retained. The original author's notice remains in LICENSE.
-This does not relicense third-party game assets or the Verde authoring pack.
-No original game DLLs, Verde audio/art or dependency mods are distributed here.
+0.3.0 adapts the later S282 Franklin presentation to the S060: continuous rod and bearing shapes, fitted wheel-input shafts and collars, forked crossheads, split guides, small-end pins and round piston rods. The driven wheelbase is now 4.70m, with 1.20m axle spacing within each powered unit and 1.00m wheels. Hollow fitted sleeves tidy both smokebox connections.
 
-[url=https://github.com/pjschinske/dv-rearranged-S282]Original S282 source[/url]
-[url=https://github.com/james-taplin/dv-rearranged-S282]JimTaplin's S282 fork[/url]
-[url=https://github.com/james-taplin/dv-rearranged-S060]S060 fork[/url]
+Cylinder and steam-flow tuning has been revised for the fitted machinery. Both cylinder-cock sets use the existing cab control, with two functional oil cups per driven axle.
 
-0.22.2 CHANGELOG - PLAIN TEXT (everything new since public 0.19.1)
+CONTROLS AND PERSISTENCE
 
-- added a two-truck Shay to the radio and UMM chooser: a three-cylinder side
-  engine drives two swivelling trucks on stock S282 pony wheels through
-  animated line shafts, universal joints and bevel gears.
-- the Shay has cab-controlled cylinder cocks, water drips, connected steam and
-  exhaust pipes and six upright oil cups.
-- rebuilt the Meyer's rear: a high coal hopper, side and well tanks and a full
-  rear end with all three rear lamps now sit on the locomotive, while the rear
-  engine unit swings underneath.
-- the Meyer now carries about 8,800 L of water and 3,500 kg of coal (stock
-  4,500 L and 1,200 kg); switching to another arrangement keeps up to the stock
-  amount.
-- the Meyer's rear tanks and hopper take their paint from the applied S060 skin,
-  and its LP exhaust pipe now runs low along the cab roof and tank top.
+- Dedicated WHEEL REARRANGER radio mode and an arrangement chooser in UMM.
+- Optional random arrangements for newly spawned S060s, using a selectable pool; the Shay is excluded.
+- Native locomotive identity, livery, cab, damage and save ownership retained.
+- Fuel and water retained up to the destination arrangement's capacity.
+- Two functional oil cups per driven axle on conventional, Meyer and Dockside layouts; six upright servicing cups on the Shay. Oil quantities and lid states persist through arrangement changes.
+- Existing supported saves and settings remain compatible, including older Shay and Dockside engine states.
+- Arrangement-specific adhesion tuning for the 0-4-0 and 0-6-2, using the game's native grip and weather handling.
+- Automatic diagnostics now keep their driving capture available until the regulator is first opened.
 
-TESTING NOTES
+REQUIREMENTS
 
-- the Shay and the new Meyer rear pass the mod's automatic checks but have had
-  little driving yet. Please report problems on tight curves, when switching
-  arrangements or after a save and reload, with Player.log.
-- Shay selections use a new save format; older versions of the mod cannot
-  restore them.
-- the Shay is not in the random-spawn pool.
-- skins with lettering or numbers on the tank sides may show them on the Meyer's
-  rear tanks too.
+Derail Valley B99 on Windows, Unity Mod Manager 0.27.3+, Loco Mesh Splitter and Custom Car Loader. Install CCL's own requirements too, including DV Language Helper for the tested CCL setup.
 
-MAIN FILE DESCRIPTION
+Loco Mesh Splitter: https://www.nexusmods.com/derailvalley/mods/867
+Custom Car Loader: https://www.nexusmods.com/derailvalley/mods/324
 
-Shay rebuild and Meyer rear update for B99. Includes RearrangedS060 0.22.2, original Shay
-models and both required 0.7.0 asset bundles in one UMM mod folder. Drag this ZIP directly into
-UMM; no nested ZIPs or separate pack installs. Requires Loco Mesh Splitter and Custom Car Loader separately.
-Rearranged S282 is not required. See the description's beta notes before use.
+Dependencies are separate downloads. Rearranged S282 is not required.
 
-INCLUDED COMPONENTS - NOT SEPARATE DOWNLOADS
+INSTALLATION
 
-RearrangedS060/RearrangedS060.dll
-Main runtime: S060 radio/UMM choices, arrangement switching, steam simulation,
-effects integration, oiling and persistence. The two bundles are already included.
+Close the game, install the dependencies, then drag Rearranged S060 0.3.0 UMM.zip directly into UMM. One mod folder includes the runtime, Meyer and Dockside bundles and Shay models. No nested ZIPs or separate asset-pack installs.
 
-RearrangedS060/assets/Meyer/ccl_bundle
-Required Meyer geometry/asset pack for the radio-selected compound arrangement.
+If upgrading an earlier three-part test build, first uninstall ONLY the old RS060_Meyer_0440 and RS060_Franklin_Dockside_0440 entries through UMM. Keep RearrangedS060 itself and Settings.xml, then install the combined ZIP. New users skip this step.
 
-RearrangedS060/assets/Dockside/ccl_bundle
-Required Franklin Dockside geometry/asset pack for the radio-selected arrangement.
+If an included asset pack is reported missing, check CCL and its dependencies for loading errors, then fully restart the game after installing or updating.
 
-RearrangedS060/assets/Shay/shay_running_gear
-Original engine, transmission and truck meshes; wheelsets and sounds alias DV live.
+Select WHEEL REARRANGER and point at a native S060. Stop and close the regulator before switching. Before entering or leaving Meyer, uncouple the rear, disconnect its brake hose and leave clear track behind. Use the native S060 radio for normal play; CCL spawner entries are debug asset donors.
 
-EDITOR NOTE - DO NOT PASTE AS A FEATURE
+DEVELOPMENT NOTES
 
-The update changelog describes what users get. Do not list every private test
-version or claim that the reported transition-damage/bob issue is confirmed fixed.
-This is a prepared public beta package. Nexus upload remains a separate action.
+THIS IS IN DEVELOPMENT: PLEASE HELP ME SQUASH BUGS! ty :3
+
+The Meyer and Shay remain in alpha. The integrated build passes offline checks, but tight curves, sustained haulage, appearance in game lighting, arrangement changes and save/reload still need driving feedback. The 0-8-0 and 0-6-2 remain experimental; the 0-10-0 also needs more tight-curve testing.
+
+Earlier reports of a stopped Meyer bob and window damage when changing from Meyer to Dockside still need gameplay confirmation after the collision corrections. Please report repeats with the exact transition, game/mod versions and Player.log. Include the mod's automatic diagnostic files if available. Changing arrangements retains existing damage; it does not repair the locomotive.
+
+Rear Meyer cock jets may be weak at low receiver pressure, and drips need water in the cylinders. Stock brake meshes are hidden on conventional conversions where the original sizes or axle positions do not fit. Please report any oil cup you cannot reach.
+
+Skins with lettering or numbers on the tank sides may repeat them on the Meyer's rear tanks.
+
+CREDITS AND PERMISSIONS
+
+Rearranged S060 forks JimTaplin's Rearranged S282 B99 / Re:Arranged fork, based on Peter Schinske / SatiricRug's original Rearranged S282.
+
+- Peter Schinske / pjschinske / SatiricRug - original Rearranged S282, arrangement foundation and inherited Franklin running gear and pipework.
+- JimTaplin / james-taplin - the B99 / Re:Arranged fork, S060 adaptation, arrangements, modelling, simulation integration, fitting and testing. The revised Dockside adapts the later S282 Franklin work to the S060.
+- discorddraconequus - Verde compound and the stage-specific chuff/sound-tuning and native-effects references used for the Meyer. No Verde meshes, textures, animation clips or audio are included.
+- Niko Fox and Insprill / Derail Valley Modding - original mod template.
+- newman55 and contributors - Unity Mod Manager.
+- Katycat, Wiz, lassombra and contributors - Custom Car Loader.
+- Loco Mesh Splitter contributors - native locomotive mesh access.
+- Radu, Perfare and aelurum - AssetStudio.
+- Dummiesman - Runtime OBJ Importer.
+- Altfuture - Derail Valley and its original locomotive assets.
+
+The fork's code retains the included MIT licence and original copyright notices. Use, modification and redistribution are permitted under that licence with its notices retained. This does not relicense third-party game assets or the Verde authoring pack. No original game DLLs, Verde art/audio or dependency mods are distributed here.
+
+Original S282 source: https://github.com/pjschinske/dv-rearranged-S282
+JimTaplin's S282 fork: https://github.com/james-taplin/dv-rearranged-S282
+S060 fork: https://github.com/james-taplin/dv-rearranged-S060

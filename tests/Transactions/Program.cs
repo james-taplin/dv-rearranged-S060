@@ -16,6 +16,18 @@ static class Program
     static void Clean(TrainCar car) { Faults.Reset(); S060Conversion.Release(car); Check(!Faults.Resources.Contains(car), "Owned resource released"); }
     static void Main()
     {
+        var unsettled = Car();
+        unsettled.Independent = new S060IndependentDrive { Settled = false };
+        Check(Fail(() => S060Conversion.SwitchTo(unsettled, Four)).Message.Contains("both powered sets"),
+            "Independent wheel motion blocks switching even with pooled slip/force at zero");
+        Check(Faults.ApplyCalls == 0 && S060Conversion.Current(unsettled) == null,
+            "Unsettled independent drive cannot mutate the arrangement");
+        unsettled.Independent.Settled = true;
+        S060Conversion.SwitchTo(unsettled, Four);
+        Check(S060Conversion.Current(unsettled)?.Selection.Equals(Four) == true,
+            "Settled independent drive permits the existing conversion path");
+        Clean(unsettled);
+
         var car = Car(); S060Conversion.SwitchTo(car, Four);
         Check(S060Conversion.Current(car).Selection.Equals(Four), "Successful apply owns correct selection");
         S060Conversion.Restore(car); Check(S060Conversion.Current(car) == null && !Faults.Resources.Contains(car), "Successful restore releases owner/resources");
@@ -113,6 +125,7 @@ public class TrainCar
     public string ID = "test", Guid = "native-guid";
     public float Fuel = 123, Water = 456, Damage = .2f;
     public bool derailed, isExploded;
+    internal S060IndependentDrive Independent;
     public UnityEngine.Transform transform = new();
     public Sim SimController = new(); public Adhesion adhesionController = new();
     public float GetForwardSpeed() => 0;
@@ -143,6 +156,13 @@ namespace UnityEngine
 namespace RearrangedS060
 {
     using UnityEngine;
+    // The real native traction owner is exercised by tests/IndependentDrive.
+    // This boundary double supplies only the switch-readiness contract.
+    internal sealed class S060IndependentDrive
+    {
+        internal bool Settled = true;
+        internal static S060IndependentDrive For(TrainCar car) => car.Independent;
+    }
     internal static class Main { internal static LoggerStub Logger = new(); internal class LoggerStub { public void LogException(string _, Exception ex) {} public void Log(string _) {} } }
     internal class S060Parts
     {

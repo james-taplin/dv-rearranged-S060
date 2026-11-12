@@ -10,10 +10,15 @@ namespace RearrangedS060
     // chimney already carry LP exhaust; this introduces no ports or readers.
     internal sealed class S060MeyerExhaustPipe : IDisposable
     {
-        internal const float Radius = .09f, HeaderY = 1.68f, SleeveLength = 1.18f;
-        internal static readonly Vector3 RearBallPosition = new Vector3(-1.75f, HeaderY, .85f);
-        internal static readonly Vector3 BodyBallPosition = new Vector3(-1.63f, 3.05f, -4.6f);
-        internal static readonly Vector3 SmokeboxPosition = new Vector3(-.656f, 2.25f, 3.7f);
+        // Keep the unit collector and body-side bend below the cab floor even
+        // when suspension lifts the rear unit. The roof course is unchanged.
+        internal const float Radius = .095f, HeaderY = 1.40f, SleeveLength = 1.18f;
+        internal static readonly Vector3 RearBallPosition = new Vector3(1.10f, HeaderY, 1.70f);
+        internal static readonly Vector3 BodyBallPosition = new Vector3(1.60f, 1.32f, -4.95f);
+        // Exact B99 smokebox sheet intersection and outward face normal.
+        internal static readonly Vector3 SmokeboxSurface = new Vector3(.5529617f,2.80f,3.50f);
+        internal static readonly Vector3 SmokeboxNormal = new Vector3(.7730095f,.6343944f,0);
+        internal static readonly Vector3 SmokeboxPosition = SmokeboxSurface + SmokeboxNormal*.08f;
         internal Transform BodyRoot { get; private set; }
         internal Transform RearRoot { get; private set; }
         internal Transform RearJoint { get; private set; }
@@ -27,8 +32,8 @@ namespace RearrangedS060
         private readonly List<GameObject> objects = new List<GameObject>();
         private MeshRenderer materialSource;
         private Material material;
-        private Vector3 previousRear, previousBody;
-        private bool initialized, disposed;
+        private Bend connection;
+        private bool disposed;
 
         internal static S060MeyerExhaustPipe Bind(Transform body, Transform rear, Transform nativeShell)
         {
@@ -37,75 +42,82 @@ namespace RearrangedS060
             {
                 owner.materialSource = nativeShell.GetComponentsInChildren<MeshRenderer>(true)
                     .Where(r => r.name == "s060_body" && r.sharedMaterial != null)
-                    .OrderByDescending(r => r.enabled && r.gameObject.activeInHierarchy).FirstOrDefault();
-                if (owner.materialSource == null) throw new InvalidOperationException("Live native S060 material required for LP exhaust return.");
+                    .OrderByDescending(r => r.enabled && r.gameObject.activeInHierarchy).First();
                 owner.material = owner.materialSource.sharedMaterial;
-                owner.BodyRoot = owner.Group(body, "[Meyer LP exhaust return]");
-                owner.RearRoot = owner.Group(rear, "[Meyer LP exhaust collector]");
+                owner.BodyRoot = owner.Group(body, "[Meyer single rear steam trunk]");
+                owner.RearRoot = owner.Group(rear, "[Meyer rear exhaust collector]");
                 foreach (int side in new[] { -1, 1 })
                 {
                     var chest = rear.Find("[Round cylinders " + (side < 0 ? "L" : "R") + "]/Valve chest");
-                    if (chest == null) throw new InvalidOperationException("Actual LP valve-chest casting required for exhaust takeoff.");
-                    var filter = chest.GetComponent<MeshFilter>(); var b = filter.sharedMesh.bounds;
-                    var cap = rear.InverseTransformPoint(filter.transform.TransformPoint(new Vector3(b.center.x, b.min.y, b.center.z)));
+                    if (chest == null) throw new InvalidOperationException("Native LP chest takeoff required.");
+                    // The donor cylinder's local Y is its longitudinal axis.
+                    // Locate its top in unit coordinates, not in mesh-local axes.
+                    var points=chest.GetComponent<MeshFilter>().sharedMesh.vertices.Select(p=>rear.InverseTransformPoint(chest.TransformPoint(p))).ToArray();
+                    var b=new Bounds(points[0],Vector3.zero);foreach(var p in points)b.Encapsulate(p);
+                    var skin=new Vector3(b.center.x,b.max.y,Mathf.Clamp(1.70f,b.min.z+.04f,b.max.z-.04f));
+                    var end = new Vector3(skin.x,HeaderY,1.70f);var direction=(end-skin).normalized;
+                    var cap=skin+direction*.030f;
+                    owner.Render(owner.RearRoot,"LP chest union "+side,SmoothPathMesh(new[]{skin-direction*.045f,cap},.095f));
                     owner.Marker(owner.RearRoot, "[LP exhaust takeoff " + side + "]", cap);
-                    owner.Pipe(owner.RearRoot, "LP exhaust riser " + side, .065f, new[] { cap, cap + Vector3.back * .15f, new Vector3(cap.x, HeaderY, .85f) });
-                    owner.Ball(owner.RearRoot, "LP collector elbow " + side, new Vector3(cap.x, HeaderY, .85f), .105f);
+                    owner.Render(owner.RearRoot, "LP chest outlet " + side, SmoothPathMesh(new[] {
+                        cap, end }, .075f, .24f));
                 }
-                owner.Pipe(owner.RearRoot, "LP exhaust collector header", Radius,
-                    new[] { new Vector3(1.03f, HeaderY, .85f), RearBallPosition });
-                owner.RearJoint = owner.Ball(owner.RearRoot, "[LP rear ball joint]", RearBallPosition, .145f);
-                owner.BodyJoint = owner.Ball(owner.BodyRoot, "[LP body ball joint]", BodyBallPosition, .145f);
-                // Meyer R2: the return hugs the bodywork instead of arching above the cab and
-                // hanging outside the tanks: up beside the hopper, low along the cab roof
-                // (3.715 m at x -1.0), down ahead of the cab front (z -1.21), along the left tank
-                // top (2.83 m, falling to 2.56 m at the front) and into the smokebox socket.
-                var route = new[] { BodyBallPosition, new Vector3(-1.63f, 3.55f, -4.6f), new Vector3(-1.20f, 3.84f, -4.30f),
-                    new Vector3(-.95f, 3.84f, -3.95f), new Vector3(-.95f, 3.84f, -1.40f), new Vector3(-.95f, 3.05f, -1.02f),
-                    new Vector3(-.95f, 3.05f, .80f), new Vector3(-.95f, 2.85f, 2.40f), new Vector3(-.95f, 2.72f, 2.95f),
-                    new Vector3(-.90f, 2.45f, 3.40f), SmokeboxPosition };
-                owner.Pipe(owner.BodyRoot, "LP smokebox return", Radius, route);
+                owner.Render(owner.RearRoot, "LP collector", OpenEnds(SmoothPathMesh(new[] { new Vector3(-1.10f, HeaderY, 1.70f), RearBallPosition }, Radius),false,true));
+                owner.RearJoint = owner.Marker(owner.RearRoot, "[LP unit union]", RearBallPosition);
+                owner.BodyJoint = owner.Marker(owner.BodyRoot, "[LP body union]", BodyBallPosition);
+                owner.Render(owner.BodyRoot, "Single cab-roof steam trunk", OpenEnds(SmoothPathMesh(new[] {
+                    BodyBallPosition, new Vector3(1.60f,1.32f,-5.45f),new Vector3(1.60f,3.78f,-5.45f),
+                    new Vector3(.85f,4.03f,-4.15f),new Vector3(.85f,4.03f,-.70f),
+                    new Vector3(1.12f,3.08f,-.12f),new Vector3(1.12f,3.08f,1.85f),
+                    SmokeboxSurface+SmokeboxNormal*.38f,SmokeboxPosition },Radius,.38f),true,false));
                 owner.SmokeboxJoint = owner.Marker(owner.BodyRoot, "[LP smokebox socket]", SmokeboxPosition);
-                owner.Pipe(owner.BodyRoot, "LP smokebox flange", .145f,
-                    new[] { SmokeboxPosition - Vector3.right * .07f, SmokeboxPosition + Vector3.right * .02f }, false);
-                // Short clips onto the cab roof and tank top; nothing hangs outside the body.
-                foreach (var (z, y, surface) in new[] { (-3.3f, 3.84f, 3.715f), (-2.0f, 3.84f, 3.715f), (-.30f, 3.05f, 2.83f), (1.60f, 2.94f, 2.74f) })
+                owner.Render(owner.BodyRoot, "Smokebox inlet flange", SmoothPathMesh(new[] { SmokeboxSurface-SmokeboxNormal*.02f, SmokeboxPosition }, .125f));
+                // Two restrained straps meet the measured native roof, rather
+                // than hanging a pipe from guessed roof coordinates.
+                foreach (float z in new[] { -3.25f, -2.05f })
                 {
-                    owner.Pipe(owner.BodyRoot, "LP clip " + z, .022f, new[] { new Vector3(-.95f, surface - .01f, z), new Vector3(-.95f, y - Radius, z) }, false);
-                    owner.Pipe(owner.BodyRoot, "LP clip collar " + z, .105f, new[] { new Vector3(-.95f, y, z - .035f), new Vector3(-.95f, y, z + .035f) }, false);
+                    float roof = RoofHeight(body, nativeShell, .85f, z);
+                    owner.Render(owner.BodyRoot, "Roof saddle " + z, SmoothPathMesh(new[] {
+                        new Vector3(.85f, roof, z), new Vector3(.85f, 4.03f - Radius, z) }, .018f));
+                    owner.Render(owner.BodyRoot, "Roof strap " + z, SmoothPathMesh(new[] {
+                        new Vector3(.85f, 4.03f, z - .018f), new Vector3(.85f, 4.03f, z + .018f) }, Radius + .009f));
                 }
-                owner.InnerSleeve = owner.Pipe(owner.BodyRoot, "[LP telescopic inner]", Radius, new[] { Vector3.zero, Vector3.forward }, false);
-                owner.OuterSleeve = owner.Pipe(owner.BodyRoot, "[LP telescopic outer]", .11f, new[] { Vector3.zero, Vector3.forward }, false);
-                owner.InnerSleeve.localScale = owner.OuterSleeve.localScale = new Vector3(1, 1, SleeveLength);
-                owner.SlipCollar = owner.Pipe(owner.BodyRoot, "[LP sliding gland collar]", .13f,
-                    new[] { new Vector3(0, 0, -.045f), new Vector3(0, 0, .045f) }, false);
+                owner.connection = new Bend(Radius);
+                owner.connection.Part = owner.Render(owner.BodyRoot, "Rear articulated bend", owner.connection.Mesh);
+                owner.InnerSleeve = owner.connection.Part;
                 owner.UpdateGeometry(); return owner;
             }
             catch { owner.Dispose(); throw; }
         }
-
         internal void UpdateGeometry()
         {
-            if (disposed || BodyRoot == null || RearJoint == null || BodyJoint == null || InnerSleeve == null || OuterSleeve == null || SlipCollar == null) return;
+            if (disposed || BodyRoot == null) return;
             if (materialSource != null && materialSource.sharedMaterial != material)
             {
                 material = materialSource.sharedMaterial;
                 foreach (var renderer in renderers) if (renderer != null) renderer.sharedMaterial = material;
             }
-            var a = RearJoint.position; var b = BodyJoint.position;
-            if (initialized && (a - previousRear).sqrMagnitude < 1e-10f && (b - previousBody).sqrMagnitude < 1e-10f) return;
-            var line = b - a; float length = line.magnitude;
-            // A derailed/transient rerail pose can exceed the physical sleeve
-            // travel. Keep the rigid parts at their own ends without stretching
-            // or throwing every LateUpdate; normal-track travel is audited.
-            if (float.IsNaN(length) || float.IsInfinity(length) || length < .00001f) return;
-            var direction = line / length;
-            // Both tubes retain their fixed physical length and radial size.
-            // Articulation changes overlap inside the sleeve, never tube scale.
-            InnerSleeve.SetPositionAndRotation(a, Quaternion.LookRotation(direction, BodyRoot.up));
-            OuterSleeve.SetPositionAndRotation(b, Quaternion.LookRotation(-direction, BodyRoot.up));
-            SlipCollar.SetPositionAndRotation(b - direction * SleeveLength, Quaternion.LookRotation(direction, BodyRoot.up));
-            previousRear = a; previousBody = b; initialized = true;
+            connection.Move(BodyRoot.InverseTransformPoint(RearJoint.position), BodyBallPosition,
+                BodyRoot.InverseTransformDirection(RearRoot.TransformDirection(Vector3.right)), Vector3.back);
+        }
+        private static float RoofHeight(Transform body, Transform shell, float x, float z)
+        {
+            float top = float.NegativeInfinity;
+            foreach (var f in shell.GetComponentsInChildren<MeshFilter>(true).Where(f => f.name == "s060_body" && f.sharedMesh != null && f.sharedMesh.isReadable))
+            {
+                var v = f.sharedMesh.vertices.Select(p => body.InverseTransformPoint(f.transform.TransformPoint(p))).ToArray(); var t = f.sharedMesh.triangles;
+                for (int i = 0; i < t.Length; i += 3)
+                {
+                    var a = v[t[i]]; var b = v[t[i + 1]]; var c = v[t[i + 2]];
+                    float d = (b.z-c.z)*(a.x-c.x)+(c.x-b.x)*(a.z-c.z); if (Mathf.Abs(d) < 1e-9f) continue;
+                    float u = ((b.z-c.z)*(x-c.x)+(c.x-b.x)*(z-c.z))/d;
+                    float w = ((c.z-a.z)*(x-c.x)+(a.x-c.x)*(z-c.z))/d;
+                    if (u < 0 || w < 0 || u+w > 1) continue;
+                    float y = u*a.y+w*b.y+(1-u-w)*c.y; if (y > 3.3f && y < 4.1f) top = Mathf.Max(top,y);
+                }
+            }
+            if (float.IsNegativeInfinity(top)) throw new InvalidOperationException("Measured native cab roof required for pipe saddles.");
+            return top;
         }
 
         private Transform Group(Transform parent, string name)
@@ -154,9 +166,8 @@ namespace RearrangedS060
             }
             result.Add(points[points.Length - 1]); return result.ToArray();
         }
-        internal static Mesh Tube(Vector3[] centres, float[] radii)
+        internal static Mesh Tube(Vector3[] centres, float[] radii, int sides = 16)
         {
-            const int sides = 16;
             var vertices = new Vector3[centres.Length * sides + 2]; var normals = new Vector3[vertices.Length];
             var uv = new Vector2[vertices.Length]; var triangles = new int[(centres.Length - 1) * sides * 6 + sides * 6];
             int index = 0;
@@ -193,6 +204,64 @@ namespace RearrangedS060
             var mesh = new Mesh();
             try { mesh.vertices = vertices; mesh.normals = normals; mesh.uv = uv; mesh.triangles = triangles; mesh.RecalculateBounds(); return mesh; }
             catch { Release(mesh); throw; }
+        }
+        internal static Mesh SmoothPathMesh(Vector3[] points, float radius, float bend = .35f)
+        {
+            var centres = new List<Vector3> { points[0] };
+            for (int i = 1; i + 1 < points.Length; i++)
+            {
+                var u = (points[i]-points[i-1]).normalized; var v = (points[i+1]-points[i]).normalized;
+                float angle = Mathf.Acos(Mathf.Clamp(Vector3.Dot(u,v),-1,1));
+                if (angle < .001f || angle > 3.13f) { centres.Add(points[i]); continue; }
+                float cut = Mathf.Min(bend * Mathf.Tan(angle/2), .45f * Mathf.Min(Vector3.Distance(points[i],points[i-1]),Vector3.Distance(points[i+1],points[i])));
+                float r = cut/Mathf.Tan(angle/2); var normal = Vector3.Cross(u,v).normalized;
+                var start = points[i]-u*cut; var centre = start+Vector3.Cross(normal,u)*r; var radial = start-centre;
+                int steps = Mathf.Max(4,Mathf.CeilToInt(angle/(Mathf.PI/24)));
+                for (int j=0;j<=steps;j++) centres.Add(centre+Quaternion.AngleAxis(angle*Mathf.Rad2Deg*j/steps,normal)*radial);
+            }
+            centres.Add(points[points.Length-1]); return Tube(centres.ToArray(),Enumerable.Repeat(radius,centres.Count).ToArray(),24);
+        }
+        private static Mesh OpenEnds(Mesh mesh,bool start,bool end)
+        {
+            const int sides=24;var t=mesh.triangles;int first=t.Length-sides*6;
+            mesh.triangles=t.Where((v,i)=>i<first||(((i-first)%6<3)?!start:!end)).ToArray();return mesh;
+        }
+        // Cached cubic bend. Only the short unit/body connections deform; the
+        // long pipes remain rigid. Radius is never scaled with articulation.
+        internal sealed class Bend
+        {
+            internal readonly Mesh Mesh;
+            internal Transform Part;
+            private const int Rings=25, Sides=24;
+            private readonly Vector3[] points=new Vector3[Rings], vertices=new Vector3[Rings*Sides+2], normals=new Vector3[Rings*Sides+2];
+            private Vector3 previousA,previousB,previousU,previousV; private bool initialized;
+            internal Bend(float radius)
+            {
+                Radius=radius; for(int i=0;i<Rings;i++) points[i]=Vector3.forward*i/(Rings-1);
+                Mesh=OpenEnds(Tube(points,Enumerable.Repeat(radius,Rings).ToArray(),Sides),true,true); Mesh.MarkDynamic();
+            }
+            internal float Radius { get; }
+            internal void Move(Vector3 a,Vector3 b,Vector3 u,Vector3 v)
+            {
+                if(!S060PipePose.Finite(a)||!S060PipePose.Finite(b)||!S060PipePose.Direction(u)||!S060PipePose.Direction(v)) return;
+                u.Normalize();v.Normalize(); float h=Mathf.Min(.38f,Vector3.Distance(a,b)*.45f);
+                if(initialized && Vector3.Distance(a,previousA)+Vector3.Distance(b,previousB)+.38f*(Vector3.Distance(u,previousU)+Vector3.Distance(v,previousV)) < S060PipePose.MaxError/4) return;
+                var c=a+u*h;var d=b-v*h;
+                for(int i=0;i<Rings;i++){float t=i/(float)(Rings-1),s=1-t;points[i]=s*s*s*a+3*s*s*t*c+3*s*t*t*d+t*t*t*b;}
+                Vector3 lastTangent=Vector3.forward,lastRight=Vector3.right;
+                for(int ring=0;ring<Rings;ring++)
+                {
+                    var tangent=ring==0?u:ring==Rings-1?v:(points[ring+1]-points[ring-1]).normalized;
+                    var reference=Mathf.Abs(Vector3.Dot(tangent,Vector3.up))>.95f?Vector3.forward:Vector3.up;
+                    var right=ring==0?Vector3.Cross(reference,tangent).normalized:(Quaternion.FromToRotation(lastTangent,tangent)*lastRight).normalized;
+                    var up=Vector3.Cross(tangent,right);lastTangent=tangent;lastRight=right;
+                    for(int side=0;side<Sides;side++){float angle=2*Mathf.PI*side/Sides;int j=ring*Sides+side;normals[j]=right*Mathf.Cos(angle)+up*Mathf.Sin(angle);vertices[j]=points[ring]+normals[j]*Radius;}
+                }
+                vertices[vertices.Length-2]=a;vertices[vertices.Length-1]=b;
+                normals[normals.Length-2]=-u;normals[normals.Length-1]=v;
+                Mesh.vertices=vertices;Mesh.normals=normals;Mesh.RecalculateBounds();
+                previousA=a;previousB=b;previousU=u;previousV=v;initialized=true;
+            }
         }
         public void Dispose()
         {

@@ -1,4 +1,5 @@
-param([string]$DocksideEvidence = '', [Parameter(Mandatory)][string]$NativeEvidence)
+param([string]$DocksideEvidence = '', [Parameter(Mandatory)][string]$NativeEvidence,
+    [Parameter(Mandatory)][string]$IndependentEvidence)
 $ErrorActionPreference = 'Stop'
 $repo = $PSScriptRoot
 . (Join-Path $repo 'Build.Config.ps1')
@@ -22,10 +23,46 @@ New-Item -ItemType Directory -Path $output -Force | Out-Null
 & (Join-Path $repo 'Build.Runtime.ps1')
 $nativeReport = Get-Content (Join-Path $NativeEvidence 'runtime-validation.json') -Raw | ConvertFrom-Json
 if (-not $nativeReport.passed -or $nativeReport.runtimeSha256 -ne (Get-FileHash (Join-Path $repo 'build\stage7\RearrangedS060.dll')).Hash) { throw 'Native runtime audits must match this exact DLL.' }
+$independentReport = Get-Content $IndependentEvidence -Raw | ConvertFrom-Json
+if (-not $independentReport.passed -or $independentReport.runtimeSha256 -ne $nativeReport.runtimeSha256 -or
+    -not $independentReport.nativeEcs -or -not $independentReport.productionCoordinator -or
+    -not $independentReport.dockside -or -not $independentReport.meyer -or
+    -not $independentReport.forceOnce -or -not $independentReport.cleanup) {
+    throw 'Exact-DLL native independent-slip, both arrangement, force and cleanup evidence is required.'
+}
+if (-not $independentReport.result -or (Get-FileHash $independentReport.result).Hash -ne $independentReport.resultSha256 -or
+    -not (Get-Content $independentReport.result -Raw | ConvertFrom-Json).passed) {
+    throw 'Native independent-slip result changed after validation.'
+}
+foreach ($source in $independentReport.fixtureSourceHashes) {
+    if ((Get-FileHash $source.Path).Hash -ne $source.Hash) { throw 'Independent-slip fixture source changed after validation.' }
+}
 foreach ($report in $nativeReport.reports) {
     if ((Get-FileHash $report.path).Hash -ne $report.hash -or -not (Get-Content $report.path -Raw | ConvertFrom-Json).passed) { throw 'Native audit evidence changed.' }
 }
-foreach ($name in @('exhaust','cocks','cleanup','collision','contacts','conventional','quartering','shay-effects')) { if (@($nativeReport.reports | Where-Object name -eq $name).Count -ne 1) { throw "Missing native audit: $name" } }
+foreach ($name in @('dockside-sleeves','meyer-rear-coupling','meyer-inward-pipes','meyer-inward-body','meyer-inward-phase','exhaust','exhaust-failure','pipes','meyer-refill','cocks','cleanup','collision','contacts','conventional','quartering','shay-effects')) { if (@($nativeReport.reports | Where-Object name -eq $name).Count -ne 1) { throw "Missing native audit: $name" } }
+$inwardPhase = Get-Content ($nativeReport.reports | Where-Object name -eq 'meyer-inward-phase').path -Raw | ConvertFrom-Json
+if (-not $inwardPhase.actualDonorClip -or -not $inwardPhase.worldRollingDirection -or
+    -not $inwardPhase.quarteredRodEndpoints -or -not $inwardPhase.nativeCylinderMaskOutlets -or
+    -not $inwardPhase.physicalOilCircuitSides) { throw 'Inward Meyer native motion, outlet and oil-side checks are required.' }
+$inwardBody = Get-Content ($nativeReport.reports | Where-Object name -eq 'meyer-inward-body').path -Raw | ConvertFrom-Json
+if (-not $inwardBody.actualNativeTriangles -or $inwardBody.poses -ne 108 -or -not $inwardBody.obsoleteStockSlideBarsRemoved -or
+    $inwardBody.clearanceSourceSha256 -ne (Get-FileHash (Join-Path $repo 'RearrangedS060\S060MeyerClearance.cs')).Hash) { throw 'Hash-matched inward cylinder/body contact sweep is required.' }
+$rearFitPath = Join-Path $repo 'build\meyer-inward-layout\rear-wheel-fit.json'
+$rearFit = Get-Content $rearFitPath -Raw | ConvertFrom-Json
+if (-not $rearFit.passed -or $rearFit.minimumRearBeamGapMetres -lt .015 -or
+    $rearFit.layoutSha256 -ne (Get-FileHash (Join-Path $repo 'RearrangedS060\S060MeyerLayout.cs')).Hash -or
+    $rearFit.nativeFixtureSha256 -ne (Get-FileHash (Join-Path $config.QAPath 'native-preview.json')).Hash) { throw 'Hash-matched inward Meyer rear-wheel fit evidence is required.' }
+$inwardPipes = Get-Content ($nativeReport.reports | Where-Object name -eq 'meyer-inward-pipes').path -Raw | ConvertFrom-Json
+if (-not $inwardPipes.inwardMeyerConnected -or -not $inwardPipes.docksideLegacyUnchanged -or
+    -not $inwardPipes.cabEntryClear -or -not $inwardPipes.liveMaterialsAndCleanup -or -not $inwardPipes.singleRearTrunk -or -not $inwardPipes.noPipeBodyContacts) { throw 'Candidate inward Meyer and retained Dockside pipe checks are required.' }
+$exhaustFailure = Get-Content ($nativeReport.reports | Where-Object name -eq 'exhaust-failure').path -Raw | ConvertFrom-Json
+if ($exhaustFailure.runtimeSha256 -ne $nativeReport.runtimeSha256 -or -not $exhaustFailure.nativeB99Readers -or
+    -not $exhaustFailure.partialNativeInit -or -not $exhaustFailure.nativeDeinitFailure -or -not $exhaustFailure.endFailure -or
+    -not $exhaustFailure.repeatedInitDeinit) { throw 'Candidate native exhaust failure and repeated-lifecycle regressions are required.' }
+$pipes = Get-Content ($nativeReport.reports | Where-Object name -eq 'pipes').path -Raw | ConvertFrom-Json
+if ($pipes.runtimeSha256 -ne $nativeReport.runtimeSha256 -or -not $pipes.candidateDll -or -not $pipes.runtimeRecovery -or
+    $pipes.invalidRuntimeFrames -lt 256) { throw 'Candidate pipe invalid-pose recovery and motion-budget regressions are required.' }
 $shayEffects = Get-Content ($nativeReport.reports | Where-Object name -eq 'shay-effects').path -Raw | ConvertFrom-Json
 if (-not $shayEffects.actualPlayMode -or -not $shayEffects.oldDopplerFailureReproduced -or -not $shayEffects.productionInactiveAssembly -or -not $shayEffects.nativeDopplerAwake) { throw 'Native Shay audio activation and processed-CCL drip regressions are required.' }
 $quartering = Get-Content ($nativeReport.reports | Where-Object name -eq 'quartering').path -Raw | ConvertFrom-Json
@@ -63,7 +100,10 @@ if ($LASTEXITCODE -ne 0) { throw 'Functional check build failed.' }
 $functional = & (Join-Path $repo 'tests\Functional\bin\Release\net48\Functional.exe') 2>&1
 if ($LASTEXITCODE -ne 0) { throw "Functional checks failed: $functional" }
 $functional | Set-Content (Join-Path $output 'functional-checks.txt')
-$engines = & $sdk run --project (Join-Path $repo 'tests\Articulated\Native.csproj') -c Release "-p:PublicizedSimulation=$simDll" "-p:ManagedPath=$managed" -- (Join-Path $evidence 'steamEngine-calibration.json') 2>&1
+$stockCalibration = Join-Path $config.QAPath 'stock-s060-engine-calibration.json'
+& $config.Python -B (Join-Path $repo 'tests\Articulated\Prepare.NativeCalibration.py') --game $config.GamePath --output $stockCalibration
+if ($LASTEXITCODE -ne 0) { throw 'Exact native S060 calibration extraction failed.' }
+$engines = & $sdk run --project (Join-Path $repo 'tests\Articulated\Native.csproj') -c Release "-p:PublicizedSimulation=$simDll" "-p:ManagedPath=$managed" -- $stockCalibration (Join-Path $output 'traction-envelope.json') 2>&1
 if ($LASTEXITCODE -ne 0) { throw "Native engine-bank checks failed: $engines" }
 $engines | Set-Content (Join-Path $output 'engine-checks.txt')
 $transitions = & $sdk run --project (Join-Path $repo 'tests\Transitions\Transitions.csproj') -c Release "-p:ManagedPath=$managed" 2>&1
@@ -103,7 +143,7 @@ try {
     }
     if (@($allCalls | Where-Object { $_ -match 'CarRollingAudioModule::ResetJointSoundValues' }).Count -ne 1) { throw 'Rolling audio must rebuild its native axle cache.' }
     if (@($allCalls | Where-Object { $_ -match 'UnityEngine.GUILayout::HorizontalSlider' }).Count) { throw 'Release arrangement controls must not expose driver-size sliders.' }
-    foreach ($name in @('S060Meyer','S060Dockside','S060EngineBank','S060EngineSlot','S060ArticulatedSimulation','S060ArticulatedPresentation','S060ExhaustPresentation','S060StockCocks','S060EightLayout','S060MeyerSupport','S060LogicLength','S060CylinderFittings','S060BodyPipes','S060SteamPipes','S060MeyerExhaustPipe','S060NativeCylinders','S060MeyerLights','S060OilCups','S060Oiling')) {
+    foreach ($name in @('S060IndependentDrive','S060NativeSlipRuntimeState','S060NativeSlipEntitySchema','S060GroupForceRouting','S060GroupSlipEffects','S060MeyerRunningGear','S060SteamSleeve','S060Meyer','S060Dockside','S060EngineBank','S060EngineSlot','S060ArticulatedSimulation','S060ArticulatedPresentation','S060ExhaustPresentation','S060StockCocks','S060EightLayout','S060MeyerSupport','S060LogicLength','S060CylinderFittings','S060BodyPipes','S060SteamPipes','S060MeyerExhaustPipe','S060NativeCylinders','S060MeyerLights','S060OilCups','S060Oiling')) {
         if (@($types | Where-Object Name -eq $name).Count -ne 1) { throw "Missing runtime component: $name" }
     }
     if (@($module.AssemblyReferences | Where-Object Name -Match 'CCL|AssetStudio|RearrangedS282').Count) { throw 'Unexpected runtime dependency.' }
@@ -142,9 +182,11 @@ $receipt = [ordered]@{
     nativeCockReaderChecks = Get-Content $cockReport -Raw | ConvertFrom-Json
     nativeExhaustReaderChecks = $exhaustReport
     nativeEvidence = $NativeEvidence; nativeRuntimeChecks = $nativeReport
+    independentEvidence = @{ path=(Resolve-Path $IndependentEvidence).Path; hash=(Get-FileHash $IndependentEvidence).Hash; result=$independentReport }
+    meyerInwardRearFit = @{ path=$rearFitPath; hash=(Get-FileHash $rearFitPath).Hash; result=$rearFit }
     identityILAudit = 'No spawn/reinitialize/car-identity writes in switching implementation'
     arrangementUIAudit = 'No driver-size slider calls; stock and short-wheelbase 0-6-0 are separate fixed choices'
-    requiredAssetPacks = @('RS060_Meyer_0440 0.7.0','RS060_Franklin_Dockside_0440 0.7.0')
+    requiredAssetPacks = @('RS060_Meyer_0440 0.7.0','RS060_Franklin_Dockside_0440 0.8.1')
     files = @(Get-ChildItem $stage -File | Get-FileHash | Select-Object Path,Hash)
     zip = Get-FileHash -LiteralPath $zip | Select-Object Path,Hash
 }
@@ -157,5 +199,3 @@ Write-Output $oiling
 Write-Output $transactions
 Write-Output $compound
 Write-Output "Staged $zip. Installed build left untouched."
-
-

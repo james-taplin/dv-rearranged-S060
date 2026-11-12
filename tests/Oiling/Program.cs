@@ -107,8 +107,8 @@ internal static class Program
         var oil = FreshOil(def);
         var eight = new S060Selection(S060Arrangement.EightCoupled, 1);
         S060Oiling.Select(oil, eight);
-        var left = oil.oilingPoints[S060OilingTopology.ExtraIndex(true, 2)];
-        var right = oil.oilingPoints[S060OilingTopology.ExtraIndex(false, 2)];
+        var left = oil.oilingPoints[S060OilingTopology.ExtraIndex(true, 0)];
+        var right = oil.oilingPoints[S060OilingTopology.ExtraIndex(false, 0)];
         left.oilLevelReadOut.Value = right.oilLevelReadOut.Value = 0;
         left.oilLevelNormalizedReadOut.Value = right.oilLevelNormalizedReadOut.Value = 0;
         left.pointDoorExtIn.Value = right.pointDoorExtIn.Value = 1;
@@ -119,7 +119,7 @@ internal static class Program
         left.refillExtIn.Value = right.refillExtIn.Value = 1;
         left.refillingFlowNormalizedReadOut.Value = .21f;
         right.refillingFlowNormalizedReadOut.Value = .37f;
-        float liveLevel = oil.oilingPoints[6].oilLevelReadOut.Value;
+        float liveLevel = oil.oilingPoints[0].oilLevelReadOut.Value;
         for (int frame = 0; frame < 103; frame++)
         {
             Tick(oil);
@@ -132,13 +132,13 @@ internal static class Program
                 left.refillingFlowNormalizedReadOut.Value == .21f && right.refillingFlowNormalizedReadOut.Value == .37f,
                 "Failed/absent servicing geometry cannot alter dormant quantities, lids, refill requests or refill-flow state");
         }
-        Check(oil.oilingPoints[6].oilLevelReadOut.Value < liveLevel,
-            "Stock extra big-end circuits consume oil before any cups are constructed");
+        Check(oil.oilingPoints[0].oilLevelReadOut.Value < liveLevel,
+            "Stock native circuits consume oil before any cups are constructed");
         var retained = oil.GetSaveStateData();
         var reload = FreshOil(def); reload.SetSaveStateData(retained);
         S060Oiling.Select(reload, S060Selection.Stock); Tick(reload);
-        Check(reload.mechanicalDamageReadOut.Value == 0 && reload.oilingPoints[8].oilLevelReadOut.Value == 0 &&
-            reload.oilingPoints[8].pointDoorExtIn.Value == 1, "Native reload preserves dormant emptiness/lid without hidden damage");
+        Check(reload.mechanicalDamageReadOut.Value == 0 && reload.oilingPoints[6].oilLevelReadOut.Value == 0 &&
+            reload.oilingPoints[6].pointDoorExtIn.Value == 1, "Native reload preserves dormant emptiness/lid without hidden damage");
 
         left.refillExtIn.Value = right.refillExtIn.Value = 0;
         S060Oiling.Select(oil, eight); Tick(oil);
@@ -148,9 +148,9 @@ internal static class Program
         foreach (S060Arrangement arrangement in Enum.GetValues(typeof(S060Arrangement)))
         {
             var selection = new S060Selection(arrangement, 1);
-            int expected = arrangement == S060Arrangement.Shay ? S060OilingTopology.NativePoints : 4 + 2 * S060OilingTopology.DrivenAxles(arrangement);
+            int expected = arrangement == S060Arrangement.Shay ? S060OilingTopology.NativePoints : 2 * S060OilingTopology.DrivenAxles(arrangement);
             Check(S060OilingTopology.ActiveMask(selection).Count(x => x) == expected,
-                arrangement + " topology has four original guide/crosshead circuits plus two big ends per driven axle");
+                arrangement + " topology has exactly two oil cup circuits per driven axle");
             for (int empty = 0; empty < 14; empty++)
             {
                 var probe = FreshOil(def);
@@ -161,6 +161,8 @@ internal static class Program
                     arrangement + " native damage agrees with synchronous selection for point " + empty);
             }
         }
+        Check(S060OilingTopology.ActiveMask(S060Selection.Stock).SequenceEqual(Enumerable.Range(0, 14).Select(i => i < 6)),
+            "Stock 060 runs exactly its six native circuits");
         var small = new S060Selection(S060Arrangement.SixCoupled, S060Selection.SmallSixScale);
         Check(S060OilingTopology.ActiveMask(small).SequenceEqual(S060OilingTopology.ActiveMask(S060Selection.Stock)),
             "Short-wheelbase and stock 060 retain identical circuit identities");

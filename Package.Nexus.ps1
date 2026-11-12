@@ -1,4 +1,4 @@
-param([string]$Version = '')
+param([string]$Version = '', [switch]$StagedOnly)
 $ErrorActionPreference = 'Stop'
 $repo = $PSScriptRoot
 if (-not $Version) { $Version = (Get-Content (Join-Path $repo 'Info.json') -Raw | ConvertFrom-Json).Version }
@@ -77,9 +77,13 @@ try {
     if (@($zip.Entries | Where-Object { $_.FullName -match '(?i)\.(zip|7z|rar)$' -or -not $_.FullName.StartsWith('RearrangedS060/') }).Count -or
         @($zip.Entries | Where-Object { $_.Name -eq 'Info.json' }).Count -ne 1) { throw 'Archive must have one mod root/identity and no nested archives.' }
 } finally { $zip.Dispose() }
-Copy-Item -LiteralPath (Join-Path $repo 'docs\nexus\NEXUS_RELEASE_COPY.txt') -Destination $out -Force
+if ($StagedOnly) {
+    Copy-Item -LiteralPath (Join-Path $repo "docs\nexus\CHANGELOG-$Version.txt") -Destination (Join-Path $out 'STAGED-README.txt') -Force
+} else {
+    Copy-Item -LiteralPath (Join-Path $repo 'docs\nexus\NEXUS_RELEASE_COPY.txt') -Destination $out -Force
+}
 [ordered]@{
-    utc=[DateTime]::UtcNow.ToString('o'); version=$Version; status='Public beta package; not published'
+    utc=[DateTime]::UtcNow.ToString('o'); version=$Version; status=$(if ($StagedOnly) { 'Staged candidate; not installed or published' } else { 'Public beta package; not published' })
     testedPackageReceipt=$receiptPath; testedPackageReceiptSha256=(Get-FileHash $receiptPath).Hash
     runtimeSha256=$runtimeEntry[0].Hash; binaryPayloadUnchanged=$true; payload=$payload
     packaging='One UMM ZIP, one RearrangedS060 folder/Info.json, two recursively discovered native CCL bundles and original-only Shay model bundle; no nested ZIPs'

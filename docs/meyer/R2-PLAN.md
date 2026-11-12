@@ -1,5 +1,12 @@
 # Meyer R2: a long articulated tank engine — plan
 
+Current runtime revision, 8 November 2026: 0.23.0 reverses the front visual
+engine and places the rear running gear 65 mm aft of its original visual datum.
+Native support pivots and the R2 body, lamps, buffer beam and coupler stay fixed.
+The aft shift is limited by the actual R2 buffer beam: the guarded native-wheel
+sweep retains 21.54 mm clearance. The original plan below records the R2 design;
+its unshifted running-gear envelope is historical.
+
 Written 28 October 2026 by Claude. James asked for a more substantial rear: a
 high coal hopper feeding down into the S060 bunker, bigger water tanks, and
 bodywork that makes the Meyer read as one long articulated tank engine rather
@@ -53,7 +60,10 @@ sets it and the capacity port by reflection on apply and restores on removal,
 clamping the amount when returning to stock (refuse the switch, or warn, if that
 would spill). Saves store the normalised amount, so capacity must be applied
 before the resource state loads (or the amount rescaled) — a save/load test is
-mandatory. Water towers/coal stations read the capacity port.
+mandatory. Correction (6 November): water/coal stations use native cached
+LocoParameterData maxima created from the resource containers. Changing the
+capacity port alone does not refresh them. The runtime must also synchronize
+those existing cache values when entering/leaving Meyer.
 
 ## Work order
 

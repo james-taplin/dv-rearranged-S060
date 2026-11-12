@@ -16,6 +16,7 @@ internal static class Program
 {
     private static int Main()
     {
+        AllocationChecks.Run();
         var postfix = typeof(BogieAxlesPatch).GetMethod("Postfix", BindingFlags.NonPublic | BindingFlags.Static);
         Bogie.AxleInfo Make(bool active) => new Bogie.AxleInfo { transform = new Bogie.Transform { gameObject = new Bogie.GameObject { activeInHierarchy = active } } };
         var stock = new[] { Make(true), Make(true), Make(true) };

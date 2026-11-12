@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 
 internal static class NativeSlipKernel
 {
@@ -53,7 +54,71 @@ internal static class NativeSlipKernel
             if (slip != steadySlip) throw new Exception("Native ECS failed grip threshold equilibrium");
             Console.WriteLine($"Actual B99 ECS slip kernel: {test.Name} -> steady slip {slip:F6}.");
         }
-        return cases.Length;
+        return cases.Length + CheckNativeAdhesion(native);
     }
-    private static void Set(object instance, string field, object value) => instance.GetType().GetField(field).SetValue(instance, value);
+    private static int CheckNativeAdhesion(Assembly native)
+    {
+        int checks = 0;
+        void Check(bool ok, string message) { if (!ok) throw new Exception(message); checks++; }
+        var adhesion = native.GetType("DV.ECS.Train.AdhesionControllerSystem", true);
+        var kernel = adhesion.GetNestedTypes(BindingFlags.NonPublic).Single(t => t.Name.Contains("Calculate_Adhesion"));
+        var calculate = kernel.GetMethod("OriginalLambdaBody", BindingFlags.Instance | BindingFlags.NonPublic);
+        var slipKernel = native.GetType("DV.ECS.Train.WheelslipControllerSystem", true).GetNestedTypes(BindingFlags.NonPublic).Single(t => t.Name.Contains("Calculate_Wheelslip"));
+        var slipMethod = slipKernel.GetMethod("OriginalLambdaBody", BindingFlags.Instance | BindingFlags.NonPublic);
+        var carType = native.GetType("TrainCar", true); var massType = native.GetType("TrainMassController", true);
+        var car = FormatterServices.GetUninitializedObject(carType); var massController = FormatterServices.GetUninitializedObject(massType);
+        Set(massController, "car", car);
+        foreach (float mass in new[] { 50000f, 56600f })
+        {
+            Set(massController, "<TotalMass>k__BackingField", mass);
+            float previousDryGrip = 0;
+            foreach (byte axles in new byte[] { 3, 4 })
+            {
+                Set(car, "numberOfAxles", (int)axles);
+                float weight = (float)massType.GetProperty("WeightPerAxle").GetValue(massController);
+                Check(Math.Abs(weight * axles - mass * 9.81f) < .1f, "Native mass getter must use current three/four axle denominator");
+                foreach (float wetness in new[] { 0f, .5f })
+                foreach (float sand in new[] { 1f, 1.25f })
+                {
+                    object job = Activator.CreateInstance(kernel); Set(job, "wetness", wetness); Set(job, "wheelSlideAllowed", false); Set(job, "deltaTime", .02f);
+                    var args = Arguments(calculate);
+                    var matrixField = args[4].GetType().GetField("Value"); object matrix = Activator.CreateInstance(matrixField.FieldType);
+                    for (int c = 0; c < 4; c++)
+                    {
+                        var columnField = matrix.GetType().GetField("c" + c); object column = Activator.CreateInstance(columnField.FieldType);
+                        for (int r = 0; r < 4; r++) Set(column, new[] { "x", "y", "z", "w" }[r], c == r ? 1f : 0f);
+                        columnField.SetValue(matrix, column);
+                    }
+                    matrixField.SetValue(args[4], matrix);
+                    Set(args[5], "weightPerAxle", weight); Set(args[5], "sandCoef", sand);
+                    Set(args[6], "wheelslipFrictionCoef", .26f); Set(args[6], "wheelSlideFrictionCoef", .169f);
+                    Set(args[7], "numOfAxles", axles); Set(args[7], "bogieCount", (byte)2);
+                    calculate.Invoke(job, args);
+                    float perAxle = (float)args[1].GetType().GetField("wheelslipForceLimitPerAxle").GetValue(args[1]);
+                    float total = perAxle * axles, expected = .26f * mass * 9.81f * sand * (wetness == 0 ? 1 : .5f);
+                    Check(Math.Abs(total - expected) < .1f, "Actual native adhesion kernel must preserve mass, wetness and sanding grip");
+                    if (wetness == 0 && sand == 1)
+                    { if (previousDryGrip > 0) Check(Math.Abs(previousDryGrip - total) < .1f, "Four powered axles cannot invent extra native grip over three"); previousDryGrip = total; }
+                    foreach (bool brakes in new[] { false, true })
+                    {
+                        object slipJob = Activator.CreateInstance(slipKernel); Set(slipJob, "wheelslipAllowed", true); Set(slipJob, "deltaTime", .02f);
+                        var s = Arguments(slipMethod); float steady = brakes ? 0f : .2f;
+                        Set(s[0], "wheelslip", steady); Set(s[3], "generatedForce", total * 1.2f);
+                        Set(s[3], "brakingForce", brakes ? total * .12f : 0f); Set(s[3], "numberOfPoweredAxles", (ushort)axles);
+                        Set(s[3], "wheelslipToAdhesionDrop", 1f); Set(s[3], "maxWheelslipRpm", 600f);
+                        Set(s[5], "bogieCount", (byte)2); Set(s[5], "numOfAxles", axles); Set(s[6], "wheelslipForceLimitPerAxle", perAxle);
+                        slipMethod.Invoke(slipJob, s);
+                        float limit = (float)s[0].GetType().GetField("totalForceLimit").GetValue(s[0]);
+                        float actual = (float)s[0].GetType().GetField("wheelslip").GetValue(s[0]);
+                        Check(Math.Abs(limit - total) < .1f && Math.Abs(actual - steady) < .00001f,
+                            "Native slip output must clip at the actual adhesion limit and respect bogie braking");
+                    }
+                    Console.WriteLine($"Native adhesion: {mass:F0} kg / {axles} driven axles / wet {wetness:F1} / sand {sand:F2}: grip {total:F1} N.");
+                }
+            }
+        }
+        return checks;
+    }
+    private static object[] Arguments(MethodInfo method) => method.GetParameters().Select(p => Activator.CreateInstance(p.ParameterType.IsByRef ? p.ParameterType.GetElementType() : p.ParameterType)).ToArray();
+    private static void Set(object instance, string field, object value) => instance.GetType().GetField(field, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).SetValue(instance, value);
 }

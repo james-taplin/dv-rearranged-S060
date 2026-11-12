@@ -5,7 +5,7 @@
     <Compile Include="..\..\RearrangedS060\S060AxleGeometry.cs" Link="S060AxleGeometry.cs" />
     <Compile Include="..\..\Meyer\Authoring\MeyerPlan.cs" Link="MeyerPlan.cs" />
     <Compile Include="..\..\RearrangedS060\S060SteamCalibration.cs" />
-    <Compile Include="..\..\RearrangedS060\S060PipeGeometry.cs;..\..\RearrangedS060\S060BodyPipes.cs;..\..\RearrangedS060\S060EightLayout.cs" />
+    <Compile Include="..\..\RearrangedS060\S060PipeGeometry.cs;..\..\RearrangedS060\S060BodyPipes.cs;..\..\RearrangedS060\S060SteamSleeve.cs;..\..\RearrangedS060\S060EightLayout.cs" />
     <Reference Include="Assembly-CSharp"><HintPath>$(ManagedPath)\Assembly-CSharp.dll</HintPath></Reference>
     <Reference Include="DV.ThingTypes"><HintPath>$(ManagedPath)\DV.ThingTypes.dll</HintPath></Reference>
     <Reference Include="DV.Utils"><HintPath>$(ManagedPath)\DV.Utils.dll</HintPath></Reference>

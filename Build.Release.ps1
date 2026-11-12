@@ -31,7 +31,10 @@ if (-not $MeyerEvidence -or -not $DocksideEvidence) { throw 'Provide both fresh 
 $started = [DateTime]::UtcNow
 & (Join-Path $repo 'Test.Runtime.ps1')
 $NativeEvidence = Get-FreshEvidence (Join-Path $repo "build\radio-$($config.Version)") 'runtime-audits-*' 'runtime-validation.json' $started
-& (Join-Path $repo 'Build.Radio.ps1') -DocksideEvidence $DocksideEvidence -NativeEvidence $NativeEvidence
+$started = [DateTime]::UtcNow
+& (Join-Path $repo 'Test.IndependentSlip.ps1')
+$IndependentEvidence = Join-Path (Get-FreshEvidence (Join-Path $repo "build\independent-slip-$($config.Version)") 'native-*' 'independent-slip-validation.json' $started) 'independent-slip-validation.json'
+& (Join-Path $repo 'Build.Radio.ps1') -DocksideEvidence $DocksideEvidence -NativeEvidence $NativeEvidence -IndependentEvidence $IndependentEvidence
 & (Join-Path $repo 'Package.Articulated.ps1') -MeyerEvidence $MeyerEvidence -DocksideEvidence $DocksideEvidence
 & (Join-Path $repo 'Package.Nexus.ps1')
 Write-Output 'Single-folder release ZIP staged. Validate it with the native UMM and bundle-reopen fixtures before Install.Nexus.ps1; game must be closed.'

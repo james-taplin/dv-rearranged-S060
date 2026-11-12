@@ -1,0 +1,48 @@
+0.23.2 - changes since public 0.22.2-beta
+
+- Closed the Meyer's firebox-base side gaps with fixed mesh cheek plates,
+  hiding exposed fire particles while preserving cylinder/pipe clearance.
+
+- Corrected the inward Meyer's front fit: moved full-size cylinders further
+  cabward, fitted longer main rods and guides, retired redundant upper steam
+  pipework and equipped the vacated front platform with air-brake machinery.
+- Removed the obsolete stock front hanger drop and fixed slide bars from the
+  Meyer layout; stock meshes and guides return when switching away.
+
+- Revised the Meyer with inward-facing cylinder groups, correctly phased front
+  running gear, a measured 65 mm rearward shift of the rear power unit, and
+  connected articulated steam pipework. Compound steam and save IDs are retained.
+
+- Fixed Meyer servicing stopping at stock limits: the original S060 filling
+  points now offer the combined 8,800 L water / 3,500 kg coal capacity. Cached
+  station limits also return to stock when leaving Meyer.
+
+- Reduced repeated axle-cache allocations and unnecessary tiny-motion steam-pipe
+  mesh rebuilds. Invalid pipe poses recover without repeated exception spam.
+- Hardened exhaust cleanup after partial initialization, repeated setup and
+  teardown failures, preventing lingering listeners or extra exhaust readers.
+- Corrected oil-cup counts and seating on conventional, Meyer and Dockside layouts:
+  two functional cups per driven axle, with the stock 0-6-0 returning to six cups.
+  The geared Shay retains its six upright servicing cups.
+- Moved the Shay's two off-side oil cups onto supported sill shelves for access.
+- Extended and closed the Shay frame sills to the front buffer beam, added a
+  headstock and deep cross stretcher, and corrected finish restoration on reload.
+- Replaced the Meyer's hopper coal appearance with a dark brown tarpaulin,
+  lowered the upper rear lamp below the bulkhead top, and added walkable/item
+  support to the rear tanks and hopper.
+- Corrected the Shay wheel-size description to about 0.71 m using the same
+  rolling-radius datum as the existing physics.
+- Updated installation, feature and compatibility documentation.
+
+Existing features retained from 0.22.2-beta include the two-truck Shay, Meyer R2
+rear bodywork, 8,800 L water / 3,500 kg coal capacity and low LP exhaust routing.
+These are not newly introduced by 0.23.1. Leaving Meyer retains up to stock
+capacity (4,500 L / 1,200 kg); excess is discarded with a log message.
+
+Compatibility: supported saves remain readable. Arrangement IDs, save schemas,
+oil circuits, steam calibration and physical wheel sizes are unchanged. One ZIP
+installs directly through UMM, with one mod folder and no nested ZIPs. Requires
+Custom Car Loader and Loco Mesh Splitter separately; S282 is not required.
+
+Offline checks do not establish cab FPS or gameplay acceptance. James performs
+DV testing. This candidate awaits gameplay acceptance before publication.

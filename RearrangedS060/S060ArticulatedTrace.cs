@@ -81,6 +81,7 @@ namespace RearrangedS060
                     ["rear"] = Engine(owner.Bank.Main), ["front"] = Engine(owner.Bank.Auxiliary),
                     ["physicalFrontId"] = S060EngineMapping.PhysicalFrontId(owner.Bank.Mode),
                     ["physicalRearId"] = S060EngineMapping.PhysicalRearId(owner.Bank.Mode),
+                    ["independentDrive"] = S060IndependentDrive.For(car)?.Report(),
                     ["vehicle"] = Vehicle(car) };
                 if (car.entity != null && car.entity.IsConverted)
                 {

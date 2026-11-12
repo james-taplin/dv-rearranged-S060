@@ -141,9 +141,72 @@ namespace RearrangedS060
                 owner.Add("Meyer R2 ironwork", dark, bodyMaterial);
                 owner.Add("Meyer R2 buffer beam", beam, bodyMaterial);
                 owner.Add("Meyer R2 hopper tarpaulin", sheet, owner.Tarpaulin(bodyMaterial));
+                owner.Underframe(car, liveRearFrame, bodyMaterial, black);
                 return owner;
             }
             catch { owner.Dispose(); throw; }
+        }
+
+        private void Underframe(Transform car, Transform rear, Material material, Vector2 iron)
+        {
+            // The original period-detail mesh also contains the obsolete bunker
+            // and fouling outboard fittings, so it cannot be re-enabled wholesale.
+            // Retain the proven inboard springs, horns and rails; extend their
+            // load path up to a separate body bearer above the swivelling unit.
+            var fixedFrame = new Builder { Paint = iron };
+            float pivotZ = car.InverseTransformPoint(rear.position).z;
+            foreach (int side in new[] { -1, 1 })
+            {
+                float x = side * .43f;
+                // Raise the forward underside over the complete collector sweep,
+                // rather than passing a low girder through the flexible steam run.
+                const float reliefZ=-4.85f;
+                fixedFrame.Box(new Vector3(x-.035f,1.50f,BeamFront),new Vector3(x+.035f,PlateY+.006f,reliefZ));
+                fixedFrame.Box(new Vector3(x-.10f,1.50f,BeamFront),new Vector3(x+.10f,1.525f,reliefZ));
+                fixedFrame.Box(new Vector3(x-.035f,1.565f,reliefZ),new Vector3(x+.035f,PlateY+.006f,HopperFront));
+                fixedFrame.Box(new Vector3(x-.10f,1.565f,reliefZ),new Vector3(x+.10f,1.590f,HopperFront));
+                fixedFrame.Box(new Vector3(x-.10f,1.592f,BeamFront),new Vector3(x+.10f,PlateY+.006f,HopperFront));
+                foreach(float z in new[]{-7.62f,-7.14f,-6.66f,-6.18f,-5.70f,-5.22f})
+                    fixedFrame.Box(new Vector3(x+side*.035f-.009f,1.552f,z-.011f),new Vector3(x+side*.035f+.009f,1.574f,z+.011f));
+            }
+            foreach(float z in new[]{-7.60f,pivotZ,-4.63f})
+                fixedFrame.Box(new Vector3(-1.23f,1.57f,z-.07f),new Vector3(1.23f,PlateY+.006f,z+.07f));
+            fixedFrame.CylinderY(new Vector3(0,1.475f,pivotZ),.285f,PlateY-1.475f);
+            Add("Meyer fixed tank-frame bearers",fixedFrame,material);
+
+            var unit = new GameObject("[Meyer rear underframe]"); owned.Add(unit);
+            unit.transform.SetParent(rear,false);
+            var frame = new Builder { Paint = iron };
+            foreach(int side in new[]{-1,1})
+            {
+                float x=side*.60f;
+                // Deep plate frames sit behind the driver backs. Upper flanges
+                // span the springs; short webs between packs meet the old rails.
+                frame.Box(new Vector3(x-.035f,1.25f,-1.42f),new Vector3(x+.035f,1.39f,1.42f));
+                frame.Box(new Vector3(x-.085f,1.39f,-1.42f),new Vector3(x+.085f,1.425f,1.42f));
+                frame.Box(new Vector3(x-.065f,1.225f,-1.42f),new Vector3(x+.065f,1.25f,1.42f));
+                foreach(float z in new[]{-1.32f,0f,1.32f})
+                    frame.Box(new Vector3(x-.035f,1.01f,z-.065f),new Vector3(x+.035f,1.25f,z+.065f));
+                foreach(float z in new[]{-.80f,.80f})
+                {
+                    // Spring saddles close onto the existing four-leaf packs.
+                    frame.Box(new Vector3(x-.065f,1.17f,z-.055f),new Vector3(x+.065f,1.25f,z+.055f));
+                    foreach(int end in new[]{-1,1})
+                    {
+                        float at=z+end*.30f;
+                        frame.Box(new Vector3(x-.025f,1.125f,at-.025f),new Vector3(x+.025f,1.25f,at+.025f));
+                    }
+                }
+                for(float z=-1.30f;z<1.40f;z+=.24f)
+                    frame.Box(new Vector3(x+side*.038f-.01f,1.307f,z-.011f),new Vector3(x+side*.038f+.01f,1.329f,z+.011f));
+            }
+            foreach(float z in new[]{-1.32f,0f,1.32f})
+                frame.Box(new Vector3(-.60f,1.275f,z-.065f),new Vector3(.60f,1.39f,z+.065f));
+            // Bolster riser meets the native central pivot below. Its mating
+            // face can slide inside the body bearing with suspension movement.
+            frame.CylinderY(new Vector3(0,1.24f,0),.25f,.25f);
+            frame.Box(new Vector3(-.60f,1.35f,-.19f),new Vector3(.60f,1.425f,.19f));
+            Add("Meyer rear plate frame and spring saddles",frame,material,unit.transform);
         }
 
         private static void Build(Builder paint, Builder dark, Builder beam, Builder sheet)
@@ -313,13 +376,13 @@ namespace RearrangedS060
             return group.transform;
         }
 
-        private void Add(string name, Builder b, Material material)
+        private void Add(string name, Builder b, Material material, Transform parent = null)
         {
             if (b.V.Count == 0) return;
             var mesh = new Mesh { name = name, indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
             mesh.SetVertices(b.V); mesh.SetUVs(0, b.UV); mesh.SetTriangles(b.T, 0); mesh.RecalculateNormals(); mesh.RecalculateBounds(); mesh.RecalculateTangents();
             meshes.Add(mesh);
-            var part = new GameObject(name); part.transform.SetParent(Root, false);
+            var part = new GameObject(name); part.transform.SetParent(parent ?? Root, false);
             part.AddComponent<MeshFilter>().sharedMesh = mesh; part.AddComponent<MeshRenderer>().sharedMaterial = material;
         }
 

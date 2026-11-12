@@ -1,6 +1,6 @@
 # Building Rearranged S060
 
-The supported product is **Stage 7**, candidate **0.15.0**. The project compiles
+The supported product is **Stage 7**, candidate **0.23.2**. The project compiles
 only the current product and rejects a historical stage. Use `Build.Runtime.ps1`
 to build and stage its DLL directly, or `Build.Release.ps1`
 to regenerate fixtures, export both packs, run checks and stage the complete
@@ -103,6 +103,16 @@ records the bundle, pack metadata and required validation report hashes.
 the reopened bundle SHA256 to the exported binary. Changed bytes, missing
 reports or stale reports fail packaging.
 
+For independent powered groups, run `Test.IndependentSlip.ps1 -RuntimePath <DLL>`.
+It late-loads the candidate after native TypeManager initialization in a private
+Unity release player. The native ECS, engines, RPM leases, phase, effects and
+traction owner are real; the final bogie-force boundary is intercepted. See
+tests/IndependentDrive/README.md for scope and repeatable commands. Pass its
+hash-bound `independent-slip-validation.json` to Build.Radio.ps1 using
+`-IndependentEvidence`; the package gate requires it in addition to the Editor
+suite. Build.Release.ps1 runs both automatically. For an unpublished test
+candidate use `Package.Nexus.ps1 -StagedOnly` to retain the public listing copy.
+
 `Test.Runtime.ps1` runs exhaust, cylinder-cock, direct-cleanup and Meyer collision
 audits in the authoring Editor, plus native contact delivery and parent-deletion
 cleanup in an isolated PlayMode scene. The contact runner uses a uniquely named
@@ -120,40 +130,33 @@ Use [the gameplay guide](docs/RADIO-ARTICULATED-TESTING.md) for acceptance.
 
 ## Outputs and installation
 
-For the initial Nexus download, `Package.Nexus.ps1` repackages the tested complete
-receipt without rebuilding its DLL/bundles. It adds the public copy under
-`docs/nexus/` and produces one directly installable UMM ZIP containing a single
-`RearrangedS060/` folder, one Info.json and both nested CCL bundles. No nested
-ZIPs are permitted. CCL discovers the bundles recursively. Run
-`tests/Nexus/NativeInstaller.ps1` with Windows PowerShell to check the downloaded
-bytes against actual UMM install/update/uninstall and old-pack migration in scratch folders. The old
-three-folder archive remains suitable for the repository installer/manual
-extraction, but UMM's folder rename makes its update path unsafe for that layout.
-`CombinedPackageAudit.RunBatch` in the authoring Editor reopens both nested
-bundles from that fixture, using `S060_COMBINED_PACKAGE` for its installed mod
-folder and `S060_COMBINED_REPORT` for its output JSON. It checks the unchanged
-radio donor IDs/frames; it does not claim full CCL world import or driving.
+The supported public artifact is `build/nexus-VERSION-single/RearrangedS060-VERSION-UMM.zip`.
+It contains one mod root/Info.json, the runtime, two native CCL bundles under
+assets/Meyer and assets/Dockside, and original Shay models under assets/Shay.
+There are no nested archives. CCL discovers its donor bundles recursively.
 
-Runtime staging is under `build/radio-VERSION`; the complete package and receipt
-are under `build/articulated-VERSION`. The complete archive contains the runtime
-and two asset-pack folders. Each receipt identifies the actual files tested.
+For a runtime/docs-only update, retain the previously verified bundle exports.
+Run Test.BundleEvidence for the Meyer and Dockside exports, Build.Runtime and
+Test.Runtime for the candidate, then Build.Radio with that exact native evidence,
+Package.Articulated with both bundle-evidence paths, and Package.Nexus. Build.Radio
+also runs the functional/save, oiling, engine, geometry and transition suites.
+Build.Release is the full authoring route; do not regenerate unchanged models
+merely to refresh a runtime or documentation package.
 
-```powershell
-# Separate update of an existing installation; game must be closed.
-# No backup is created; this mode was explicitly requested for development.
-.\Install.Articulated.ps1 -Version 0.15.0 -GamePath 'D:\SteamLibrary\steamapps\common\Derail Valley'
-```
+Run tests/Nexus/NativeInstaller.ps1 using Windows PowerShell to exercise actual
+UMM extraction/update/uninstall and old-pack migration in isolated scratch folders.
+CombinedPackageAudit.RunBatch reopens those extracted bundles in Unity using
+S060_COMBINED_PACKAGE and S060_COMBINED_REPORT. These do not load Derail Valley.
 
-The installer expects all three previous mod folders to exist. It verifies the
-canonical staged file manifest/hashes, checks that the game is still closed,
-installs and verifies installed hashes while retaining protected settings/other
-mods. This is an update tool, not a general first-install wizard. As explicitly
-requested, it makes **no backup**; its receipt records `backupCreated: false`
-and prior file hashes only. Twelve old S060 installation-backup directories and
-five independent source/bundle/restore copies were removed; removal receipts are
-under `build/cleanup-0.15.0`. The canonical repository/Git history, current install
-and canonical builds were retained. The handover records actual installation;
-this source update alone does not establish that 0.15.0 is installed.
+Installation is separate and requires James's authorization. The current single-mod
+installer is Install.Nexus.ps1, which checks the game is closed and preserves
+settings without creating a backup. James performs gameplay acceptance; never
+launch DV or create a game profile as an inferred validation step.
+
+## Historical source preservation
+
+The following archive/checkpoint notes describe the earlier 0.15.0 cleanup, not
+current candidate validation or installation.
 
 Seventy-four inactive source/resource/script files are under
 `archive/legacy-runtime`, with original paths and SHA256 in `moved-files.json`.

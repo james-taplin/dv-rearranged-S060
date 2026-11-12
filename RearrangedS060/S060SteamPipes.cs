@@ -35,6 +35,7 @@ namespace RearrangedS060
         private Transform body;
         private readonly List<Manifold> fronts = new List<Manifold>();
         private readonly List<Span> spans = new List<Span>();
+        private readonly List<(Renderer renderer, bool enabled)> retiredPipes = new List<(Renderer, bool)>();
         private S060BodyPipes oldBranches;
         private S060MeyerExhaustPipe meyerExhaust;
         private S060MeyerInwardPipes inwardPipes;
@@ -60,6 +61,21 @@ namespace RearrangedS060
             {
                 bool inward = S060MeyerInwardPipes.IsInward(body, front);
                 bool dockside = front.Find("Franklin fit R") != null;
+                if (inward)
+                {
+                    if (nativeShell == null) throw new InvalidOperationException("Native S060 shell required for smooth Meyer pipes.");
+                    foreach (var frame in new[] { front, rear }) foreach (var group in frame.Cast<Transform>().Where(t =>
+                        t.name.StartsWith("[S060 manifold ", StringComparison.Ordinal) || t.name.StartsWith("[S060 transfer pipe ", StringComparison.Ordinal)))
+                        foreach (var renderer in group.GetComponentsInChildren<Renderer>(true))
+                        { owner.retiredPipes.Add((renderer, renderer.enabled)); renderer.enabled = false; }
+                    owner.oldBranches = S060BodyPipes.Apply(nativeShell, Vector3.zero, true);
+                    Vector3 Boiler(int side) => body.InverseTransformPoint(nativeShell.TransformPoint(owner.oldBranches.BoilerSocket(side)));
+                    owner.inwardPipes = S060MeyerInwardPipes.Bind(body, front, rear, nativeShell, Boiler(-1), Boiler(1),
+                        new Vector3(1.36f, 1.20f, S060MeyerLayout.FrontCylinderZ),
+                        new Vector3(-1.36f, 1.20f, S060MeyerLayout.FrontCylinderZ));
+                    owner.meyerExhaust = S060MeyerExhaustPipe.Bind(body, rear, nativeShell);
+                    owner.UpdateGeometry(); return owner;
+                }
                 foreach (int side in new[] { -1, 1 })
                 {
                     string suffix = side < 0 ? "L" : "R";
@@ -111,14 +127,6 @@ namespace RearrangedS060
                     if (live != null)
                         foreach (var renderer in front.GetComponentsInChildren<MeshRenderer>(true).Concat(rear.GetComponentsInChildren<MeshRenderer>(true)))
                             if (renderer.sharedMaterial != null && renderer.sharedMaterial.name.StartsWith("LocoS060", StringComparison.Ordinal)) renderer.sharedMaterial = live;
-                }
-                if (inward)
-                {
-                    owner.inwardPipes = S060MeyerInwardPipes.Bind(body, front, rear, nativeShell, owner.fronts[0].Mount, owner.fronts[1].Mount,
-                        front.InverseTransformPoint(owner.fronts[0].Part.TransformPoint(owner.fronts[0].AdmissionAxis)),
-                        front.InverseTransformPoint(owner.fronts[1].Part.TransformPoint(owner.fronts[1].AdmissionAxis)));
-                    foreach (var span in owner.spans)
-                    { span.From = owner.inwardPipes.RearTransfer(span.Side); span.To = owner.inwardPipes.FrontTransfer(span.Side); }
                 }
                 if (front.Find("[Native S060 cylinders]") != null)
                     owner.meyerExhaust = S060MeyerExhaustPipe.Bind(body, rear, nativeShell);
@@ -217,6 +225,8 @@ namespace RearrangedS060
 #if UNITY_EDITOR
             if (sleevePreviewMaterial != null) Release(sleevePreviewMaterial);
 #endif
+            foreach (var item in retiredPipes) if (item.renderer != null) item.renderer.enabled = item.enabled;
+            retiredPipes.Clear();
             fronts.Clear(); spans.Clear(); oldBranches?.Dispose(); oldBranches = null;
 #if !UNITY_EDITOR
             if (!destroying) Release(this);

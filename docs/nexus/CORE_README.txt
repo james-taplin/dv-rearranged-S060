@@ -1,97 +1,56 @@
-REARRANGED S060 - 0.22.2 PUBLIC BETA
+REARRANGED S060 - 0.3.1 INDEPENDENT WHEELSLIP TEST BUILD
 
 Change the native S060's running gear through WHEEL REARRANGER on the comms
-radio, or the mod's UMM arrangement chooser. All arrangements remain attached
-to the same locomotive identity, cab and save ownership.
+radio or the UMM arrangement chooser. Identity, cab, fuel, water, damage, oil
+and save ownership remain with the same locomotive.
 
-NEW SINCE 0.19.1
+IN THIS BUILD
 
-A two-truck Shay: a three-cylinder side engine drives two swivelling trucks on
-stock S282 pony wheels through animated line shafts, universal joints and bevel
-gears, with cab-controlled cylinder cocks and six upright oil cups.
+Dockside and Meyer now have independently slipping powered groups, using DV's
+native adhesion/slip calculations. Each group drives its own crank phase,
+running gear and slip effects. Meyer retains its finite HP -> receiver -> LP
+compound circuit, with separate HP/LP speeds and compatible old saves.
+The shaft-linked Shay remains one mechanically connected drive.
+Staged for James's gameplay testing; this package has not been installed or
+published. Native braking/wheel-slide and global cab slip indications remain
+car-wide. Uneven group demand can give less pull than the former pooled grip.
 
-A rebuilt Meyer rear: a high coal hopper, side and well tanks and a full rear end
-with all three rear lamps sit on the locomotive while the rear engine unit swings
-underneath. The Meyer carries about 8,800 L of water and 3,500 kg of coal, and its
-rear bodywork takes its paint from the applied S060 skin.
+Combined Meyer visual checkpoint 8293d76, Shay checkpoint db91158, Dockside
+checkpoint 1b39170 and the staged arrangement physics fixes.
+
+Meyer: inward-facing HP/LP units, smoother connected steam return, supported
+rear underframe, eight native heated brake shoes and eight supported visible
+leaf packs. Compound starting follows native crank/valve mechanics while
+retaining the conserved HP -> receiver -> LP circuit and single chimney.
+The common cab control operates both cylinder-cock sets. Supply-mass changes
+refresh native mass immediately during arrangement restoration/removal.
+
+Shay: 0.80 m live native wheelsets, three 252 x 300.808 mm cylinders, 4.3:1
+gearing, 45 L chest and 1.6 kg/s flow ceiling. Approximately 150 kN warm near-
+start effort before grip limits. Shorten cutoff as speed rises. Coils, connected
+brake rigging, chassis, fitted steam/exhaust piping and front compressor detail
+are included. Boiler sustainability and haulage remain gameplay tests.
+
+Dockside: one articulated 0-4-4-0T with two simple-expansion units, 1 m wheels,
+Franklin bearing/rod/crosshead presentation, fitted smokebox sleeves and 4.70 m
+driven wheelbase. Existing cylinder calibration and 2 kg/s combined flow remain.
 
 ARRANGEMENTS
 
-  0-6-0 Stock - original 1.42 m drivers.
-  0-4-0 - four-coupled layout with stock-sized drivers.
-  0-6-0 Short Wheelbase - closer axles and fitted 1.14 m drivers.
-  0-8-0 - four powered axles with fitted 1.14 m drivers.
-  0-10-0 Tank - five powered axles with fitted 1.00 m drivers.
-  0-6-2 - stock-sized drivers and a trailing carrying axle.
-  Meyer-style 0-4+4-0T - compound locomotive with a swinging rear engine unit.
-  Franklin Dockside 0-4-4-0T - two simple-expansion units beneath one tank body.
-  Two-truck Shay - three vertical cylinders, geared shafts and four driven axles.
+0-6-0 Stock; 0-4-0; 0-6-0 Short Wheelbase; 0-8-0; 0-10-0 Tank; 0-6-2;
+Meyer-style 0-4+4-0T; Franklin Dockside 0-4-4-0T; two-truck Shay.
 
-SHAY
+SAVES AND INSTALLATION
 
-A fictional S060 conversion on stock S282 pony wheelsets at the stock gauge.
-Six upright oil cups serve the gear-side shaft bearings, the off-side truck
-frames and the crank. A vertical three-cylinder engine drives jointed,
-sliding shafts and bevel gears with a 43:19 reduction. Steam and exhaust pipes
-connect the side engine to the boiler and single chimney. The normal cab lever
-controls all three cylinder-cock channels; drips require actual cylinder water.
-Select it in the radio or UMM chooser. It is not in the random-spawn pool.
-This first Shay version needs gameplay acceptance, especially on tight curves.
+Existing arrangement, engine and oil IDs are retained. Optional Meyer trapped-
+cylinder pressure fields preserve hot-save continuation; older saves still load.
+Stop and close the regulator before changing layouts. Returning from Meyer
+clamps water/coal above stock capacity according to the existing behavior.
 
-MEYER
+One UMM package includes all model assets. Install Loco Mesh Splitter and Custom
+Car Loader, including its required dependencies, separately. See INSTALL.txt.
+No native game meshes or textures are redistributed in the Shay model bundle.
 
-Two driven axles remain beneath the S060 and two on a rear engine unit that
-swings under new bodywork: a high coal hopper, side and well tanks and a rear end. It is one locomotive, with no separate companion vehicle.
-Steam passes through HP cylinders, a finite receiver and LP cylinders. LP
-exhaust and chuffs feed one chimney. A jointed return pipe runs low along the
-cab roof and left tank top. The Meyer carries about 8,800 L of water and
-3,500 kg of coal (stock 4,500 L and 1,200 kg).
-Front cylinders retain the full-sized native S060 castings. All three rear
-lamps move to the new rear end.
-
-DOCKSIDE
-
-Two powered units, small 1.00 m drivers, animated Franklin gear and fitted rods,
-cylinders and steam pipes stay beneath the locomotive. Both units receive
-boiler steam directly and contribute exhaust to the single chimney. There is
-no rear appendage or companion vehicle.
-
-SHARED FEATURES
-
-Both cylinder-cock sets use the normal cab control. Effects follow their own
-engine's steam flow and inlet timing. LP jets may be weak at low receiver
-pressure; water drips require actual cylinder water. Each driven axle has two
-functional big-end oil cups, alongside the original guide/crosshead lubricators.
-Oil quantities and lid states survive arrangement changes and save/load.
-The 0-10-0 adds ten big-end cups; old oil and wheel-state slots retain their IDs.
-New fifth-wheel state uses mod save version 3. This version reads earlier saves;
-older mod versions cannot restore the new 0-10-0 arrangement.
-The new Shay selection uses version 4; previous mod versions cannot restore it.
-Original arrangement and oil circuit IDs retain their saved meanings.
-Arrangements use fixed, fitted wheel sizes; there is no driver-size slider.
-
-Switching preserves native identity, livery, fuel, water, damage and save state.
-Stop and close the regulator first. Before entering/leaving Meyer, uncouple
-the rear, disconnect the hose and leave clear track. Changing away removes
-the rear assembly and restores the stock rear supports and coupling position.
-
-INSTALLATION
-
-Requires Derail Valley B99, UMM 0.27.3+, Loco Mesh Splitter and Custom Car Loader.
-Drag RearrangedS060-0.22.2-UMM.zip directly into UMM. One mod folder contains
-the runtime, both 0.7.0 asset bundles and original Shay models; there are no nested ZIPs. Earlier
-three-part test installs must first uninstall the two old standalone asset
-packs in UMM, keeping RearrangedS060 and Settings.xml. See INSTALL.txt.
-Rearranged S282 is not a runtime dependency.
-Close the game before installation or updates. No Settings.xml is supplied.
-
-This is a public beta. The latest Meyer-to-Dockside damage and stopped
-body-bob reports need gameplay confirmation after the collision correction.
-Automatic diagnostics capture a bounded trace for each changed articulated
-arrangement; report it with Player.log and the exact steps if a problem recurs.
-The mod does not repair damage already present on your locomotive.
-
-MIT fork of JimTaplin's Rearranged S282 B99/Re:Arranged fork, based on Peter
-Schinske / SatiricRug's original Rearranged S282. Meyer sound tuning is informed
-by discorddraconequus's Verde. No Verde audio or artwork is distributed.
-See LICENSE and CREDITS.md for the retained notices and full credits.
+This is the integrated 0.3.0 line. The separate original-layout/six-axle Meyer
+experiment has been reassigned to future 0.4.0 and is not included here.
+Offline checks do not establish in-game appearance or haulage acceptance.

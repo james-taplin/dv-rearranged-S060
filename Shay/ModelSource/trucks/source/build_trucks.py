@@ -332,10 +332,10 @@ for y,rad in [(.836,.149),(1.14,.149),(1.31,.109),(1.52,.109)]:
 cyl('BODY_pump_intake_body',detail,[px,.97,pz+.145],[px,.97,pz+.23],.042,material='spring_steel',supports=['air barrel intake boss'],category='pressure_vessel')
 cyl('BODY_pump_intake_cover',detail,[px,.97,pz+.23],[px,.97,pz+.245],.051,material='shaft_steel',supports=['filter housing'],category='pressure_vessel')
 cyl('BODY_pump_governor',detail,[1.20,1.34,3.21],[1.20,1.50,3.21],.035,material='pipe_copper',supports=['steam admission union'],category='pressure_vessel')
-service('BODY_pump_steam_service',[(.7052183,1.95,3.1679118),(.96,1.95,3.08),(1.31,1.95,3.08),(1.31,1.45,3.21),(1.20,1.45,3.21),(1.16,1.45,3.29)],.016)
+service('BODY_pump_steam_service',[(.7052183,1.95,3.1679118),(.96,1.95,3.08),(1.31,1.95,3.02),(1.31,1.45,3.02),(1.31,1.45,3.21),(1.20,1.45,3.21),(1.16,1.45,3.29)],.016)
 service('BODY_pump_exhaust_service',[(1.17,1.39,3.29),(1.32,1.39,3.48),(1.32,2.85,3.48),(1.31,2.85,3.45)],.019,material='spring_steel')
 service('BODY_compressor_air_delivery',[(1.19,.98,3.36),(1.30,.98,3.48),(1.30,.92,2.98),(-1.13,.92,2.98),(-1.13,1.31,2.91)],.016)
-for name,z,centre,axis,radius in [('steam',3.06,np.array([1.31,1.65,3.158]),np.array([0,-.5,.13]),.026),('exhaust',3.44,np.array([1.32,1.62,3.48]),np.array([0,1,0]),.032)]:
+for name,z,centre,axis,radius in [('steam',3.06,np.array([1.31,1.65,3.02]),np.array([0,-1,0]),.026),('exhaust',3.44,np.array([1.32,1.62,3.48]),np.array([0,1,0]),.032)]:
     axis=axis/np.linalg.norm(axis)
     cube('BODY_service_support_foot_'+name,detail,[.920,1.23,z-.08],[.990,1.265,z+.04],material='shaft_steel',supports=['chassis channel upper flange','diagonal support stay'],category='body_detail')
     cyl('BODY_service_support_stay_'+name,detail,[.947,1.25,z],centre,.012,material='shaft_steel',supports=['bolted foot','pipe collar'],category='service_smooth')

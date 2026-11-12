@@ -1,5 +1,163 @@
 # Rearranged S060 — handover
 
+## 0.3.1 independent powered-group wheelslip — 12 November 2026, INSTALLED
+
+James authorised porting independent wheelslip, Dockside first then Meyer,
+using agents, preserving the compound/saves, offline tests and initially staging
+only. After all checks passed he additionally requested installation. Installed
+0.3.1 through Install.Nexus.ps1 after both host-side closed-game gates, no backup,
+settings preserved. No DV launch, push or publication. The separate future 0.4.0
+experiment is unchanged. Canonical source remains B:/GitHub repo/rearranged-s060.
+
+Ported the audited S282 native ECS group-drive pattern into S060's DLL, using
+existing native components and DVConvertToEntity/ECB lifetime. Each group owns
+its engine-slot and selected-engine RPM inputs, radius and actual native bogie
+contacts. Contact declarations are checked against the live powered-wheel
+hierarchy. Forces are adhesion-limited per group and distributed once; original
+native force is replaced only after a completed native sample. Invalid state,
+derailment and teardown restore the native path. A partial bogie-force exception
+cannot run pooled native force in that same step. No S282 runtime dependency.
+
+Dockside declares rear/front groups; Meyer declares rear LP/front HP. Existing
+native phase readers and inward-facing mapping remain responsible for motion,
+cocks and chuffs. Native sparks bind all four replacement axles; audio maps
+native bogie definitions to their actual new wheels. Original arrays/list and
+RPM references restore. Switching waits for both powered groups to settle.
+Shay remains one shaft-linked drive; conventional/stock traction is unchanged.
+Native wheel-slide/braking and global cab slip indications remain car-wide.
+Unused grip is no longer pooled, so uneven demand can reduce total pull.
+
+Meyer cycle accepts separate HP/LP speeds without changing its finite receiver,
+pressure backreaction or steam/work conservation. The equal-speed API remains.
+Unequal-speed hot-save testing exposed constructor-cold HP exhaust temperature
+being used before LP expansion preparation after load; restore that derived
+receiver pressure/temperature before the first tick. No new save fields, IDs,
+cylinder dimensions, chest/receiver volumes, boiler capacity or flow tune.
+SavedState, EngineState, EngineMapping, OilingTopology and SteamCalibration
+sources hash-match the pre-change 0.3.0 baseline.
+
+Clean build, 0 warnings/errors. Final DLL SHA256:
+7A9AED643B80A47D58A75CEFB1F4F62D64FC207D06D47878174176942389F1B7.
+All 16 existing exact-DLL native suites pass 23,002 checks at
+build/radio-0.3.1/runtime-audits-20261112-205642. Native group fixture passes
+101 checks at build/independent-slip-0.3.1/native-20261112-205530-877, including
+Dockside/Meyer asymmetry, phase/RPM, force-once, effects restoration, invalid
+contacts, partial-force failure and destroyed DrivingForce/TrainCar cleanup.
+Independent review found the destroyed-object registry cleanup gap; the final
+candidate fixes it with managed identity checks. The first 9AFCA913 candidate
+fails that regression as expected; its otherwise passing 16-suite reports and
+the negative control are retained, not substituted for final-DLL proof.
+
+Managed machinery/save checks: 2,443 (baseline 2,365), plus 89 pure compound
+checks (baseline 40). Includes actual older Meyer, old 43:19 Shay and preceding
+1.2 kg/s Shay active/dormant saves, seven unequal/stopped/opposed native Meyer
+speed cases and exact hot continuation. Equal-speed force envelopes unchanged.
+Evidence: build/independent-slip-0.3.1/meyer/validation.json.
+
+Private native fixture uses the actual late-loaded candidate and native ECS,
+engines, ports and effect components in a Unity release player. The car host is
+inactive, helpers active, and final Bogie.ApplyForce intercepted for recording
+and faults. It does not establish real rail dynamics, audible output, native
+car startup, actual weather, frame time or gameplay acceptance. Fixture-only
+corrections (Harmony native parameter name/helper-host activation) are retained
+in failed evidence; production was not rebuilt for them. James owns DV testing.
+
+Future arrangements: follow docs/INDEPENDENT-WHEELSLIP-0.3.1.md. Build.Radio now
+requires exact-DLL independent-slip evidence alongside the existing suites;
+Build.Release invokes the reusable Test.IndependentSlip runner. Original mesh
+bundles are reused. Public 0.3.0 listing copy remains unchanged.
+
+Final packaging passes 57 native UMM extraction/update/uninstall/migration
+checks, 38 extracted-bundle reopening checks and 18 isolated installer checks.
+The conversion-boundary fixture needed its new readiness test double; corrected
+fixture now passes 39 checks/15 scenarios, including refusal while either set
+is unsettled. No runtime rebuild was made for that fixture correction.
+Before the later installation request, all eight installed runtime/Info/asset/
+settings payload files checked were byte-identical to the pre-change baseline.
+After authorised installation all 11 payload files match the 0.3.1 package;
+Settings.xml is unchanged. Installed DLL is 7A9AED643B80A47D58A75CEFB1F4F62D64FC207D06D47878174176942389F1B7.
+Install receipt: build/nexus-0.3.1-single/install-receipt-latest.json. Package
+documents retain their original pre-install staging provenance; the install
+receipt and this handover describe the later installation. James owns DV tests.
+
+Stage: build/nexus-0.3.1-single/RearrangedS060-0.3.1-UMM.zip.
+ZIP SHA256: 9B5FF35FC4870C1860E1B9607584639C14299731DE4A2B02E005625706B81F2F.
+Final aggregate: build/independent-slip-0.3.1/validation.json. Local source
+checkpoint details: build/independent-slip-0.3.1/source-checkpoint.json. The
+snapshot includes the preceding integrated 0.3.0 source on a separate checkpoint
+branch; active branch/index are preserved. No private references, game DLLs or
+generated packages are selected into the source checkpoint. Not pushed.
+
+## 0.3.0 public listing copy — 12 November 2026
+
+Replaced docs/nexus/NEXUS_RELEASE_COPY.txt with current plain-text 0.3.0 copy,
+removing BBCode, historical release bodies and internal checkpoint/test-build
+headings. Added FILE_DESCRIPTION-0.3.0.txt (221 characters, under 250) and
+CHANGELOG-0.3.0.txt in James's supplied lowercase, clipped style, treating
+0.22.4 as the prior changelog entry. The matching loose files in
+build/nexus-0.3.0-single are updated. Full text was supplied inline in chat.
+No runtime, model, installed file or ZIP was changed; prior package/install
+receipts retain their original document provenance. No push or publication.
+
+
+## Integrated 0.3.0 — 12 November 2026, INSTALLED
+
+James authorised integrating Meyer `8293d76`, Shay `db91158` and Dockside
+`1b39170` with the staged physics, offline testing and installation. Canonical
+source is B:/GitHub repo/rearranged-s060. Runtime and Info.json use 0.3.0.
+Installed through Install.Nexus.ps1 after its two host-side closed-game checks;
+all 11 package files were hash verified. No backup, DV launch or gameplay test.
+Settings.xml remained byte-identical to the pre-integration baseline. James
+owns the next driving, appearance, curve, servicing and save/reload acceptance.
+
+The isolated, unfitted original-layout/six-axle experiment moved from Documents
+`REARRANGED S060/v0.3-work` to `v0.4-work`, with 0.4.0 metadata and
+WORK_0.4_START.md. Geometry and gates are unchanged; historical build evidence
+keeps its original version. That future experiment is not in installed 0.3.0.
+
+Applied the Meyer visual-integration patch for Articulated, Bodywork,
+ExhaustPipe, InwardPipes and the new RunningGear owner. Manually merged the
+inward-only SteamPipes branch while retaining Dockside's fitted sleeves. Meyer
+has connected smooth rear LP piping, native heated shoes, supported leaf packs
+and both underframes. Shay has its 0.80 m wheels, 86:20 gearing, visible coils,
+brakes and compressor; Dockside retains the wider 4.70 m wheelbase and fitted
+smokebox sleeves. The authored physics is unchanged from the staged baseline,
+including the 1.6 kg/s Shay tune and finite-receiver Meyer starting/adhesion work.
+Protected physics, save, oil and calibration source hashes still match baseline.
+
+The combined native fixture found a real Shay compressor steam-service leg
+crossing the main right admission feed at x1.30/y1.68/z3.17. Rerouted only that
+short model leg to z3.02 and reseated its collar/stay. This is the sole model
+correction to the frozen Shay checkpoint: no wheel, gearing, runtime, physics
+or save change. New original-only bundle passed 11,322 engine/gear checks,
+24,472 detail checks and the integrated native assembly test. No contact waiver.
+
+Fixture-only corrections: cleanup now uses the exact native body rather than a
+cube for roof saddles; the conventional body assertion recognizes the new
+fixed bearers and moving rear frame while retaining the old upper envelope and
+actual contact gates; NativeGeometry.csproj now includes S060SteamSleeve, used
+by the Dockside work. These corrections did not change the tested runtime DLL.
+Failed runs remain in their original evidence folders.
+
+Validation: clean build (0 warnings/errors); all 16 exact-DLL native suites,
+23,002 checks; 2,365 production engine/save checks including real old active
+and dormant saves; oil migration, zero-allocation axle cache, transitions,
+conversion boundaries, compound and measured geometry checks all pass. Native
+UMM extraction/update/uninstall/migration: 57 checks; extracted bundle reopening:
+38; isolated installer preservation/gating: 18. These are offline checks, not
+gameplay acceptance. No simulation or save schema was changed for integration.
+
+Final DLL SHA256: 614D97114270006530E68790536B1FC170CAB2EF32E6A85A7ED7E4853BF34419.
+Shay bundle: C9443F2514B2F54D1BA15001980A786AB31669B267771D042F2CDB2D7E00767F.
+Meyer 0.7.0 and Dockside 0.8.1 donor bundles retain their validated hashes.
+Proof: build/integrated-0.3.0-20261112/validation.json and
+build/radio-0.3.0/integrated-native-evidence/runtime-validation.json (aggregates
+only passing exact-DLL reports with explicit run provenance).
+Single-folder ZIP: build/nexus-0.3.0-single/RearrangedS060-0.3.0-UMM.zip.
+Install receipt: build/nexus-0.3.0-single/install-receipt-latest.json.
+Nothing was pushed or published; the pre-existing dirty checkout is preserved.
+
+
 ## Franklin Dockside 0.8.1 — wider wheelbase and Shay sleeves, 11 November 2026, STAGED ONLY
 
 James revised the earlier decision: increase the wheelbase to reduce bogie

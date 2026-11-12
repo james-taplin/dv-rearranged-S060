@@ -1,3 +1,5 @@
+Current integration note, 12 November 2026: these physics specifications are now included in integrated build 0.3.0, together with the approved Meyer, Shay and Dockside visuals. The historical candidate numbers and evidence below retain their provenance. The separate six-axle/original-layout experiment is future 0.4.0.
+
 # S060 0.24.0 physics candidate
 
 ## Meyer starting and adhesion pass — 11 November 2026

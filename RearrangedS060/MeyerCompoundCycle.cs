@@ -86,9 +86,15 @@ namespace RearrangedS060
         internal void Advance(double seconds, double boilerBarAbsolute, double boilerCelsius,
             double regulator, double reverser, double rpm, double cocks, bool hpCracked, bool lpCracked,
             double minimumCutoff, double maximumCutoff)
+            => Advance(seconds, boilerBarAbsolute, boilerCelsius, regulator, reverser, rpm, rpm,
+                cocks, hpCracked, lpCracked, minimumCutoff, maximumCutoff);
+
+        internal void Advance(double seconds, double boilerBarAbsolute, double boilerCelsius,
+            double regulator, double reverser, double hpRpm, double lpRpm, double cocks, bool hpCracked, bool lpCracked,
+            double minimumCutoff, double maximumCutoff)
         {
             if (!Finite(seconds) || seconds <= 0 || seconds > 1 || !Finite(boilerBarAbsolute) ||
-                !Finite(boilerCelsius) || !Finite(regulator) || !Finite(reverser) || !Finite(rpm) || !Finite(cocks))
+                !Finite(boilerCelsius) || !Finite(regulator) || !Finite(reverser) || !Finite(hpRpm) || !Finite(lpRpm) || !Finite(cocks))
                 throw new ArgumentException("Invalid Meyer compound input.");
             Hp.Clear(); Lp.Clear();
             double remaining = seconds;
@@ -107,7 +113,9 @@ namespace RearrangedS060
 
                 double cutoff = minimumCutoff + (maximumCutoff - minimumCutoff) * Clamp01(Math.Abs(reverser));
                 double sign = reverser < 0 ? -1 : 1;
-                var hpExhaust = Expand(Hp, Math.Max(Atmosphere, Receiver.Pressure), cutoff, rpm, sign, dt);
+                // Each powered unit sweeps and does work at its own wheel speed.
+                // Their only steam coupling remains this finite receiver.
+                var hpExhaust = Expand(Hp, Math.Max(Atmosphere, Receiver.Pressure), cutoff, hpRpm, sign, dt);
                 Receiver.Add(hpExhaust);
                 Vent(Hp, cocks, hpCracked, dt);
 
@@ -117,7 +125,7 @@ namespace RearrangedS060
                 lpMass = Math.Min(lpMass, lpRoom / Math.Max(1, Cp * Receiver.Temperature));
                 var transferred = Receiver.Take(lpMass);
                 Lp.Chest.Add(transferred); Lp.Intake += transferred.Mass;
-                var tail = Expand(Lp, Atmosphere, cutoff, rpm, sign, dt);
+                var tail = Expand(Lp, Atmosphere, cutoff, lpRpm, sign, dt);
                 AtmosphereMass += tail.Mass; AtmosphereEnergy += tail.Energy;
                 Vent(Lp, cocks, lpCracked, dt);
                 HeatLoss += Receiver.Cool(dt);

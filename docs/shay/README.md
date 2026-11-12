@@ -1,3 +1,5 @@
+Current runtime: 0.22.4 uses Shay R2 with live S282 pony wheelsets (about 0.71 m rolling diameter), 43:19 gearing and six upright servicing cups. The three-cylinder native graph and transmission are implemented. See ../../README.md and ../RADIO-ARTICULATED-TESTING.md for current behavior and James's acceptance checks. The original planning/R1 material below is historical.
+
 # S060 Shay feasibility and session briefs
 
 **27 October integration update:** the four R1 module sessions have been joined

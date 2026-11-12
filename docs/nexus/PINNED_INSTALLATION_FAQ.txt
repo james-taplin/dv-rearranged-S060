@@ -1,0 +1,17 @@
+[b]Rearranged S060 - Installation FAQ[/b]
+
+[b]What do I need?[/b]
+Derail Valley B99, Unity Mod Manager 0.27.3+, Loco Mesh Splitter, and Custom Car Loader (CCL) with its own requirements. CCL 3.1.11 requires DV Language Helper. Dependencies are separate downloads; Rearranged S282 is not required.
+
+[b]How do I install it?[/b]
+Close the game, install the dependencies, then drag the current Rearranged S060 release ZIP directly into UMM's Mods tab. Meyer, Dockside and Shay assets are included; no separate pack downloads are needed. After launching, check the dependencies and Rearranged S060 are enabled without errors in the in-game UMM panel.
+
+[b]Why does it say the asset pack is missing or not loaded?[/b]
+The required asset is unavailable in-game, even if the mod appears installed. Check CCL and its dependencies, especially DV Language Helper, for loading errors. Fully restart after installing or updating. If needed, reinstall the complete release ZIP with the game closed.
+
+[b]Upgrading an old three-part test install?[/b]
+Uninstall only the old standalone RS060_Meyer_0440 and RS060_Franklin_Dockside_0440 entries through UMM. Keep RearrangedS060 and Settings.xml, then install the combined ZIP. New users skip this step.
+
+[b]Still stuck?[/b]
+Report the exact warning, arrangement, game/mod/CCL versions, and attach Player.log from just after reproducing it:
+%USERPROFILE%\AppData\LocalLow\Altfuture\Derail Valley\Player.log

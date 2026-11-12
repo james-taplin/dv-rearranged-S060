@@ -1,0 +1,12 @@
+### Version 0.3.0
+
+- much more Meyer work - inward-facing cylinders, heavier fitted rods and guides, visible leaf springs and native heated brake shoes on both units, a proper rear underframe and smoother connected LP pipework
+- closed the Meyer firebox gaps, tidied the hopper textures and rear buffer beam, fitted the rear hook/air connection and added front air-brake machinery
+- rebuilt the Shay around 0.8m wheels and 86:20 gearing (4.3:1), with a larger three-cylinder engine and revised steam tuning
+- the Shay now has visible coil springs, curved brake shoes and rigging, a more substantial chassis and front compressor; larger steam pipes, hollow sleeves and an under-boiler junction replace the spidery runs; corrected materials and cock-jet positions too
+- reworked the Franklin Dockside with fitted rods/bearings, crossheads, guides and piston rods, a wider 4.7m wheelbase and fitted smokebox sleeves
+- retuned Dockside machinery and the 0-4-0/0-6-2 adhesion allowances
+- revised Meyer low-speed starting around the native crank/valve mechanics and finite receiver; better hot-save continuation and immediate supply-weight updates when changing arrangements
+- supported older saves and settings still load; diagnostic driving capture now waits for the first regulator opening
+- NOTE: the Meyer and Shay remain in alpha; automatic checks pass but proper driving feedback is still needed - curves, sustained hauling, arrangement changes and save/reload please, with Player.log
+- THIS IS IN DEVELOPMENT: PLEASE HELP ME SQUASH BUGS! ty :3

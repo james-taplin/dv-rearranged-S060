@@ -1,4 +1,96 @@
-# S060 radio 0.22.2 transition/effects candidate test
+# S060 0.3.1 independent wheelslip — gameplay checks after authorised installation
+
+0.3.1 passed offline checks and was installed after James's later authorisation.
+James owns gameplay acceptance; do not launch DV automatically.
+Test Dockside first, then Meyer, with a repaired locomotive,
+known load and repeatable pressure/resources. Start/stop/restart on level and
+1.5% grade, forwards and backwards; compare dry, wet and sanded starts. Look for
+one unit slipping while the other grips, phase drift between units with each
+unit's own side quartering intact, and sensible recovery as the regulator closes.
+Do not require both units to slip together or treat lower combined pull under
+uneven engine demand as proof of a fault: spare grip is no longer pooled.
+
+Meyer: repeat empty-receiver and hot starts; both units must continue to draw
+from the existing HP -> receiver -> LP circuit. Check both cocks, LP chimney
+exhaust, rods and moving pipes. Save hot at partial cutoff, reload, then switch
+away and back. Check resources, damage, oil/lids, identity and phase retention.
+Stock/Shay/conventional layouts retain their native shared traction; the Shay
+trucks are mechanically shaft-linked. Check native restoration after repeated
+Stock -> Dockside -> Meyer -> Shay -> Stock switches with the regulator closed
+and all wheelsets settled. Uncouple/disconnect the rear and leave clearance for
+Meyer changes. Native wheel-slide/global cab slip indicators remain car-wide.
+
+# Previous S060 0.3.0 integrated build — gameplay checks
+
+James owns gameplay acceptance. After the authorised installation,
+compare stock/Shay/Dockside using the same known consist, resources, pressure
+and route. Warm the locomotive first, then select the arrangement immediately
+before the measured run so its bounded diagnostics capture the driving.
+
+- Level start, 1.5% grade start, sustained climb, then stop/restart on the grade.
+- Record train mass, boiler pressure, cutoff/regulator, speed and sanding.
+- Check boiler-pressure sustainability as well as the initial pull.
+- Check Shay's longer throws/piston travel through a complete cycle in both
+  directions and at both viewing distances; shafts/gears should remain connected.
+- Check Dockside cab cocks, steam demand and adhesion; its combined flow ceiling
+  remains the stock S060's 2 kg/s. There is no added boiler capacity.
+- Load an existing save, change layouts, save/reload; resources, damage, oil and
+  crank/gear phase should remain intact. Stock restores its original physics.
+
+Offline design/bench assumptions: [PHYSICS-0.24.0.md](PHYSICS-0.24.0.md).
+
+# Previous inward-facing Meyer testing
+
+Inspect both engine units: guides should connect to their frame brackets,
+springs sit inboard on seats/hangers, and there should be no unused short
+return-crank arm protruding from either main driver. Repeat on a curve and
+at several crank positions; switch to stock and confirm its original gear.
+
+With a lit fire, inspect both sides below the cab/firebox: the fixed cheek
+plates close the side seams above the inboard frame strips. Check on a curve
+and confirm the normal fire remains visible through the cab firebox door.
+
+James owns gameplay testing; these are the checks after offline validation and
+authorised installation. No DV session is launched by the build workflow.
+
+- Select Meyer from an existing S060: front and rear cylinders face inward;
+  the rear running gear sits 65 mm aft beneath the original rigid bodywork.
+- Front cylinders sit 850 mm further cabward than in 0.23.0, clear of both
+  drivers. The longer front main rods, guides, piston rods and jets stay aligned.
+- No fixed stock slide bars project forward from the front driver. Returning
+  to stock restores its original guides and supporting bodywork.
+- The upper tank-side duplicate steam course is gone; the lower admission and
+  interstage connections remain connected, as does the LP chimney return.
+- Inspect the former front-cylinder space: equipment is mounted on a closed
+  running-plate extension, with a steam air pump on the left and air reservoir
+  on the right. Check its finish follows an alternative livery.
+- Drive forwards and backwards, then stop at several crank positions. Check
+  both sides for connected rods, sensible wheel rotation and eight seated cups.
+- With steam available, cycle the cocks from the cab and inspect both engines.
+- Take a curve and inspect the HP feeds, interstage joints and single-chimney
+  LP return. Check the running-plate recesses around the front castings.
+- Save/reload Meyer, then switch to stock and Dockside. Check original bodywork,
+  native cylinders, oil servicing, resources and vehicle damage are retained.
+
+## Previous 0.22.4 candidate checks
+
+0.22.4 is built for offline validation and packaging; it is not installed by this task. James tests cab FPS, repeated cock cycling, arrangement changes, curves and save reloads. Shay status should show about 0.71 m drivers. The older 0.22.3 checks below also apply; the pre-performance 0.22.3 was installed on 28 October, while the 31 October performance candidate was held.
+
+# S060 radio 0.22.3 transition/effects candidate test
+
+## 0.22.3 feature checks (also apply to 0.22.4)
+
+Meyer: the hopper top is a dark brown tarpaulin; the upper rear lamp sits below the
+bulkhead top (no open back visible from the tank top); you can climb onto and walk
+the rear tanks and hopper, and dropped items rest on them.
+Oil cups: every layout has exactly two per driven axle and each one can be opened
+and filled - stock 0-6-0 = 6 native, 0-4-0 = 4, 0-8-0 = 8, 0-10-0 = 10, Meyer and
+Dockside = 8, one per axle per side on the crank bosses. Shay unchanged (6).
+Shay: save, then reload the save - the engine, trucks and gears keep their finish (no
+magenta); the two off-side cups stand on shelves on the sill over each truck and can be
+opened; the sills run on to the front buffer beam with a headstock behind it, are closed
+box girders, and a deep cross stretcher sits between the trucks; nothing touches the
+trucks on tight curves.
 
 ## 0.22.2 Meyer checks
 
@@ -325,7 +417,7 @@ This revision focuses on mesh fit and servicing:
   rear lamp housings, glass and controlled effects move onto the rear section;
   the upper cab lamp stays in place. Check switches, curves and restoration.
 - Every driven axle has two functional big-end oil cups, rear sets included,
-  plus the four original guide/crosshead lubricators. Cups must sit on supported
+  with no additional guide/crosshead cups; the Shay has six upright cups. Cups must sit on supported
   mounts and clear rods/castings through a complete revolution. Try the lids,
   oil can, oil indicators and save/reload. Switching layouts must retain oil
   quantities and lid states; dormant axle cups must not consume or damage gear.

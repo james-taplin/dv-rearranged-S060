@@ -1,0 +1,18 @@
+Version 0.3.1 - staged independent-wheelslip candidate
+
+- separate powered sets can now slip independently on Dockside and Meyer,
+  using native DV adhesion and slip calculations with individual engine RPM
+- reusable group traction maps each engine to its actual driven axles and
+  applies each group's limited force once; spare grip is no longer pooled
+- rods, crank phase, sparks and slip audio follow the relevant powered set
+- Meyer HP and LP steam calculations now accept their own wheel speeds while
+  retaining the finite receiver, backpressure and conserved steam/energy flow
+- corrected hot-reload intake temperature preparation exposed by unequal HP/LP
+  speed testing, without changing old save IDs or the compound calibration
+- safe release/restoration on arrangement switching and native teardown;
+  switching waits for both powered sets to settle
+- the shaft-linked Shay remains one drive; native braking/wheel-slide and
+  global cab slip indications remain car-wide
+
+Offline validation and gameplay limits are recorded in docs/HANDOVER.md.
+Staged only: not installed or published. James performs DV driving acceptance.

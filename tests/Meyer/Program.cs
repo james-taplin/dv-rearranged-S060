@@ -57,9 +57,93 @@ internal static class Program
             Check(Math.Abs(a.BoilerMass - b.BoilerMass) < 1e-7 && Math.Abs(a.StoredEnergy - b.StoredEnergy) < .01, "Internal substeps give consistent results across native tick sizes");
             bool rejected = false; try { a.Receiver.Restore(-1, 1); } catch (ArgumentException) { rejected = true; }
             Check(rejected, "Corrupt negative receiver state rejected");
+            MechanicalRequestChecks();
+            IndependentSpeedChecks();
             Console.WriteLine(checks + " compound physics checks passed; no Unity/game execution.");
             return 0;
         }
         catch (Exception ex) { Console.Error.WriteLine(ex); return 1; }
+    }
+    private static void MechanicalRequestChecks()
+    {
+        var staticStart = New();
+        staticStart.Hp.MechanicalTorqueRequest = (pressure, backPressure) => 12000;
+        staticStart.Lp.MechanicalTorqueRequest = (pressure, backPressure) => 12000;
+        for (int i = 0; i < 500; i++) Step(staticStart, rpm: 0);
+        Check(Math.Abs(staticStart.Hp.Torque - 12000) < 1e-8 && staticStart.Lp.Torque == 0,
+            "Native mechanical request produces static HP force without inventing steam for the empty LP stage");
+        Check(staticStart.Work == 0 && staticStart.Hp.Exhaust == 0 && staticStart.Lp.Exhaust == 0,
+            "Static requested torque produces no rotational work or swept exhaust");
+        Balanced(staticStart, "native static request");
+        staticStart.Hp.MechanicalTorqueRequest = (pressure, backPressure) => -12000;
+        Step(staticStart, rpm: 0);
+        Check(Math.Abs(staticStart.Hp.Torque + 12000) < 1e-8 && staticStart.Work == 0,
+            "Native valve geometry may request reverse static torque without adding a new work ledger");
+
+        var limited = New();
+        limited.Hp.MechanicalTorqueRequest = (pressure, backPressure) => 1e12;
+        limited.Lp.MechanicalTorqueRequest = (pressure, backPressure) => 1e12;
+        for (int i = 0; i < 1000; i++) Step(limited);
+        double requestedWork = 2e12 * 2 * Math.PI * 80 / 60 * 20;
+        Check(limited.Work > 0 && limited.Work < requestedWork * .000001 && limited.Work <= limited.BoilerEnergy,
+            "A large mechanical request remains bounded by real discharged-steam enthalpy, not arbitrary torque multiplication");
+        Check(limited.Hp.Chest.Energy >= 0 && limited.Lp.Chest.Energy >= 0 && limited.Receiver.Energy >= 0,
+            "Work capping leaves nonnegative energy in both serial stages and their receiver");
+        Balanced(limited, "native enthalpy-limited request");
+
+        var closedPhase = New();
+        closedPhase.Hp.MechanicalTorqueRequest = (pressure, backPressure) => 0;
+        closedPhase.Lp.MechanicalTorqueRequest = (pressure, backPressure) => 0;
+        for (int i = 0; i < 1000; i++) Step(closedPhase);
+        Check(closedPhase.Work == 0 && closedPhase.Hp.Torque == 0 && closedPhase.Lp.Torque == 0,
+            "Closed native crank/valve phases cannot silently fall back to positive averaged torque");
+        Balanced(closedPhase, "native zero-work request");
+    }
+
+    private static void IndependentSpeedChecks()
+    {
+        void Speeds(MeyerCompoundCycle cycle, double hp, double lp, double reverse = .6, double throttle = 1)
+            => cycle.Advance(.02, 16, 200, throttle, reverse, hp, lp, 0, false, false, .05, .9);
+        var legacy = New(); var equal = New();
+        for (int i = 0; i < 3000; i++) { Step(legacy); Speeds(equal, 80, 80); }
+        Check(legacy.StoredMass == equal.StoredMass && legacy.StoredEnergy == equal.StoredEnergy &&
+            legacy.Work == equal.Work && legacy.BoilerMass == equal.BoilerMass &&
+            legacy.Hp.Torque == equal.Hp.Torque && legacy.Lp.Torque == equal.Lp.Torque,
+            "Equal independent speeds reproduce the original single-RPM circuit exactly");
+
+        var emptyLp = New();
+        for (int i = 0; i < 500; i++) Speeds(emptyLp, 0, 160);
+        Check(emptyLp.Hp.Exhaust == 0 && emptyLp.Lp.Intake == 0 && emptyLp.Lp.Exhaust == 0 &&
+            emptyLp.Lp.Torque == 0 && emptyLp.Work == 0,
+            "Spinning LP cannot draw boiler steam through a stationary empty HP/receiver circuit");
+        Balanced(emptyLp, "LP spinning without HP exhaust");
+
+        var slowLp = New(); var fastLp = New();
+        for (int i = 0; i < 3000; i++) { Speeds(slowLp, 80, 80); Speeds(fastLp, 80, 80); }
+        for (int i = 0; i < 500; i++) { Speeds(slowLp, 80, 20); Speeds(fastLp, 80, 160); }
+        Check(slowLp.Receiver.Pressure > fastLp.Receiver.Pressure && slowLp.Hp.Torque < fastLp.Hp.Torque,
+            "LP speed changes finite receiver pressure and therefore real HP backpressure");
+        Balanced(slowLp, "slow LP"); Balanced(fastLp, "fast LP");
+
+        foreach (var speeds in new[] { (hp:0d, lp:80d), (hp:80d, lp:0d), (hp:20d, lp:160d),
+            (hp:160d, lp:20d), (hp:-20d, lp:-160d), (hp:20d, lp:-160d), (hp:-160d, lp:20d) })
+        {
+            var circuit = New();
+            for (int i = 0; i < 2000; i++) Speeds(circuit, speeds.hp, speeds.lp, speeds.hp < 0 ? -.6 : .6);
+            Check(MeyerCompoundCycle.Finite(circuit.Hp.Torque) && MeyerCompoundCycle.Finite(circuit.Lp.Torque) &&
+                circuit.Work >= 0 && circuit.Work <= circuit.BoilerEnergy,
+                "Unequal/stopped/opposed stage speeds remain finite and bounded by supplied energy");
+            if (speeds.lp == 0) Check(circuit.Lp.Exhaust == 0, "A stationary LP sweeps no exhaust despite rotating HP");
+            double supplied = circuit.BoilerMass;
+            for (int i = 0; i < 500; i++) Speeds(circuit, speeds.hp, speeds.lp, throttle: 0);
+            Check(circuit.BoilerMass == supplied, "Unequal speeds do not bypass a closed boiler regulator");
+            Balanced(circuit, "unequal speeds " + speeds);
+        }
+
+        double beforeMass = equal.StoredMass, beforeWork = equal.Work;
+        bool rejected = false;
+        try { Speeds(equal, 80, double.NaN); } catch (ArgumentException) { rejected = true; }
+        Check(rejected && equal.StoredMass == beforeMass && equal.Work == beforeWork,
+            "Invalid LP speed is rejected before mutating the existing circuit");
     }
 }

@@ -171,6 +171,11 @@ namespace RearrangedS060
                 throw new InvalidOperationException("Close the regulator first.");
             if (sim.drivingForce != null && Mathf.Abs(sim.drivingForce.generatedForce) > 500f)
                 throw new InvalidOperationException("Wait for the driving force to settle.");
+#if B99_S060_ARTICULATED
+            var independent = S060IndependentDrive.For(car);
+            if (independent != null && !independent.Settled)
+                throw new InvalidOperationException("Wait for both powered sets to stop slipping.");
+#endif
             if (sim.wheelslipController != null && sim.wheelslipController.IsWheelslipping)
                 throw new InvalidOperationException("Wait for the wheelslip to stop.");
             if (car.adhesionController != null && car.adhesionController.IsWheelSliding)

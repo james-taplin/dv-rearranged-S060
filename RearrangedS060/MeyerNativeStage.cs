@@ -101,7 +101,7 @@ namespace RearrangedS060
                 // LP publishes later in the existing main/auxiliary tick order.
                 PrepareMotion(delta); owner.Lp.PrepareMotion(delta);
                 owner.Cycle.Advance(delta, intakePressure.Value, intakeTemperature.Value,
-                    throttleControl.Value, reverserControl.Value, crankRpm.Value, cylinderCockControl.Value,
+                    throttleControl.Value, reverserControl.Value, crankRpm.Value, owner.Lp.crankRpm.Value, cylinderCockControl.Value,
                     isCylinderCrackedReadOut.Value > 0, owner.Lp.isCylinderCrackedReadOut.Value > 0, minCutoff, maxCutoff);
             }
             else if (!motionPrepared) PrepareMotion(delta);
@@ -189,6 +189,11 @@ namespace RearrangedS060
                 var c = owner.Cycle;
                 c.Hp.Chest.Restore(hp.Mass, hp.Energy); c.Receiver.Restore(receiver.Mass, receiver.Energy); c.Lp.Chest.Restore(lp.Mass, lp.Energy);
                 c.BoilerMass = values[0]; c.BoilerEnergy = values[1]; c.AtmosphereMass = values[2]; c.AtmosphereEnergy = values[3]; c.Work = values[4]; c.HeatLoss = values[5];
+                // LP prepares its native expansion mechanics before HP publishes
+                // the next tick. Restore these derived receiver inputs now so a
+                // hot reload does not use the constructor's cold temperature.
+                exhaustPressureReadOut.Value = (float)Math.Max(1, c.Receiver.Pressure / 100000);
+                exhaustTemperatureReadOut.Value = (float)(c.Receiver.Temperature - 273.15);
             }
             waterInCylindersNormalizedReadOut.Value = water; temperatureInCylinders = temperature;
             cylinderTemperatureReadOut.Value = temperature; waterInCylindersDamageMeter = meter;

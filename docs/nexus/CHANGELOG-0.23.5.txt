@@ -1,0 +1,11 @@
+Rearranged S060 0.23.5 — Meyer visual repair candidate
+
+- Removed overlapping faces on the rear buffer beam.
+- Corrected the diagonal texture seam on the tall coal hopper sides.
+- Removed eight obsolete fixed guide/pivot fittings.
+- Fitted stock S060 rod profiles and textures to both Meyer engine units,
+  with heavier webs and bearing ends, fitted pin bores and supported guides.
+- Adjusted oil-cup mounting heights for the larger rod bosses.
+
+Offline build and focused Unity validation completed. Gameplay acceptance is
+pending James's testing. This candidate has not been installed or published.

@@ -1,0 +1,13 @@
+REARRANGED S060 0.23.4 - PUBLIC BETA
+
+- Moves the Meyer's rear hook, air hose/angle cock and physical coupling anchor
+  295 mm rearward to align with the existing mounting pocket. Native buffer
+  heads and stems retain their positions against the end sill. Floor unchanged.
+- Replaces the misleading missing-pack instruction with guidance to check
+  Custom Car Loader, its dependencies including DV Language Helper, restart
+  the game and consult Player.log. Meyer/Dockside packs remain bundled.
+
+Offline checks cover native coupling geometry, pocket alignment, angle-cock
+exposure, buffer retention, stock restoration, native logical length and
+conversion rollback. Actual coupling, hose operation and gameplay acceptance
+remain with James. Asset bundles and save schemas are unchanged.

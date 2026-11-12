@@ -10,6 +10,11 @@
     <Compile Include="..\..\RearrangedS060\S060EngineMapping.cs" />
     <Compile Include="..\..\RearrangedS060\S060EngineState.cs" />
     <Compile Include="..\..\RearrangedS060\S060SteamCalibration.cs" />
+    <Compile Include="..\..\RearrangedS060\S060Selection.cs" />
+    <Compile Include="..\..\RearrangedS060\S060EightLayout.cs" />
+    <Compile Include="..\..\RearrangedS060\S060TenLayout.cs" />
+    <Compile Include="..\..\RearrangedS060\S060TrailingLayout.cs" />
+    <Compile Include="..\..\RearrangedS060\ConventionalPhysics.cs" />
     <Compile Include="..\..\RearrangedS060\MeyerNativeStage.cs" />
     <Compile Include="..\..\RearrangedS060\MeyerCompoundCycle.cs" />
     <Reference Include="DV.Simulation"><HintPath>$(PublicizedSimulation)</HintPath></Reference>

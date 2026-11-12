@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework><LangVersion>9.0</LangVersion>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems><NuGetAudit>false</NuGetAudit>
+    <ManagedPath Condition="'$(ManagedPath)' == ''">B:\SteamLibrary\steamapps\common\Derail Valley\DerailValley_Data\Managed</ManagedPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="CandidateRuntime.cs;S060SlipWorldProbe.cs;S060OwnerProbe.cs" />
+    <Reference Include="$(ManagedPath)\*.dll" Private="false" />
+    <Reference Include="$(ManagedPath)\UnityModManager\0Harmony.dll" Private="false" />
+  </ItemGroup>
+</Project>

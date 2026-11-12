@@ -6,111 +6,58 @@ using Object = UnityEngine.Object;
 
 namespace RearrangedS060
 {
-    // Fixed admission and unit-local interstage elbows for the inward-facing
-    // Meyer. The existing donor dry-pipe meshes still make the moving spans;
-    // no simulation ports or meshes in the asset pack are changed.
+    // Two substantial HP feeds. The paired external interstage pipes and S282
+    // manifold castings are retired; the existing native steam circuit remains.
     internal sealed class S060MeyerInwardPipes : IDisposable
     {
-        internal const float AdmissionX = 1.50f, AdmissionY = 1.42f, AdmissionCourseY = 1.60f, AdmissionRadius = .055f;
-        internal const float TransferX = 1.55f, TransferY = 1.34f;
-        internal const float TransferJointRadius = .13f;
+        internal const float AdmissionX=1.56f, AdmissionY=1.44f, AdmissionCourseY=1.44f, AdmissionRadius=.085f;
         internal Transform BodyRoot { get; private set; }
         internal Transform FrontRoot { get; private set; }
         internal Transform RearRoot { get; private set; }
-        private readonly Dictionary<int, Vector3> admission = new Dictionary<int, Vector3>();
-        private readonly Dictionary<int, Transform> fronts = new Dictionary<int, Transform>(), rears = new Dictionary<int, Transform>();
-        private readonly Dictionary<int, Transform> admissionEnds = new Dictionary<int, Transform>();
-        private sealed class Feed
-        { internal Transform Part, End; internal Vector3 Start, PreviousA, PreviousB; internal bool Initialized; }
-        private readonly List<Feed> feeds = new List<Feed>();
-        private readonly List<GameObject> objects = new List<GameObject>();
-        private readonly List<Mesh> meshes = new List<Mesh>();
-        private readonly List<MeshRenderer> renderers = new List<MeshRenderer>();
-        private MeshRenderer materialSource;
-        private Material material;
-        private bool disposed;
-        internal Vector3 AdmissionSocket(int physicalSide) => admission[physicalSide];
-        internal Transform FrontTransfer(int physicalSide) => fronts[physicalSide];
-        internal Transform RearTransfer(int physicalSide) => rears[physicalSide];
-        internal Transform FrontAdmission(int physicalSide) => admissionEnds[physicalSide];
-        internal static bool IsInward(Transform body, Transform front) => front.Find("[Native S060 cylinders]") != null &&
-            Vector3.Dot(body.forward, front.forward) < -.5f;
-
-        internal static S060MeyerInwardPipes Bind(Transform body, Transform front, Transform rear, Transform nativeShell,
-            Vector3 leftBoiler, Vector3 rightBoiler, Vector3 leftStem, Vector3 rightStem)
+        private readonly List<GameObject> objects=new List<GameObject>();
+        private readonly List<Mesh> meshes=new List<Mesh>();
+        private readonly List<MeshRenderer> renderers=new List<MeshRenderer>();
+        private readonly Dictionary<int,Transform> ends=new Dictionary<int,Transform>();
+        private readonly Dictionary<int,Vector3> sockets=new Dictionary<int,Vector3>();
+        private readonly Dictionary<int,S060MeyerExhaustPipe.Bend> bends=new Dictionary<int,S060MeyerExhaustPipe.Bend>();
+        private MeshRenderer materialSource;private Material material;private bool disposed;
+        internal Vector3 AdmissionSocket(int side)=>sockets[side];
+        internal Transform FrontAdmission(int side)=>ends[side];
+        internal static bool IsInward(Transform body,Transform front)=>front.Find("[Native S060 cylinders]")!=null && Vector3.Dot(body.forward,front.forward)<-.5f;
+        internal static S060MeyerInwardPipes Bind(Transform body,Transform front,Transform rear,Transform shell,Vector3 leftBoiler,Vector3 rightBoiler,Vector3 leftStem,Vector3 rightStem)
         {
-            var owner = new S060MeyerInwardPipes();
+            var owner=new S060MeyerInwardPipes();
             try
             {
-                owner.materialSource = nativeShell.GetComponentsInChildren<MeshRenderer>(true)
-                    .Where(r => r.name == "s060_body" && r.sharedMaterial != null)
-                    .OrderByDescending(r => r.enabled && r.gameObject.activeInHierarchy).FirstOrDefault();
-                if (owner.materialSource == null) throw new InvalidOperationException("Live S060 material required for inward Meyer steam pipes.");
-                owner.material = owner.materialSource.sharedMaterial;
-                owner.BodyRoot = owner.Group(body, "[Meyer inward admission]");
-                owner.FrontRoot = owner.Group(front, "[Meyer HP transfer elbows]");
-                owner.RearRoot = owner.Group(rear, "[Meyer LP transfer elbows]");
-                foreach (int side in new[] { -1, 1 })
+                owner.materialSource=shell.GetComponentsInChildren<MeshRenderer>(true).Where(r=>r.name=="s060_body"&&r.sharedMaterial!=null).OrderByDescending(r=>r.enabled&&r.gameObject.activeInHierarchy).First();
+                owner.material=owner.materialSource.sharedMaterial;
+                owner.BodyRoot=owner.Group(body,"[Meyer HP steam feeds]");
+                owner.FrontRoot=owner.Group(front,"[Meyer HP chest unions]");
+                owner.RearRoot=owner.Group(rear,"[Meyer internal receiver datum]");
+                foreach(int side in new[]{-1,1})
                 {
-                    var boiler = side < 0 ? leftBoiler : rightBoiler;
-                    var socket = new Vector3(side * AdmissionX, AdmissionY, -.30f);
-                    owner.admission.Add(side, socket);
-                    // One low course: drop beside the native boiler neck,
-                    // clear the front equipment outboard, then turn inboard
-                    // ahead of the cab through a short swivelling feed.
-                    owner.Path(owner.BodyRoot, "HP boiler admission " + side, AdmissionRadius, new[] {
-                        boiler, boiler + Vector3.down * .18f,
-                        new Vector3(side * AdmissionX, boiler.y - .18f, boiler.z),
-                        new Vector3(side * AdmissionX, AdmissionCourseY, boiler.z),
-                        new Vector3(side * AdmissionX, AdmissionCourseY, socket.z), socket });
-                    owner.Joint(owner.BodyRoot, "[HP admission swivel " + side + "]", socket, .09f);
-                    var stem = owner.Joint(owner.FrontRoot, "[HP admission stem " + side + "]", side < 0 ? leftStem : rightStem, .12f);
-                    owner.admissionEnds.Add(side, stem);
-                    var feed = owner.Render(owner.BodyRoot, "HP admission flex " + side,
-                        S060MeyerExhaustPipe.PathMesh(new[] { Vector3.zero, Vector3.forward }, AdmissionRadius, false));
-                    owner.feeds.Add(new Feed { Part = feed, End = stem, Start = socket });
-
-                    // Yaw180 swaps authored L/R. The existing transfer faces
-                    // keep their actual normals: HP leaves local-back, LP
-                    // receives local-forward, before each turns out/down.
-                    var f = front.Find("[S060 manifold " + (side < 0 ? "R" : "L") + "]");
-                    var r = rear.Find("[S060 manifold " + (side < 0 ? "L" : "R") + "]");
-                    if (f == null || r == null) throw new InvalidOperationException("Existing Meyer interstage manifolds required.");
-                    var fc = front.InverseTransformPoint(f.Find("[transfer socket]").position);
-                    var rc = rear.InverseTransformPoint(r.Find("[transfer socket]").position);
-                    var fn = front.InverseTransformDirection(f.TransformDirection(Vector3.back));
-                    var rn = rear.InverseTransformDirection(r.TransformDirection(Vector3.forward));
-                    var fj = new Vector3(-side * TransferX, TransferY, fc.z - .20f);
-                    var rj = new Vector3(side * TransferX, TransferY, rc.z + .20f);
-                    owner.Path(owner.FrontRoot, "HP interstage elbow " + side, .075f, new[] { fc, fc + fn * .16f, fj });
-                    owner.Path(owner.RearRoot, "LP interstage elbow " + side, .075f, new[] { rc, rc + rn * .16f, rj });
-                    owner.fronts.Add(side, owner.Joint(owner.FrontRoot, "[HP interstage swivel " + side + "]", fj, TransferJointRadius));
-                    owner.rears.Add(side, owner.Joint(owner.RearRoot, "[LP interstage swivel " + side + "]", rj, TransferJointRadius));
+                    var boiler=side<0?leftBoiler:rightBoiler;var end=side<0?leftStem:rightStem;
+                    var socket=new Vector3(side*AdmissionX,AdmissionY,-.65f);owner.sockets.Add(side,socket);
+                    owner.Render(owner.BodyRoot,"HP smokebox feed "+side,S060MeyerExhaustPipe.SmoothPathMesh(new[]{boiler,boiler+Vector3.down*.18f,
+                        new Vector3(side*AdmissionX,1.92f,boiler.z),new Vector3(side*AdmissionX,AdmissionY,2.60f),socket},AdmissionRadius,.32f));
+                    var marker=owner.Group(owner.FrontRoot,"[HP chest inlet "+side+"]");marker.localPosition=end;owner.ends.Add(side,marker);
+                    owner.Render(owner.FrontRoot,"HP chest flange "+side,S060MeyerExhaustPipe.SmoothPathMesh(new[]{end-Vector3.right*(Mathf.Sign(end.x)*.055f),end},.112f));
+                    var bend=new S060MeyerExhaustPipe.Bend(AdmissionRadius);bend.Part=owner.Render(owner.BodyRoot,"HP articulated bend "+side,bend.Mesh);owner.bends.Add(side,bend);
                 }
-                owner.UpdateGeometry(); return owner;
+                owner.UpdateGeometry();return owner;
             }
-            catch { owner.Dispose(); throw; }
+            catch{owner.Dispose();throw;}
         }
         internal void UpdateMaterial()
         {
-            if (disposed || materialSource == null || materialSource.sharedMaterial == material) return;
-            material = materialSource.sharedMaterial;
-            foreach (var renderer in renderers) if (renderer != null) renderer.sharedMaterial = material;
+            if(disposed||materialSource==null||materialSource.sharedMaterial==material)return;
+            material=materialSource.sharedMaterial;foreach(var renderer in renderers)if(renderer!=null)renderer.sharedMaterial=material;
         }
         internal void UpdateGeometry()
         {
-            UpdateMaterial();
-            if (disposed || BodyRoot == null) return;
-            foreach (var feed in feeds)
-            {
-                if (feed.Part == null || feed.End == null) continue;
-                var a = BodyRoot.TransformPoint(feed.Start); var b = feed.End.position;
-                if (feed.Initialized && a.Equals(feed.PreviousA) && b.Equals(feed.PreviousB)) continue;
-                if (!S060PipePose.Span(a, b, BodyRoot.up, out var line, out float length)) continue;
-                feed.Part.SetPositionAndRotation(a, Quaternion.LookRotation(line, BodyRoot.up));
-                feed.Part.localScale = new Vector3(1, 1, length);
-                feed.PreviousA = a; feed.PreviousB = b; feed.Initialized = true;
-            }
+            if(disposed||BodyRoot==null)return;UpdateMaterial();
+            for(int side=-1;side<=1;side+=2)
+                bends[side].Move(sockets[side],BodyRoot.InverseTransformPoint(ends[side].position),Vector3.back,BodyRoot.InverseTransformDirection(FrontRoot.TransformDirection(Vector3.right*(-Mathf.Sign(ends[side].localPosition.x)))));
         }
         internal static Mesh TrimUpperCourse(Mesh source, float cutY, out Vector3 axis)
         {
@@ -168,27 +115,9 @@ namespace RearrangedS060
             }
             catch { Release(copy); throw; }
         }
-        private Transform Group(Transform parent, string name)
-        { var go = new GameObject(name); objects.Add(go); go.transform.SetParent(parent, false); return go.transform; }
-        private Transform Render(Transform parent, string name, Mesh mesh)
-        {
-            meshes.Add(mesh); mesh.name = "Meyer inward " + name;
-            var part = Group(parent, name); part.gameObject.AddComponent<MeshFilter>().sharedMesh = mesh;
-            var renderer = part.gameObject.AddComponent<MeshRenderer>(); renderer.sharedMaterial = material; renderers.Add(renderer);
-            return part;
-        }
-        private Transform Path(Transform parent, string name, float radius, Vector3[] points)
-            => Render(parent, name, S060MeyerExhaustPipe.PathMesh(points, radius));
-        private Transform Joint(Transform parent, string name, Vector3 point, float radius)
-        { var joint = Render(parent, name, S060MeyerExhaustPipe.JointMesh(radius)); joint.localPosition = point; return joint; }
-        public void Dispose()
-        {
-            if (disposed) return; disposed = true;
-            foreach (var item in objects) if (item != null) { item.SetActive(false); Release(item); }
-            objects.Clear();
-            foreach (var mesh in meshes) if (mesh != null) Release(mesh);
-            meshes.Clear(); renderers.Clear(); fronts.Clear(); rears.Clear(); admission.Clear(); admissionEnds.Clear(); feeds.Clear(); materialSource = null; material = null;
-        }
-        private static void Release(Object value) { if (Application.isPlaying) Object.Destroy(value); else Object.DestroyImmediate(value); }
+        private Transform Group(Transform parent,string name){var go=new GameObject(name);objects.Add(go);go.transform.SetParent(parent,false);return go.transform;}
+        private Transform Render(Transform parent,string name,Mesh mesh){meshes.Add(mesh);mesh.name=name;var t=Group(parent,name);t.gameObject.AddComponent<MeshFilter>().sharedMesh=mesh;var r=t.gameObject.AddComponent<MeshRenderer>();r.sharedMaterial=material;renderers.Add(r);return t;}
+        public void Dispose(){if(disposed)return;disposed=true;foreach(var go in objects)if(go!=null){go.SetActive(false);Release(go);}foreach(var mesh in meshes)if(mesh!=null)Release(mesh);objects.Clear();meshes.Clear();renderers.Clear();bends.Clear();ends.Clear();sockets.Clear();}
+        private static void Release(Object value){if(Application.isPlaying)Object.Destroy(value);else Object.DestroyImmediate(value);}
     }
 }
