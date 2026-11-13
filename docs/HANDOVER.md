@@ -1,6 +1,15 @@
 # Rearranged S060 — handover
 
-## Current 0.3.1 correction — heavy link and pin, STAGED ONLY
+## Current 0.3.1 correction — heavy link and pin, INSTALLED
+
+James explicitly authorised installation of this repaired build without a
+backup on 13 November 2026. Installed at 12:46 GMT using Install.Nexus.ps1;
+all 11 payload files were hash-verified, original metadata and Settings.xml
+preserved, and no backup created. Installed DLL SHA256 is
+BBA33D317AE8A46BE7B0C36DAD4C8C9908C93630BEA17580F97CF7880EF5269A.
+All 7,413 Documents 0.4 files match their immediate pre-install hashes, with
+no additions. No DV launch or gameplay testing. James will do in-game testing.
+Installation evidence: build/link-pin-0.3.1/install-20261113-124647/validation.json.
 
 Read [MEYER-LINK-PIN-0.3.1.md](MEYER-LINK-PIN-0.3.1.md) first. James rejected
 the footplate bridge: there is no foot access there. Cut the plate, lips and
@@ -10,9 +19,9 @@ visible connection. This supersedes the continuous plate/bearer acceptance
 below. Do not revive that bridge as a structural member.
 
 Work is isolated at B:/GitHub repo/rearranged-s060-031-link-pin-20261113/source.
-The previous repair is now installed by a separate authorised session; this
-new revision remains staged only. Keep original 0.3.1 metadata and bundles.
-Do not edit the installed copy, canonical prototype checkout or Documents 0.4.
+This revision replaces the previous repair after James's separate installation
+authorisation. Keep original 0.3.1 metadata and bundles. Do not edit the
+canonical prototype checkout or Documents 0.4.
 Final evidence: build/link-pin-0.3.1/validation.json. DV testing belongs to James.
 
 ## 0.3.1 Meyer repairs — 13 November 2026, STAGED ONLY

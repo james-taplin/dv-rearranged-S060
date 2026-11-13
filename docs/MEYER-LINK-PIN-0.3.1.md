@@ -6,13 +6,22 @@ heavy link and pin with short drawgear underneath. The screenshot follow-up
 also identified the projecting upper bearer as part of the unwanted bridge.
 Do not retain or restore that bearer across the gap under another name.
 
-This revision is **staged only**, with original 0.3.1 metadata. It starts from
+This revision was originally **staged only**, with original 0.3.1 metadata. It starts from
 the preserved repair checkpoint `120a67b5325d10b25555e8596f3c3a5cdace5e49`,
 in `B:/GitHub repo/rearranged-s060-031-link-pin-20261113/source`. The previous
 repair was subsequently installed by another authorised session (installed DLL
 `4F09184300863A26018BE77317A452575A83789F0F7A3FDB344CC9793E212EDA`). That
-installation is the read-only baseline here; it does not authorise installation
-of this revision. Documents 0.4 work and the canonical checkout remain separate.
+installation was the read-only baseline for authoring. James subsequently
+explicitly authorised installing this revision without a backup. Documents 0.4
+work and the canonical checkout remain separate.
+
+Installed on 13 November 2026 at 12:46 GMT with the existing Install.Nexus.ps1.
+All 11 installed payload files match the validated package, metadata and settings
+are preserved, and no backup was made. All 7,413 Documents 0.4 files were hashed
+immediately before and after installation; no changes or additions. Receipt:
+`build/link-pin-0.3.1/install-20261113-124647/validation.json`. No game launch;
+James owns the forthcoming in-game checks, including the linkage and teleport
+away/return behaviour.
 
 ## Final model
 
@@ -63,8 +72,8 @@ previous coupler and steam-return fixes. The other donor bundles are reused
 unchanged. Info.json must retain SHA256
 `61F1A136148BAF8E18B3DE7339EC0D5943F7B13F5597435989D16645DA943DD4`.
 
-No Derail Valley launch, game profile, gameplay automation, real installation,
-push or publication. Offline fixture results do not establish game acceptance.
-James owns the in-game visual/movement and teleport-away/return checks after a
-separately authorised installation. The initial geometry remains a visual model
+No Derail Valley launch, game profile, gameplay automation, push or publication.
+The separately authorised installation is recorded above. Offline fixture
+results do not establish game acceptance. James owns the in-game visual/movement
+and teleport-away/return checks. The geometry remains a visual model
 of the supported native single-car bogie joint, not a new drawgear simulation.
