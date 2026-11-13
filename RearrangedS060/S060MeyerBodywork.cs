@@ -1,4 +1,4 @@
-#if B99_S060_ARTICULATED
+#if B99_S060_ARTICULATED || UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +14,6 @@ namespace RearrangedS060
     internal sealed class S060MeyerBodywork : IDisposable
     {
         internal const float PlateY = 1.62f, PlateTop = 1.66f, TankTop = 2.82f, HopperFront = -4.38f, HopperBack = -5.55f,
-            FrameFront = -3.92f,
             HopperTop = 3.45f, TankRear = -7.70f, BulkheadRear = MeyerPlan.BulkheadRear, BulkheadTop = MeyerPlan.BulkheadTop,
             // The beam stays where the native buffer stems expect it (old rear beam, z -7.98..-7.82):
             // the relocated buffer heads sit ~0.45 m behind its face, at -8.28..-8.57.
@@ -24,6 +23,8 @@ namespace RearrangedS060
         private readonly List<Material> materials = new List<Material>();
         private readonly List<(GameObject part, bool active)> hidden = new List<(GameObject, bool)>();
         internal Transform Root { get; private set; }
+        private S060MeyerDrawgear drawgear;
+        internal void UpdateGeometry() => drawgear?.UpdateGeometry();
 
         private sealed class Builder
         {
@@ -87,14 +88,30 @@ namespace RearrangedS060
                     Tri(top, top + pa, top + pb, Vector3.up); Tri(baseCentre, baseCentre + pb, baseCentre + pa, Vector3.down);
                 }
             }
+            internal void EyeY(float z, float outer, float inner, float bottom, float top)
+            {
+                const int sides = 32;
+                Vector3 P(float r, float y, float a) => new Vector3(r * Mathf.Cos(a), y, z + r * Mathf.Sin(a));
+                for (int i = 0; i < sides; i++)
+                {
+                    float a = i * 2 * Mathf.PI / sides, b = (i + 1) * 2 * Mathf.PI / sides;
+                    var n = new Vector3(Mathf.Cos((a+b)/2), 0, Mathf.Sin((a+b)/2));
+                    Quad(P(outer,top,a),P(outer,top,b),P(inner,top,b),P(inner,top,a),Vector3.up);
+                    Quad(P(outer,bottom,b),P(outer,bottom,a),P(inner,bottom,a),P(inner,bottom,b),Vector3.down);
+                    Quad(P(outer,bottom,a),P(outer,bottom,b),P(outer,top,b),P(outer,top,a),n);
+                    Quad(P(inner,bottom,b),P(inner,bottom,a),P(inner,top,a),P(inner,top,b),-n);
+                }
+            }
         }
 
+#if B99_S060_ARTICULATED
         internal static S060MeyerBodywork Apply(TrainCar trainCar, Transform body, Transform liveRearFrame)
         {
             var owner = Build(trainCar.transform, body, liveRearFrame);
             try { owner.Colliders(trainCar); return owner; }
             catch { owner.Dispose(); throw; }
         }
+#endif
 
         // Visual bodywork only (also used by the native Editor audit's render).
         internal static S060MeyerBodywork Build(Transform car, Transform body, Transform liveRearFrame)
@@ -143,6 +160,7 @@ namespace RearrangedS060
                 owner.Add("Meyer R2 buffer beam", beam, bodyMaterial);
                 owner.Add("Meyer R2 hopper tarpaulin", sheet, owner.Tarpaulin(bodyMaterial));
                 owner.Underframe(car, liveRearFrame, bodyMaterial, black);
+                owner.Drawgear(car, liveRearFrame, bodyMaterial, black);
                 return owner;
             }
             catch { owner.Dispose(); throw; }
@@ -164,11 +182,11 @@ namespace RearrangedS060
                 const float reliefZ=-4.85f;
                 fixedFrame.Box(new Vector3(x-.035f,1.50f,BeamFront),new Vector3(x+.035f,PlateY+.006f,reliefZ));
                 fixedFrame.Box(new Vector3(x-.10f,1.50f,BeamFront),new Vector3(x+.10f,1.525f,reliefZ));
-                // Seat the body bearers into the measured native cab frame
-                // (face z -3.98), across the former open joint.
-                fixedFrame.Box(new Vector3(x-.035f,1.565f,reliefZ),new Vector3(x+.035f,PlateY+.006f,FrameFront));
-                fixedFrame.Box(new Vector3(x-.10f,1.565f,reliefZ),new Vector3(x+.10f,1.590f,FrameFront));
-                fixedFrame.Box(new Vector3(x-.10f,1.592f,BeamFront),new Vector3(x+.10f,PlateY+.006f,FrameFront));
+                // Stop every upper member at the tank. James identified the
+                // projecting bearer as the unwanted visual footplate bridge.
+                fixedFrame.Box(new Vector3(x-.035f,1.565f,reliefZ),new Vector3(x+.035f,PlateY+.006f,HopperFront));
+                fixedFrame.Box(new Vector3(x-.10f,1.565f,reliefZ),new Vector3(x+.10f,1.590f,HopperFront));
+                fixedFrame.Box(new Vector3(x-.10f,1.592f,BeamFront),new Vector3(x+.10f,PlateY+.006f,HopperFront));
                 foreach(float z in new[]{-7.62f,-7.14f,-6.66f,-6.18f,-5.70f,-5.22f})
                     fixedFrame.Box(new Vector3(x+side*.035f-.009f,1.552f,z-.011f),new Vector3(x+side*.035f+.009f,1.574f,z+.011f));
             }
@@ -214,10 +232,11 @@ namespace RearrangedS060
 
         private static void Build(Builder paint, Builder dark, Builder beam, Builder sheet)
         {
-            // Running plate continuous with the S060's, with angle-iron edges.
-            dark.Box(new Vector3(-1.40f, PlateY, BulkheadRear), new Vector3(1.40f, PlateTop, FrameFront));
+            // No upper bridge or foot access across the engine-unit gap.
+            // The pinned drawbar is the visible connection underneath.
+            dark.Box(new Vector3(-1.40f, PlateY, BulkheadRear), new Vector3(1.40f, PlateTop, HopperFront));
             foreach (float s in new[] { -1f, 1f })
-                dark.Box(new Vector3(s > 0 ? 1.37f : -1.41f, PlateY, BulkheadRear), new Vector3(s > 0 ? 1.41f : -1.37f, PlateTop + .03f, FrameFront)); // raised lip: the cylinder swing reaches 1.61 m below
+                dark.Box(new Vector3(s > 0 ? 1.37f : -1.41f, PlateY, BulkheadRear), new Vector3(s > 0 ? 1.41f : -1.37f, PlateTop + .03f, HopperFront)); // raised lip: the cylinder swing reaches 1.61 m below
             // High coal hopper behind the cab; sloped back keeps a view from the rear windows.
             paint.PrismX(-1.28f, 1.28f, new[] { new Vector2(HopperFront, PlateTop), new Vector2(HopperBack, PlateTop), new Vector2(HopperBack, 3.05f),
                 new Vector2(HopperBack + .25f, HopperTop), new Vector2(HopperFront, HopperTop) });
@@ -348,6 +367,7 @@ namespace RearrangedS060
         // the car, like the cab); the rear unit keeps its own bogie-owned boxes. The player
         // stands on [walkable] and items rest on [items]: both live under the car interior
         // and are authored in car space, so the same boxes go into each with that root's layer.
+#if B99_S060_ARTICULATED
         private void Colliders(TrainCar trainCar)
         {
             var colliders = trainCar.carColliders ?? throw new InvalidOperationException("Native S060 colliders are missing.");
@@ -360,6 +380,7 @@ namespace RearrangedS060
             Group(walkable, "[Meyer R2 bodywork walkable]", walkable.gameObject.layer, null);
             Group(items, "[Meyer R2 bodywork items]", items.gameObject.layer, null);
         }
+#endif
 
         private Transform Group(Transform root, string name, int layer, PhysicMaterial material)
         {
@@ -374,19 +395,73 @@ namespace RearrangedS060
             Box("Coal hopper", new Vector3(-1.28f, PlateTop, HopperBack), new Vector3(1.28f, HopperTop, HopperFront));
             Box("Rear tanks", new Vector3(-1.28f, PlateTop, TankRear), new Vector3(1.28f, TankTop, HopperBack));
             Box("Rear bulkhead", new Vector3(-1.30f, PlateY, BulkheadRear), new Vector3(1.30f, BulkheadTop, TankRear));
-            Box("Rear running plate", new Vector3(-1.40f, PlateY, BulkheadRear), new Vector3(1.40f, PlateTop, FrameFront));
+            Box("Rear running plate", new Vector3(-1.40f, PlateY, BulkheadRear), new Vector3(1.40f, PlateTop, HopperFront));
             Box("Rear buffer beam", new Vector3(-1.25f, .90f, BeamRear), new Vector3(1.25f, 1.25f, BeamFront));
             return group.transform;
         }
 
-        private void Add(string name, Builder b, Material material, Transform parent = null)
+        private Transform Add(string name, Builder b, Material material, Transform parent = null)
         {
-            if (b.V.Count == 0) return;
+            if (b.V.Count == 0) return null;
             var mesh = new Mesh { name = name, indexFormat = UnityEngine.Rendering.IndexFormat.UInt32 };
             mesh.SetVertices(b.V); mesh.SetUVs(0, b.UV); mesh.SetTriangles(b.T, 0); mesh.RecalculateNormals(); mesh.RecalculateBounds(); mesh.RecalculateTangents();
             meshes.Add(mesh);
             var part = new GameObject(name); part.transform.SetParent(parent ?? Root, false);
+            owned.Add(part);
             part.AddComponent<MeshFilter>().sharedMesh = mesh; part.AddComponent<MeshRenderer>().sharedMaterial = material;
+            return part.transform;
+        }
+
+        private void Drawgear(Transform car, Transform rear, Material material, Vector2 iron)
+        {
+            // Presentation of the existing native bogie joint; no second physics
+            // joint or change to the engine, save identity or coupling behaviour.
+            var housing = new Builder { Paint = iron };
+            foreach (int side in new[] { -1, 1 })
+            {
+                float x = side * .16f;
+                housing.Box(new Vector3(x-.035f,.94f,-4.10f),new Vector3(x+.035f,1.235f,-3.72f));
+                foreach(float z in new[]{-4.01f,-3.80f})
+                {
+                    housing.Box(new Vector3(side>0?.195f:-.28f,.925f,z-.04f),new Vector3(side>0?.28f:-.195f,1.25f,z+.04f));
+                    housing.CylinderY(new Vector3(side*.22f,1.25f,z),.029f,.035f,6);
+                }
+            }
+            housing.Box(new Vector3(-.125f,.94f,-4.10f),new Vector3(.125f,.98f,-3.72f));
+            housing.Box(new Vector3(-.125f,1.20f,-4.10f),new Vector3(.125f,1.235f,-3.72f));
+            Add("Meyer short drawgear housing", housing, material);
+
+            Transform Fork(string name, Transform parent, bool rearEnd)
+            {
+                var fork = new Builder { Paint = iron };
+                foreach (float y in new[] { -.087f, .052f })
+                {
+                    fork.EyeY(0,.145f,.054f,y,y+.035f);
+                    fork.Box(new Vector3(-.115f,y+.002f,rearEnd?-.16f:.085f),new Vector3(.115f,y+.033f,rearEnd?-.085f:.34f));
+                }
+                if(rearEnd)
+                {
+                    // Two deep cheeks reach the actual leading crossmember.
+                    foreach(int side in new[]{-1,1})
+                        fork.Box(new Vector3(side*.105f-.025f,-.085f,-.16f),new Vector3(side*.105f+.025f,.295f,.055f));
+                }
+                else fork.Box(new Vector3(-.075f,-.052f,.17f),new Vector3(.075f,.052f,.38f));
+                fork.CylinderY(new Vector3(0,-.15f,0),.049f,.285f,24);
+                fork.CylinderY(new Vector3(0,.135f,0),.078f,.025f,6);
+                fork.CylinderY(new Vector3(0,-.132f,0),.066f,.017f,24);
+                // Visible retained pin below the lower fork, with split keeper.
+                fork.Box(new Vector3(-.085f,-.148f,-.009f),new Vector3(.085f,-.137f,.009f));
+                return Add(name,fork,material,parent);
+            }
+            var frontFork=Fork("Meyer loco drawgear pin",Root,false);
+            var rearFork=Fork("Meyer bogie drawgear pin",rear,true);
+            rearFork.localPosition=S060MeyerDrawgear.RearPin;
+            var link = new Builder { Paint = iron };
+            foreach(float z in new[]{0f,S060MeyerDrawgear.Length})link.EyeY(z,.125f,.057f,-.032f,.032f);
+            link.Box(new Vector3(-.063f,-.030f,.105f),new Vector3(.063f,.030f,S060MeyerDrawgear.Length-.105f));
+            var linkRoot=Add("Meyer heavy articulated drawbar",link,material);
+            drawgear=Root.gameObject.AddComponent<S060MeyerDrawgear>();
+            drawgear.Bind(car,rear,frontFork,rearFork,linkRoot);
         }
 
         public void Dispose()
@@ -396,7 +471,31 @@ namespace RearrangedS060
             foreach (var m in meshes) if (m != null) { if (Application.isPlaying) UnityEngine.Object.Destroy(m); else UnityEngine.Object.DestroyImmediate(m); } meshes.Clear();
             foreach (var m in materials) if (m != null) { if (Application.isPlaying) UnityEngine.Object.Destroy(m); else UnityEngine.Object.DestroyImmediate(m); } materials.Clear();
             Root = null;
+            drawgear = null;
         }
+    }
+
+    // The rigid eye-to-eye link follows the existing bogie. Its front shank
+    // slides in the short body-mounted drawgear as yaw/heave change the span.
+    internal sealed class S060MeyerDrawgear : MonoBehaviour
+    {
+        internal const float Length = .675f;
+        internal static readonly Vector3 RearPin = new Vector3(0,1.09f,1.32f);
+        private Transform car,rear,frontPin,rearPin,link;
+        internal void Bind(Transform car,Transform rear,Transform frontPin,Transform rearPin,Transform link)
+        {this.car=car;this.rear=rear;this.frontPin=frontPin;this.rearPin=rearPin;this.link=link;UpdateGeometry();}
+        internal void UpdateGeometry()
+        {
+            if(car==null||rear==null)return;
+            var end=car.InverseTransformPoint(rearPin.position);
+            float dy=end.y-1.09f;
+            var start=new Vector3(0,1.09f,end.z+Mathf.Sqrt(Mathf.Max(.001f,Length*Length-end.x*end.x-dy*dy)));
+            frontPin.localPosition=start;
+            var direction=rearPin.position-frontPin.position;
+            link.position=frontPin.position;
+            link.rotation=Quaternion.LookRotation(direction,(car.up+rear.up).normalized);
+        }
+        private void LateUpdate()=>UpdateGeometry();
     }
 }
 #endif

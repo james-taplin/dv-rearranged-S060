@@ -13,9 +13,11 @@ public sealed class MeyerRearUnderframeAudit
     private readonly Transform root,rear;
     private readonly MeshFilter fixedFrame,unitFrame;
     private readonly MeshFilter[] floors;
+    private readonly MeshFilter link,housing,frontFork,rearFork;
+    private float maximumDrawgearTravel,maximumPinError;
     private float minimumFloorGap=float.PositiveInfinity;
     private int comparisons,poses;
-    public bool Removed=>fixedFrame==null&&unitFrame==null;
+    public bool Removed=>fixedFrame==null&&unitFrame==null&&link==null&&housing==null&&frontFork==null&&rearFork==null;
     public MeyerRearUnderframeAudit(Transform root,Transform rear)
     {
         this.root=root;this.rear=rear;
@@ -23,12 +25,27 @@ public sealed class MeyerRearUnderframeAudit
         unitFrame=rear.GetComponentsInChildren<MeshFilter>().Single(f=>f.name=="Meyer rear plate frame and spring saddles");
         if(!fixedFrame.transform.IsChildOf(root.Find("[Meyer R2 bodywork]"))||!unitFrame.transform.IsChildOf(rear))throw new InvalidOperationException("Separate body and swivelling frame ownership required.");
         floors=root.GetComponentsInChildren<MeshFilter>().Where(f=>f.sharedMesh!=null&&(f.name=="s060_body"||f.name=="Meyer R2 ironwork")).ToArray();
+        MeshFilter Part(string n)=>root.GetComponentsInChildren<MeshFilter>().Single(f=>f.name==n);
+        link=Part("Meyer heavy articulated drawbar");housing=Part("Meyer short drawgear housing");
+        frontFork=Part("Meyer loco drawgear pin");rearFork=Part("Meyer bogie drawgear pin");
     }
     public int ValidatePose(MeshFilter[] pipes)
     {
         poses++;int checks=0;
         bool Shown(MeshFilter f)=>f.sharedMesh!=null&&f.GetComponent<Renderer>()!=null&&f.GetComponent<Renderer>().enabled&&f.GetComponentsInParent<Transform>(true).All(t=>t.gameObject.activeSelf);
         var moving=rear.GetComponentsInChildren<MeshFilter>().Where(Shown).ToArray();
+        // Verify both real eyes stay concentric with their pins; the link is
+        // rigid, and only the front shank may slide in its body-mounted box.
+        float pinError=Mathf.Max(Vector3.Distance(link.transform.TransformPoint(Vector3.zero),frontFork.transform.position),Vector3.Distance(link.transform.TransformPoint(new Vector3(0,0,.675f)),rearFork.transform.position));
+        maximumPinError=Mathf.Max(maximumPinError,pinError);
+        maximumDrawgearTravel=Mathf.Max(maximumDrawgearTravel,Mathf.Abs(root.InverseTransformPoint(frontFork.transform.position).z+4.17f));
+        if(pinError>.0001f||maximumDrawgearTravel>.06f)throw new InvalidOperationException("Drawbar pin seating or short drawgear stroke exceeded.");checks+=2;
+        foreach(var part in new[]{link,housing,frontFork,rearFork})
+        {
+            foreach(var f in moving.Where(f=>f.name.Contains("driver ")||f.GetComponentsInParent<Transform>().Any(t=>t.name.StartsWith("[Meyer rods ")))){Clear(part,f);checks++;}
+            foreach(var pipe in pipes){Clear(part,pipe);checks++;}
+        }
+        foreach(var f in floors){Clear(link,f);checks++;}
         // New unit members intentionally join the old static frame and spring
         // mounts. Only wheels and animated rods are forbidden contacts there.
         foreach(var f in moving.Where(f=>f.name.Contains("driver ")||f.GetComponentsInParent<Transform>().Any(t=>t.name.StartsWith("[Meyer rods "))))
@@ -70,9 +87,15 @@ public sealed class MeyerRearUnderframeAudit
         var course = samples.ToArray();
         float top = course.Length==0 ? float.PositiveInfinity : course.Max(p=>p.y);
         bool low = course.Length!=0 && top < 1.55f && course.Min(p=>p.z)<-3.9f && course.Max(p=>p.z)>2f;
-        bool passed=left&&right&&plateLeft&&plateRight&&low;
+        // The bottom face isolates the plate/lips from upright hopper edging.
+        bool openPlate=!plateLeft&&!plateRight&&Vertices(plate).Where(p=>p.y>1.619f&&p.y<1.621f&&Mathf.Abs(p.x)>1f).Max(p=>p.z)<-4.379f;
+        bool locoMount=Joins(housing,new Vector3(0,1.08f,-3.95f),new Vector3(.60f,.32f,.36f));
+        bool unitMount=new SteamMeshContact.Shell(rearFork,root).Intersects(new SteamMeshContact.Shell(unitFrame,root));
+        bool owned=rearFork.transform.IsChildOf(rear)&&!frontFork.transform.IsChildOf(rear)&&!link.transform.IsChildOf(rear);
+        bool upperBridgeRemoved=!left&&!right&&Vertices(fixedFrame).Max(p=>p.z)<-4.379f;
+        bool passed=upperBridgeRemoved&&openPlate&&locoMount&&unitMount&&owned&&low;
         File.WriteAllText(Path.Combine(output,"meyer-repair-contract.json"),JsonUtility.ToJson(new RepairReport{
-            passed=passed,leftBearerJoinsNative=left,rightBearerJoinsNative=right,leftPlateJoinsNative=plateLeft,rightPlateJoinsNative=plateRight,
+            passed=passed,upperBridgeRemoved=upperBridgeRemoved,plateGapOpen=openPlate,locoDrawgearMounted=locoMount,bogieForkMounted=unitMount,separateDrawgearOwnership=owned,
             returnBelowRunningPlate=low,maximumLongCourseY=top,gameplayValidated=false},true));
         return passed;
     }
@@ -84,7 +107,7 @@ public sealed class MeyerRearUnderframeAudit
     public void Finish(string output)
     {
         if(float.IsInfinity(minimumFloorGap)||minimumFloorGap<.045f)throw new InvalidOperationException("Measured under-cab floor margin must exceed 45 mm; actual "+minimumFloorGap);
-        File.WriteAllText(Path.Combine(output,"rear-underframe-validation.json"),JsonUtility.ToJson(new Report{passed=true,poses=poses,triangleComparisons=comparisons,minimumFloorGapMetres=minimumFloorGap,collectorLoweredMetres=.04f,bodyUnionLoweredMetres=.12f,bodyAndUnitOwnership=true,gameScene=false},true));
+        File.WriteAllText(Path.Combine(output,"rear-underframe-validation.json"),JsonUtility.ToJson(new Report{passed=true,poses=poses,triangleComparisons=comparisons,minimumFloorGapMetres=minimumFloorGap,maximumDrawgearTravel=maximumDrawgearTravel,maximumPinError=maximumPinError,collectorLoweredMetres=.04f,bodyUnionLoweredMetres=.12f,bodyAndUnitOwnership=true,gameScene=false},true));
     }
     private Vector3[] Vertices(MeshFilter f)=>f.sharedMesh.vertices.Select(p=>root.InverseTransformPoint(f.transform.TransformPoint(p))).ToArray();
     private MeshFilter Outside(MeshFilter f,Bounds box)
@@ -128,7 +151,7 @@ public sealed class MeyerRearUnderframeAudit
         }
         return gap;
     }
-    [Serializable]private sealed class Report{public bool passed,bodyAndUnitOwnership,gameScene;public int poses,triangleComparisons;public float minimumFloorGapMetres,collectorLoweredMetres,bodyUnionLoweredMetres;}
-    [Serializable]private sealed class RepairReport{public bool passed,leftBearerJoinsNative,rightBearerJoinsNative,leftPlateJoinsNative,rightPlateJoinsNative,returnBelowRunningPlate,gameplayValidated;public float maximumLongCourseY;}
+    [Serializable]private sealed class Report{public bool passed,bodyAndUnitOwnership,gameScene;public int poses,triangleComparisons;public float minimumFloorGapMetres,maximumDrawgearTravel,maximumPinError,collectorLoweredMetres,bodyUnionLoweredMetres;}
+    [Serializable]private sealed class RepairReport{public bool passed,upperBridgeRemoved,plateGapOpen,locoDrawgearMounted,bogieForkMounted,separateDrawgearOwnership,returnBelowRunningPlate,gameplayValidated;public float maximumLongCourseY;}
 }
 #endif

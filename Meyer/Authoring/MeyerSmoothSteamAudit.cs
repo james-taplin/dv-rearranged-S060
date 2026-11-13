@@ -61,7 +61,9 @@ public static class MeyerSmoothSteamAudit
                     foreach (var renderer in front.Find("[Round cylinders " + side + "]").GetComponentsInChildren<Renderer>(true))
                         renderer.enabled = renderer.name == "Cylinder saddle";
                 equipment = (IDisposable)runtime.GetType("RearrangedS060.S060MeyerFrontEquipment", true).GetMethod("Bind", All, null, new[] { typeof(Transform), typeof(Transform) }, null).Invoke(null, new object[] { root.transform, root.transform });
-                bodywork = (IDisposable)runtime.GetType("RearrangedS060.S060MeyerBodywork", true).GetMethod("Build", All, null, new[] { typeof(Transform), typeof(Transform), typeof(Transform) }, null).Invoke(null, new object[] { root.transform, root.transform, rear });
+                bodywork = Environment.GetEnvironmentVariable("S060_DRAWGEAR_FIT_SOURCE")=="1"
+                    ? S060MeyerBodywork.Build(root.transform,root.transform,rear)
+                    : (IDisposable)runtime.GetType("RearrangedS060.S060MeyerBodywork", true).GetMethod("Build", All, null, new[] { typeof(Transform), typeof(Transform), typeof(Transform) }, null).Invoke(null, new object[] { root.transform, root.transform, rear });
             }
             // Removed proxy readers do not evaluate the donor Animator. Pose
             // both real clips explicitly before any gear contact or preview.
@@ -122,13 +124,13 @@ public static class MeyerSmoothSteamAudit
             var targets=root.GetComponentsInChildren<MeshFilter>(true).Where(f=>!pipes.Contains(f)&&f.sharedMesh!=null&&Shown(f)).ToArray();
             var underframe=new MeyerRearUnderframeAudit(root.transform,rear);
             bool repairs=underframe.RepairContract(lpBody,output);
-            if(Environment.GetEnvironmentVariable("S060_REPAIR_BASELINE")!="1")Check(repairs,"Continuous native frame/plate joints and low exhaust return; see meyer-repair-contract.json.");
+            if(Environment.GetEnvironmentVariable("S060_REPAIR_BASELINE")!="1")Check(repairs,"Upper bridge removed, open plate edge, pinned drawgear mounted to native frame and low exhaust return; see meyer-repair-contract.json.");
             if(fittingReturn==null&&Environment.GetEnvironmentVariable("S060_REPAIR_BASELINE")!="1")
             {
                 // All collision, walking and item layers use this same factory.
                 var collision=(Transform)bodywork.GetType().GetMethod("Group",All).Invoke(bodywork,new object[]{root.transform,"Repair plate collider QA",0,null});
                 var plateBox=collision.Find("Rear running plate").GetComponent<BoxCollider>();
-                Check(Mathf.Abs(plateBox.center.z+plateBox.size.z*.5f+3.92f)<.0001f,"Running plate collision reaches the repaired native frame joint.");
+                Check(Mathf.Abs(plateBox.center.z+plateBox.size.z*.5f+4.38f)<.0001f,"Running plate collision ends at the tank; no walkable bridge across the gap.");
                 Object.DestroyImmediate(collision.gameObject);
             }
             Check(Mathf.Abs((float)lp.GetType().GetField("HeaderY",All).GetRawConstantValue()-1.40f)<.00001f,"Collector lowered 40 mm; clears native chest covers.");
@@ -138,6 +140,9 @@ public static class MeyerSmoothSteamAudit
             File.WriteAllLines(Path.Combine(output,"rear-native-bounds.txt"), new[]{"rear frame car position: "+root.transform.InverseTransformPoint(rear.position).ToString("F5")}.Concat(rear.GetComponentsInChildren<MeshFilter>(true).Where(f=>f.sharedMesh!=null).Select(f=>f.name+"; shown="+Shown(f)+"; rear="+BoundsOf(f,rear)+"; car="+BoundsOf(f,root.transform))));
             Render(root,"rear-chassis-right",new Vector3(8,2.6f,-6.1f),new Vector3(0,1.35f,-6.1f),1.5f);
             Render(root,"rear-chassis-left",new Vector3(-8,2.6f,-6.1f),new Vector3(0,1.35f,-6.1f),1.5f);
+            Render(root,"drawgear-side",new Vector3(-5,1.15f,-4.45f),new Vector3(0,1.15f,-4.45f),.65f);
+            Render(root,"drawgear-low-quarter",new Vector3(-2,.38f,-3.25f),new Vector3(0,1.12f,-4.48f),.65f);
+            Render(root,"drawgear-underside",new Vector3(-.65f,-.4f,-4.60f),new Vector3(0,1.09f,-4.50f),.60f);
             Render(root,"smooth-steam-left",new Vector3(-13,4.3f,-2.2f),new Vector3(0,2.2f,-1.9f),4.5f);
             Render(root,"smooth-steam-right",new Vector3(13,4.3f,-2.2f),new Vector3(0,2.2f,-1.9f),4.5f);
             Render(root,"smooth-steam-roof",new Vector3(-8,7,-6),new Vector3(-.5f,2.8f,-2.0f),3.3f);
@@ -152,6 +157,7 @@ public static class MeyerSmoothSteamAudit
             {
                 front.parent.localPosition=frontHome+Vector3.up*(-heave*.02f);rear.parent.localPosition=rearHome+Vector3.up*(heave*.02f);
                 front.parent.localRotation=Quaternion.Euler(heave,fy,-heave);rear.parent.localRotation=Quaternion.Euler(-heave,ry,heave);update.Invoke(pipeOwner,null);fittingReturn?.UpdateGeometry();poses++;
+                bodywork.GetType().GetMethod("UpdateGeometry",All).Invoke(bodywork,null);
                 checks+=underframe.ValidatePose(pipes);
                 checks+=detailAudit.Pose(lpBody.Find("Rear articulated bend").GetComponent<MeshFilter>());
                 foreach(var low in new[]{lpBody,lpRear}.SelectMany(t=>t.GetComponentsInChildren<MeshFilter>()))
@@ -212,6 +218,8 @@ public static class MeyerSmoothSteamAudit
             front.parent.localPosition=frontHome;rear.parent.localPosition=rearHome;
             front.parent.localRotation=rear.parent.localRotation=Quaternion.identity;update.Invoke(pipeOwner,null);fittingReturn?.UpdateGeometry();
             rear.parent.localRotation=Quaternion.Euler(-1,6,1);rear.parent.localPosition=rearHome+Vector3.up*.02f;update.Invoke(pipeOwner,null);fittingReturn?.UpdateGeometry();
+            bodywork.GetType().GetMethod("UpdateGeometry",All).Invoke(bodywork,null);
+            Render(root,"drawgear-articulated",new Vector3(-2,.38f,-3.25f),new Vector3(0,1.12f,-4.48f),.65f);
             Render(root,"rear-chassis-articulated",new Vector3(7,3.6f,-3.7f),new Vector3(0,1.45f,-6.0f),1.7f);
             Render(root,"under-cab-return",new Vector3(5,1.7f,-3.8f),new Vector3(.55f,1.45f,-4.45f),1.3f);
             var live=(MeshRenderer)hp.GetType().GetField("materialSource",All).GetValue(hp);var originalMaterial=live.sharedMaterial;var changedMaterial=new Material(originalMaterial);native.Add(changedMaterial);
@@ -221,7 +229,7 @@ public static class MeyerSmoothSteamAudit
             for(int i=owners.Count-1;i>=0;i--)owners[i]?.Dispose();owners.Clear();detailAudit.CheckRestored();Check(underframe.Removed,"Added fixed and swivelling underframes removed on restoration.");Object.DestroyImmediate(root);root=null;
             foreach(var o in native)if(o!=null)Object.DestroyImmediate(o);native.Clear();bundle.Unload(true);bundle=null;
             typeof(InwardPipeRuntimeAudit).GetMethod("Validate",All).Invoke(null,new object[]{runtime,Environment.GetEnvironmentVariable("S060_DOCKSIDE_AUDIT_BUNDLE"),false});
-            File.WriteAllText(Path.Combine(output,"smooth-steam-validation.json"),JsonUtility.ToJson(new Report{passed=true,checks=checks,poses=poses,runtimeSha256=Hash(Environment.GetEnvironmentVariable("S060_EXHAUST_AUDIT_RUNTIME")),singleRearTrunk=true,sourceRoutePreview=fittingReturn!=null,inwardMeyerConnected=true,docksideLegacyUnchanged=true,cabEntryClear=true,liveMaterialsAndCleanup=true,noPipeBodyContacts=true,hpDiameter=.170f,frontValveEmbed=originalCoupling.frontEmbed,rearValveEmbed=originalCoupling.rearEmbed},true));
+            File.WriteAllText(Path.Combine(output,"smooth-steam-validation.json"),JsonUtility.ToJson(new Report{passed=true,checks=checks,poses=poses,runtimeSha256=Hash(Environment.GetEnvironmentVariable("S060_EXHAUST_AUDIT_RUNTIME")),singleRearTrunk=true,sourceRoutePreview=fittingReturn!=null||Environment.GetEnvironmentVariable("S060_DRAWGEAR_FIT_SOURCE")=="1",inwardMeyerConnected=true,docksideLegacyUnchanged=true,cabEntryClear=true,liveMaterialsAndCleanup=true,noPipeBodyContacts=true,hpDiameter=.170f,frontValveEmbed=originalCoupling.frontEmbed,rearValveEmbed=originalCoupling.rearEmbed},true));
             EditorApplication.Exit(0);
         }
         catch(Exception ex){File.WriteAllText(Path.Combine(output,"error.txt"),ex.ToString());Debug.LogException(ex);EditorApplication.Exit(1);}

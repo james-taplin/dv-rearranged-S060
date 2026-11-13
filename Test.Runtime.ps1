@@ -13,6 +13,7 @@ foreach ($source in @('MeyerSmoothSteamAudit.cs','MeyerRearUnderframeAudit.cs','
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot "Meyer\Authoring\$source") -Destination (Join-Path $project 'Assets\Editor') -Force
 }
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'RearrangedS060\S060MeyerCollision.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'RearrangedS060\S060MeyerBodywork.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'RearrangedS060\S060MeyerLights.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Meyer\Authoring\MeyerPlan.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
 foreach ($helper in @('S060RodMesh.cs','S060MeyerLayout.cs','S060MeyerFrontMotion.cs','S060MeyerGearMounts.cs','S060MeyerFrontEquipment.cs','S060MeyerInwardPipes.cs','S060MeyerClearance.cs','S060SteamPipes.cs','S060SteamSleeve.cs','S060BodyPipes.cs','S060MeyerExhaustPipe.cs')) { Copy-Item -LiteralPath (Join-Path $PSScriptRoot ('RearrangedS060\'+$helper)) -Destination (Join-Path $project 'Assets\Editor') -Force }

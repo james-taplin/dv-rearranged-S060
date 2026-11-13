@@ -1,5 +1,20 @@
 # Rearranged S060 — handover
 
+## Current 0.3.1 correction — heavy link and pin, STAGED ONLY
+
+Read [MEYER-LINK-PIN-0.3.1.md](MEYER-LINK-PIN-0.3.1.md) first. James rejected
+the footplate bridge: there is no foot access there. Cut the plate, lips and
+projecting upper bearers back to the tank edge. A heavy centre drawbar with
+retained vertical pins, fork ends and short sliding drawgear underneath is the
+visible connection. This supersedes the continuous plate/bearer acceptance
+below. Do not revive that bridge as a structural member.
+
+Work is isolated at B:/GitHub repo/rearranged-s060-031-link-pin-20261113/source.
+The previous repair is now installed by a separate authorised session; this
+new revision remains staged only. Keep original 0.3.1 metadata and bundles.
+Do not edit the installed copy, canonical prototype checkout or Documents 0.4.
+Final evidence: build/link-pin-0.3.1/validation.json. DV testing belongs to James.
+
 ## 0.3.1 Meyer repairs — 13 November 2026, STAGED ONLY
 
 James authorised the three reported Meyer repairs, unchanged 0.3.1 metadata,

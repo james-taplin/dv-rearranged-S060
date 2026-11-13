@@ -1,5 +1,11 @@
 # Meyer repairs on preserved 0.3.1 — 13 November 2026
 
+**Superseded connection design:** James subsequently rejected the plate bridge
+and its projecting upper bearers. See [MEYER-LINK-PIN-0.3.1.md](MEYER-LINK-PIN-0.3.1.md)
+for the staged link-and-pin revision and corrected acceptance. The prior repair
+was installed separately after this historical note; that does not authorise
+installing the new revision. The coupling and low-return repairs below remain.
+
 James authorised all three reported repairs, offline build/validation and staging
 only. Keep version 0.3.1 and the original metadata. Do not install, launch DV,
 or modify the installed Car Changer prototype or Documents 0.4 workspace.
