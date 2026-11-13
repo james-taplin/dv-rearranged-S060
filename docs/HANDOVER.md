@@ -1,5 +1,76 @@
 # Rearranged S060 — handover
 
+## 0.3.1 Meyer repairs — 13 November 2026, STAGED ONLY
+
+James authorised the three reported Meyer repairs, unchanged 0.3.1 metadata,
+offline build/validation and staging only. Source is isolated at
+B:/GitHub repo/rearranged-s060-031-repairs-20261113/source, exported from the
+preserved 0.3.1 commit c982c8824ad74ca21f503abeb525317b33ce6f1c. The canonical
+checkout's installed Car Changer prototype work and the Documents 0.4 work
+were not edited. No game launch, real installation, push or publication.
+All 51 installed prototype files match the starting snapshot, with no additions.
+
+Repairs: update/restore the native chain interaction's cached local position
+with the moved rear visual; extend both fixed bearers and the running plate
+(including its collision/walking/item copies) into the native cab frame at
+Z -3.92; replace the roof return with a 190 mm low LP return, a local dip below
+the moving HP admission bend, native plate hangers and a short smokebox rise.
+Original supports, steam circuit, oil/saves, capacity and independent drive
+remain. No new hook, DLL, dependency, save identity or bundle export.
+
+Final DLL SHA256:
+4F09184300863A26018BE77317A452575A83789F0F7A3FDB344CC9793E212EDA.
+Stage: build/nexus-0.3.1-single/RearrangedS060-0.3.1-UMM.zip.
+ZIP SHA256:
+8AAB0ED8F49ACA5A5027C976C37EAE0E015C1A2FD61DFCC05FFD80CC1862A36B.
+Info.json is byte-identical to the original combined 0.3.1 ZIP:
+61F1A136148BAF8E18B3DE7339EC0D5943F7B13F5597435989D16645DA943DD4.
+All three donor/model bundles retain the original release hashes.
+
+Validation: clean final runtime build, 0 warnings/errors. Sixteen exact-DLL
+native suites pass 23,393 checks; focused coupling 96 and pipe/frame 3,666,
+including all 27 existing articulation poses and actual frame/plate joins.
+Original DLL reproduces the native visibility-enable reset; the repaired DLL
+retains the hook through repeated native enable-entry calls and restores stock.
+Physical plate factory reaches the same repaired front datum. HP/LP pipe
+separation, original radii, cab clearance, native livery and disposal pass.
+The private native ECS fixture passes 101 checks against the final DLL.
+
+Managed/native engine and package gates: 2,419 engine-bank, 201 functional,
+89 compound, 1,151 geometry/length/pipe, 628 oil migration, 162 diagnostic budget,
+39 conversion-boundary checks across 15 scenarios, and the existing zero-byte
+100,000-call axle cache check pass. Packaged engine smoke checks pass 18 Meyer
+and 17 Dockside assertions. Native UMM extraction/update/uninstall/migration
+57, extracted-bundle reopen 38, isolated combined installer 18, and legacy
+installer 24 assertions pass. These are offline fixtures, not DV driving.
+Semantic IL/fields of 356 existing types / 1,682 methods outside the three
+repair owners match original 7A9AED64 exactly; 84 other production source files
+match the preserved source. Unchanged simulation/save/calibration code is established by the independent
+source and IL proofs; the plate collider extension is an intentional repair.
+
+Evidence is under build/repair-0.3.1. The final native aggregate retains eleven
+passing reports from runtime-audits-20261113-034027 and five from 034534, all
+bound to the same final DLL. The first collision run lacked an editable donor;
+its fixture now reads the exact released Meyer bundle, and the affected suite
+passes without a production rebuild. Original failure evidence remains.
+
+Fresh-project helpers were completed in Test.Runtime; private source-fitting
+previews are labelled and rejected by Build.Radio. Native intersection tests
+retain exact predicates/tolerances, bound selected faces instead of unused
+vertices and reject impossible pairs earlier. Their original-release baseline
+passes 3,394 checks while failing the five new repair assertions as expected.
+The rear-wheel-fit script now fingerprints raw source bytes, preventing CRLF/LF
+false mismatches; its fresh 27,864-pose result retains the original 21.5446 mm
+beam clearance. Two production builds were made: initial integrated repair and
+final geometry correction. Fixture/report/doc corrections did not rebuild it.
+
+Detailed decisions, test limits and James's manual acceptance sequence are in
+docs/MEYER-REPAIRS-0.3.1.md. Source preservation ref:
+refs/heads/codex/meyer-repairs-0.3.1-20261113 (see source-checkpoint.json).
+James owns actual teleport/LOD, coupling controls, curves, save/reload and stock
+restoration acceptance after a separately authorised install. No QA game profile
+or gameplay session was created; this is awaiting James's testing.
+
 ## 0.3.1 independent powered-group wheelslip — 12 November 2026, INSTALLED
 
 James authorised porting independent wheelslip, Dockside first then Meyer,

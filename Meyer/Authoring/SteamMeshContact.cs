@@ -22,21 +22,34 @@ public static class SteamMeshContact
             triangles = Enumerable.Range(0, indices.Length / 3)
                 .Select(i => new Triangle(vertices[indices[3 * i]], vertices[indices[3 * i + 1]], vertices[indices[3 * i + 2]]))
                 .Where(t => !region.HasValue || t.Bounds.Intersects(region.Value)).ToArray();
-            var bounds = new Bounds(vertices[0], Vector3.zero); foreach (var point in vertices) bounds.Encapsulate(point); Bounds = bounds;
+            // Split native meshes can retain unused source vertices. Bounds
+            // must describe the selected faces, including their existing pad.
+            var bounds = triangles.Length == 0 ? new Bounds() : triangles[0].Bounds;
+            foreach (var triangle in triangles) bounds.Encapsulate(triangle.Bounds);
+            Bounds = bounds;
         }
         public bool Intersects(Shell other)
         { return Intersects(other, out _); }
         public bool Intersects(Shell other, out string contact)
         {
             contact = null;
-            if (!Bounds.Intersects(other.Bounds)) return false;
-            for (int i = 0; i < triangles.Length; i++) for (int j = 0; j < other.triangles.Length; j++)
+            if (triangles.Length == 0 || other.triangles.Length == 0 || !Bounds.Intersects(other.Bounds)) return false;
+            // A triangle outside the complete target bounds cannot touch any
+            // target face. Include the existing per-triangle bounds padding;
+            // this only rejects impossible pairs before the exact tests below.
+            var targetRegion = other.Bounds; targetRegion.Expand(.000004f);
+            for (int i = 0; i < triangles.Length; i++)
             {
-                var first = triangles[i]; var second = other.triangles[j];
-                if (!first.Bounds.Intersects(second.Bounds) || !first.Intersects(second)) continue;
-                contact = "Body-space triangle contact: " + Name + "[" + i + "] " + first.Describe() +
-                    " / " + other.Name + "[" + j + "] " + second.Describe();
-                return true;
+                var first = triangles[i];
+                if (!first.Bounds.Intersects(targetRegion)) continue;
+                for (int j = 0; j < other.triangles.Length; j++)
+                {
+                    var second = other.triangles[j];
+                    if (!first.Bounds.Intersects(second.Bounds) || !first.Intersects(second)) continue;
+                    contact = "Body-space triangle contact: " + Name + "[" + i + "] " + first.Describe() +
+                        " / " + other.Name + "[" + j + "] " + second.Describe();
+                    return true;
+                }
             }
             return false;
         }

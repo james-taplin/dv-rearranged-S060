@@ -23,6 +23,7 @@ public static class MeyerSmoothSteamAudit
         var native=new List<Object>();var owners=new List<IDisposable>();GameObject root=null;AssetBundle bundle=null;
         try
         {
+            checks+=SteamMeshContact.ValidateAlgorithm();
             var runtime=Assembly.LoadFrom(Environment.GetEnvironmentVariable("S060_EXHAUST_AUDIT_RUNTIME"));
             bundle=AssetBundle.LoadFromFile(Environment.GetEnvironmentVariable("S060_MEYER_AUDIT_BUNDLE"));
             var donor=bundle.LoadAllAssets<CustomCarPack>().Single().Cars.SelectMany(c=>c.liveries).Select(l=>l.prefab).First(g=>g!=null&&g.GetComponentsInChildren<Transform>(true).Count(t=>t.name=="bogie_car")==2);
@@ -85,10 +86,20 @@ public static class MeyerSmoothSteamAudit
             var pipeOwner=(IDisposable)pipeType.GetMethod("Bind",All).Invoke(null,new object[]{root.transform,front,rear,root.transform});owners.Add(pipeOwner);
             var update=pipeType.GetMethod("UpdateGeometry",All);
             var hp=pipeType.GetProperty("InwardPipes",All).GetValue(pipeOwner,null);var lp=pipeType.GetProperty("ExhaustReturn",All).GetValue(pipeOwner,null);
+            // Fitting only: iterate the existing pipe authoring source without
+            // rebuilding production. Final validation leaves this unset and
+            // exercises the exact candidate DLL throughout.
+            S060MeyerExhaustPipe fittingReturn=null;
+            if(Environment.GetEnvironmentVariable("S060_REPAIR_FIT_SOURCE")=="1")
+            {
+                ((IDisposable)lp).Dispose();
+                fittingReturn=S060MeyerExhaustPipe.Bind(root.transform,rear,root.transform);
+                lp=fittingReturn;owners.Add(fittingReturn);
+            }
             Transform Group(object o,string n)=>(Transform)o.GetType().GetProperty(n,All).GetValue(o,null);
             var hpBody=Group(hp,"BodyRoot");var hpFront=Group(hp,"FrontRoot");var lpBody=Group(lp,"BodyRoot");var lpRear=Group(lp,"RearRoot");
             var pipes=new[]{hpBody,hpFront,lpBody,lpRear}.SelectMany(t=>t.GetComponentsInChildren<MeshFilter>()).ToArray();
-            Check(pipes.Count(f=>f.name=="Single cab-roof steam trunk")==1,"Exactly one visible long rear trunk.");
+            Check(pipes.Count(f=>f.name.StartsWith("Single "))==1,"Exactly one visible long rear trunk.");
             Check(pipes.Count(f=>f.name.StartsWith("HP smokebox feed "))==2,"Two HP feeds.");
             foreach(var frame in new[]{front,rear})foreach(var group in frame.Cast<Transform>().Where(t=>t.name.StartsWith("[S060 manifold ")||t.name.StartsWith("[S060 transfer pipe ")))
                 Check(group.GetComponentsInChildren<Renderer>(true).All(r=>!r.enabled),"All old Meyer side pipes and manifolds retired.");
@@ -104,10 +115,22 @@ public static class MeyerSmoothSteamAudit
             foreach(var t in lpRear.Cast<Transform>().Where(t=>t.name.StartsWith("[LP exhaust takeoff ")))
                 ports.Add(new Bounds(root.transform.InverseTransformPoint(t.position),new Vector3(.22f,.22f,.22f)));
             var inletMount=BoundsOf(lpBody.Find("Smokebox inlet flange").GetComponent<MeshFilter>(),root.transform);inletMount.Expand(.012f);ports.Add(inletMount);
+            foreach(var seat in lpBody.Cast<Transform>().Where(t=>t.name.StartsWith("[Frame hanger seat ")))
+                ports.Add(new Bounds(root.transform.InverseTransformPoint(seat.position),new Vector3(.10f,.06f,.06f)));
             var collisionPipes=pipes.Where(f=>!f.name.StartsWith("Roof saddle ")&&!f.name.StartsWith("Roof strap ")).ToArray();
             bool Shown(MeshFilter f)=>f.GetComponent<Renderer>()!=null&&f.GetComponent<Renderer>().enabled&&f.GetComponentsInParent<Transform>(true).Where(t=>t!=root.transform).All(t=>t.gameObject.activeSelf);
             var targets=root.GetComponentsInChildren<MeshFilter>(true).Where(f=>!pipes.Contains(f)&&f.sharedMesh!=null&&Shown(f)).ToArray();
             var underframe=new MeyerRearUnderframeAudit(root.transform,rear);
+            bool repairs=underframe.RepairContract(lpBody,output);
+            if(Environment.GetEnvironmentVariable("S060_REPAIR_BASELINE")!="1")Check(repairs,"Continuous native frame/plate joints and low exhaust return; see meyer-repair-contract.json.");
+            if(fittingReturn==null&&Environment.GetEnvironmentVariable("S060_REPAIR_BASELINE")!="1")
+            {
+                // All collision, walking and item layers use this same factory.
+                var collision=(Transform)bodywork.GetType().GetMethod("Group",All).Invoke(bodywork,new object[]{root.transform,"Repair plate collider QA",0,null});
+                var plateBox=collision.Find("Rear running plate").GetComponent<BoxCollider>();
+                Check(Mathf.Abs(plateBox.center.z+plateBox.size.z*.5f+3.92f)<.0001f,"Running plate collision reaches the repaired native frame joint.");
+                Object.DestroyImmediate(collision.gameObject);
+            }
             Check(Mathf.Abs((float)lp.GetType().GetField("HeaderY",All).GetRawConstantValue()-1.40f)<.00001f,"Collector lowered 40 mm; clears native chest covers.");
             Check(Mathf.Abs(((Vector3)lp.GetType().GetField("BodyBallPosition",All).GetValue(null)).y-1.32f)<.00001f,"Under-cab flexible return dropped 120 mm at body union.");
             var entries=CreateEntries(root.transform,native);
@@ -128,9 +151,17 @@ public static class MeyerSmoothSteamAudit
             foreach(float fy in new[]{-6f,0,6f})foreach(float ry in new[]{-6f,0,6f})foreach(int heave in new[]{-1,0,1})
             {
                 front.parent.localPosition=frontHome+Vector3.up*(-heave*.02f);rear.parent.localPosition=rearHome+Vector3.up*(heave*.02f);
-                front.parent.localRotation=Quaternion.Euler(heave,fy,-heave);rear.parent.localRotation=Quaternion.Euler(-heave,ry,heave);update.Invoke(pipeOwner,null);poses++;
+                front.parent.localRotation=Quaternion.Euler(heave,fy,-heave);rear.parent.localRotation=Quaternion.Euler(-heave,ry,heave);update.Invoke(pipeOwner,null);fittingReturn?.UpdateGeometry();poses++;
                 checks+=underframe.ValidatePose(pipes);
                 checks+=detailAudit.Pose(lpBody.Find("Rear articulated bend").GetComponent<MeshFilter>());
+                foreach(var low in new[]{lpBody,lpRear}.SelectMany(t=>t.GetComponentsInChildren<MeshFilter>()))
+                    foreach(var high in new[]{hpBody,hpFront}.SelectMany(t=>t.GetComponentsInChildren<MeshFilter>()))
+                    {
+                        var region=BoundsOf(low,root.transform);
+                        if(!region.Intersects(BoundsOf(high,root.transform)))continue;
+                        Check(!new SteamMeshContact.Shell(low,root.transform,region).Intersects(new SteamMeshContact.Shell(high,root.transform,region),out var pipeHit),
+                            "Separate HP/LP pipe clearance: "+pipeHit);
+                    }
                 // Moving ports follow the castings, not their straight-track positions.
                 for(int j=2;j<4;j++){int side=j==2?-1:1;var t=(Transform)hp.GetType().GetMethod("FrontAdmission",All).Invoke(hp,new object[]{side});var box=ports[j];box.center=root.transform.InverseTransformPoint(t.position);ports[j]=box;}
                 int rearPort=4;foreach(var t in lpRear.Cast<Transform>().Where(t=>t.name.StartsWith("[LP exhaust takeoff "))){var box=ports[rearPort];box.center=root.transform.InverseTransformPoint(t.position);ports[rearPort++]=box;}
@@ -143,7 +174,19 @@ public static class MeyerSmoothSteamAudit
                         if(poses>1&&!pipe.name.Contains("articulated bend")&&!pipe.transform.IsChildOf(front)&&!pipe.transform.IsChildOf(rear)&&!target.transform.IsChildOf(front)&&!target.transform.IsChildOf(rear))continue;
                         var targetBounds=BoundsOf(target,root.transform);if(!targetBounds.Intersects(region))continue;
                         var carved=OutsidePorts(target,root.transform,region);if(carved==null)continue;
-                        try{if(shell.Intersects(new SteamMeshContact.Shell(carved,root.transform,region),out var hit)&&contacts.Count<30)contacts.Add("yaw "+fy+"/"+ry+",heave "+heave+"; "+hit);}finally{Object.DestroyImmediate(carved.sharedMesh);Object.DestroyImmediate(carved.gameObject);}
+                        try
+                        {
+                            if(shell.Intersects(new SteamMeshContact.Shell(carved,root.transform,region),out var hit)&&contacts.Count<30)
+                            {
+                                contacts.Add("yaw "+fy+"/"+ry+",heave "+heave+"; "+hit);
+                                if(fittingReturn!=null)
+                                {
+                                    File.WriteAllLines(Path.Combine(output,"contacts.txt"),contacts);
+                                    throw new InvalidOperationException("Source pipe fitting contact; see contacts.txt.");
+                                }
+                            }
+                        }
+                        finally{Object.DestroyImmediate(carved.sharedMesh);Object.DestroyImmediate(carved.gameObject);}
                     }
                     Check(pipe.sharedMesh.vertices.All(p=>S060PipePose.Finite(p)),"Finite pipe mesh.");
                 }
@@ -167,18 +210,18 @@ public static class MeyerSmoothSteamAudit
             detailAudit.Finish(output);
             File.WriteAllLines(Path.Combine(output,"contacts.txt"),contacts);Check(contacts.Count==0,"Pipe/body contact; see contacts.txt.");
             front.parent.localPosition=frontHome;rear.parent.localPosition=rearHome;
-            front.parent.localRotation=rear.parent.localRotation=Quaternion.identity;update.Invoke(pipeOwner,null);
-            rear.parent.localRotation=Quaternion.Euler(-1,6,1);rear.parent.localPosition=rearHome+Vector3.up*.02f;update.Invoke(pipeOwner,null);
+            front.parent.localRotation=rear.parent.localRotation=Quaternion.identity;update.Invoke(pipeOwner,null);fittingReturn?.UpdateGeometry();
+            rear.parent.localRotation=Quaternion.Euler(-1,6,1);rear.parent.localPosition=rearHome+Vector3.up*.02f;update.Invoke(pipeOwner,null);fittingReturn?.UpdateGeometry();
             Render(root,"rear-chassis-articulated",new Vector3(7,3.6f,-3.7f),new Vector3(0,1.45f,-6.0f),1.7f);
             Render(root,"under-cab-return",new Vector3(5,1.7f,-3.8f),new Vector3(.55f,1.45f,-4.45f),1.3f);
             var live=(MeshRenderer)hp.GetType().GetField("materialSource",All).GetValue(hp);var originalMaterial=live.sharedMaterial;var changedMaterial=new Material(originalMaterial);native.Add(changedMaterial);
-            live.sharedMaterial=changedMaterial;update.Invoke(pipeOwner,null);Check(pipes.All(f=>f.GetComponent<MeshRenderer>().sharedMaterial==changedMaterial),"Every pipe follows the current native livery material.");
-            live.sharedMaterial=originalMaterial;update.Invoke(pipeOwner,null);
+            live.sharedMaterial=changedMaterial;update.Invoke(pipeOwner,null);fittingReturn?.UpdateGeometry();Check(pipes.All(f=>f.GetComponent<MeshRenderer>().sharedMaterial==changedMaterial),"Every pipe follows the current native livery material.");
+            live.sharedMaterial=originalMaterial;update.Invoke(pipeOwner,null);fittingReturn?.UpdateGeometry();
             pipeOwner.Dispose();owners.Remove(pipeOwner);foreach(var h in rendererHomes)Check(h.Key.enabled==h.Value,"Original renderer visibility restored.");foreach(var h in source)Check(h.Key.sharedMesh==h.Value,"Exact original mesh identity restored.");
             for(int i=owners.Count-1;i>=0;i--)owners[i]?.Dispose();owners.Clear();detailAudit.CheckRestored();Check(underframe.Removed,"Added fixed and swivelling underframes removed on restoration.");Object.DestroyImmediate(root);root=null;
             foreach(var o in native)if(o!=null)Object.DestroyImmediate(o);native.Clear();bundle.Unload(true);bundle=null;
             typeof(InwardPipeRuntimeAudit).GetMethod("Validate",All).Invoke(null,new object[]{runtime,Environment.GetEnvironmentVariable("S060_DOCKSIDE_AUDIT_BUNDLE"),false});
-            File.WriteAllText(Path.Combine(output,"smooth-steam-validation.json"),JsonUtility.ToJson(new Report{passed=true,checks=checks,poses=poses,runtimeSha256=Hash(Environment.GetEnvironmentVariable("S060_EXHAUST_AUDIT_RUNTIME")),singleRearTrunk=true,inwardMeyerConnected=true,docksideLegacyUnchanged=true,cabEntryClear=true,liveMaterialsAndCleanup=true,noPipeBodyContacts=true,hpDiameter=.170f,frontValveEmbed=originalCoupling.frontEmbed,rearValveEmbed=originalCoupling.rearEmbed},true));
+            File.WriteAllText(Path.Combine(output,"smooth-steam-validation.json"),JsonUtility.ToJson(new Report{passed=true,checks=checks,poses=poses,runtimeSha256=Hash(Environment.GetEnvironmentVariable("S060_EXHAUST_AUDIT_RUNTIME")),singleRearTrunk=true,sourceRoutePreview=fittingReturn!=null,inwardMeyerConnected=true,docksideLegacyUnchanged=true,cabEntryClear=true,liveMaterialsAndCleanup=true,noPipeBodyContacts=true,hpDiameter=.170f,frontValveEmbed=originalCoupling.frontEmbed,rearValveEmbed=originalCoupling.rearEmbed},true));
             EditorApplication.Exit(0);
         }
         catch(Exception ex){File.WriteAllText(Path.Combine(output,"error.txt"),ex.ToString());Debug.LogException(ex);EditorApplication.Exit(1);}
@@ -238,6 +281,6 @@ public static class MeyerSmoothSteamAudit
     {var type=typeof(ConventionalNativeAudit);type.GetField("output",All).SetValue(null,output);var fill=new GameObject("QA camera fill");fill.transform.SetParent(root.transform,false);fill.transform.rotation=Quaternion.LookRotation(target-eye);var light=fill.AddComponent<Light>();light.type=LightType.Directional;light.intensity=.65f;try{type.GetMethod("RenderWide",All,null,new[]{typeof(GameObject),typeof(string),typeof(Vector3),typeof(Vector3),typeof(float)},null).Invoke(null,new object[]{root,name,eye,target,size});}finally{Object.DestroyImmediate(fill);}}
     private static void Check(bool ok,string message){if(!ok)throw new InvalidOperationException(message);checks++;}
     private static string Hash(string path){using(var sha=SHA256.Create())using(var s=File.OpenRead(path))return BitConverter.ToString(sha.ComputeHash(s)).Replace("-","");}
-    [Serializable]private sealed class Report{public bool passed,singleRearTrunk,inwardMeyerConnected,docksideLegacyUnchanged,cabEntryClear,liveMaterialsAndCleanup,noPipeBodyContacts;public int checks,poses;public float hpDiameter,frontValveEmbed,rearValveEmbed;public string runtimeSha256;public bool gameScene=false;}
+    [Serializable]private sealed class Report{public bool passed,singleRearTrunk,sourceRoutePreview,inwardMeyerConnected,docksideLegacyUnchanged,cabEntryClear,liveMaterialsAndCleanup,noPipeBodyContacts;public int checks,poses;public float hpDiameter,frontValveEmbed,rearValveEmbed;public string runtimeSha256;public bool gameScene=false;}
 }
 #endif

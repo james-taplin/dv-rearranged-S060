@@ -11,8 +11,9 @@ namespace RearrangedS060
     internal sealed class S060MeyerExhaustPipe : IDisposable
     {
         // Keep the unit collector and body-side bend below the cab floor even
-        // when suspension lifts the rear unit. The roof course is unchanged.
-        internal const float Radius = .095f, HeaderY = 1.40f, SleeveLength = 1.18f;
+        // when suspension lifts the rear unit. The fixed return runs low along
+        // the right frame and rises only beside the smokebox.
+        internal const float Radius = .095f, HeaderY = 1.40f, SleeveLength = 1.18f, CourseX = 1.82f, CourseY = 1.32f;
         internal static readonly Vector3 RearBallPosition = new Vector3(1.10f, HeaderY, 1.70f);
         internal static readonly Vector3 BodyBallPosition = new Vector3(1.60f, 1.32f, -4.95f);
         // Exact B99 smokebox sheet intersection and outward face normal.
@@ -65,22 +66,29 @@ namespace RearrangedS060
                 owner.Render(owner.RearRoot, "LP collector", OpenEnds(SmoothPathMesh(new[] { new Vector3(-1.10f, HeaderY, 1.70f), RearBallPosition }, Radius),false,true));
                 owner.RearJoint = owner.Marker(owner.RearRoot, "[LP unit union]", RearBallPosition);
                 owner.BodyJoint = owner.Marker(owner.BodyRoot, "[LP body union]", BodyBallPosition);
-                owner.Render(owner.BodyRoot, "Single cab-roof steam trunk", OpenEnds(SmoothPathMesh(new[] {
-                    BodyBallPosition, new Vector3(1.60f,1.32f,-5.45f),new Vector3(1.60f,3.78f,-5.45f),
-                    new Vector3(.85f,4.03f,-4.15f),new Vector3(.85f,4.03f,-.70f),
-                    new Vector3(1.12f,3.08f,-.12f),new Vector3(1.12f,3.08f,1.85f),
-                    SmokeboxSurface+SmokeboxNormal*.38f,SmokeboxPosition },Radius,.38f),true,false));
+                owner.Render(owner.BodyRoot, "Single underframe steam trunk", OpenEnds(SmoothPathMesh(new[] {
+                    BodyBallPosition, BodyBallPosition+Vector3.back*.40f,
+                    new Vector3(CourseX,CourseY,-5.35f),
+                    // Pass below the front HP unit's moving admission bend.
+                    new Vector3(CourseX,CourseY,-2.55f),new Vector3(CourseX,.90f,-2.05f),
+                    new Vector3(CourseX,.90f,-.35f),new Vector3(CourseX,CourseY,.05f),
+                    new Vector3(CourseX,CourseY,2.70f), new Vector3(CourseX,2.35f,3.35f),
+                    SmokeboxSurface+SmokeboxNormal*.38f,SmokeboxPosition },Radius,.30f),true,false));
                 owner.SmokeboxJoint = owner.Marker(owner.BodyRoot, "[LP smokebox socket]", SmokeboxPosition);
                 owner.Render(owner.BodyRoot, "Smokebox inlet flange", SmoothPathMesh(new[] { SmokeboxSurface-SmokeboxNormal*.02f, SmokeboxPosition }, .125f));
-                // Two restrained straps meet the measured native roof, rather
-                // than hanging a pipe from guessed roof coordinates.
-                foreach (float z in new[] { -3.25f, -2.05f })
+                foreach (var mount in new[] { new Vector2(1.28f,.50f), new Vector2(1.28f,1.85f) })
                 {
-                    float roof = RoofHeight(body, nativeShell, .85f, z);
-                    owner.Render(owner.BodyRoot, "Roof saddle " + z, SmoothPathMesh(new[] {
-                        new Vector3(.85f, roof, z), new Vector3(.85f, 4.03f - Radius, z) }, .018f));
-                    owner.Render(owner.BodyRoot, "Roof strap " + z, SmoothPathMesh(new[] {
-                        new Vector3(.85f, 4.03f, z - .018f), new Vector3(.85f, 4.03f, z + .018f) }, Radius + .009f));
+                    // Reuse the native running plate as the hanger seat. Keep
+                    // the span above the two existing HP feeds, with the drop
+                    // outside them; the return retains its 190 mm diameter.
+                    float z=mount.y;
+                    float plate = RunningPlateHeight(body, nativeShell, mount.x, z);
+                    var seat = new Vector3(mount.x, plate - .02f, z);
+                    owner.Marker(owner.BodyRoot, "[Frame hanger seat " + z + "]", seat);
+                    owner.Render(owner.BodyRoot, "Frame hanger " + z, SmoothPathMesh(new[] {
+                        seat, new Vector3(CourseX, seat.y, z), new Vector3(CourseX, CourseY+Radius+.009f, z) }, .018f, .08f));
+                    owner.Render(owner.BodyRoot, "Frame pipe strap " + z, SmoothPathMesh(new[] {
+                        new Vector3(CourseX,CourseY,z-.018f), new Vector3(CourseX,CourseY,z+.018f) }, Radius+.009f));
                 }
                 owner.connection = new Bend(Radius);
                 owner.connection.Part = owner.Render(owner.BodyRoot, "Rear articulated bend", owner.connection.Mesh);
@@ -100,10 +108,10 @@ namespace RearrangedS060
             connection.Move(BodyRoot.InverseTransformPoint(RearJoint.position), BodyBallPosition,
                 BodyRoot.InverseTransformDirection(RearRoot.TransformDirection(Vector3.right)), Vector3.back);
         }
-        private static float RoofHeight(Transform body, Transform shell, float x, float z)
+        private static float RunningPlateHeight(Transform body, Transform shell, float x, float z)
         {
             float top = float.NegativeInfinity;
-            foreach (var f in shell.GetComponentsInChildren<MeshFilter>(true).Where(f => f.name == "s060_body" && f.sharedMesh != null && f.sharedMesh.isReadable))
+            foreach (var f in shell.GetComponentsInChildren<MeshFilter>(true).Where(f => (f.name == "s060_body" || f.name == "s060_tank_floor") && f.sharedMesh != null && f.sharedMesh.isReadable))
             {
                 var v = f.sharedMesh.vertices.Select(p => body.InverseTransformPoint(f.transform.TransformPoint(p))).ToArray(); var t = f.sharedMesh.triangles;
                 for (int i = 0; i < t.Length; i += 3)
@@ -113,10 +121,10 @@ namespace RearrangedS060
                     float u = ((b.z-c.z)*(x-c.x)+(c.x-b.x)*(z-c.z))/d;
                     float w = ((c.z-a.z)*(x-c.x)+(a.x-c.x)*(z-c.z))/d;
                     if (u < 0 || w < 0 || u+w > 1) continue;
-                    float y = u*a.y+w*b.y+(1-u-w)*c.y; if (y > 3.3f && y < 4.1f) top = Mathf.Max(top,y);
+                    float y = u*a.y+w*b.y+(1-u-w)*c.y; if (y > 1.45f && y < 1.70f) top = Mathf.Max(top,y);
                 }
             }
-            if (float.IsNegativeInfinity(top)) throw new InvalidOperationException("Measured native cab roof required for pipe saddles.");
+            if (float.IsNegativeInfinity(top)) throw new InvalidOperationException("Measured native running plate required for pipe hangers.");
             return top;
         }
 

@@ -76,7 +76,7 @@ def main():
                          turns=turns / 128, vertical=dy, longitudinal=-.02)
         poses += 1
     result = dict(passed=minimum >= .015, nativeFixtureSha256=hashlib.sha256(fixture.read_bytes()).hexdigest(),
-                  layoutSha256=hashlib.sha256(layout.encode()).hexdigest(),
+                  layoutSha256=hashlib.sha256((repo / 'RearrangedS060/S060MeyerLayout.cs').read_bytes()).hexdigest(),
                   rearVisualOffsetZ=shift, rearNativePivotZ=pivot, frontVisualYaw=yaw_front,
                   sampledWheelPoses=poses, minimumRearBeamGapMetres=minimum, worstPose=worst,
                   method='Actual exported native 01/rear and 02/front driver vertices; R2 beam X +/-1.25 Y .90..1.25, expanded 2mm',

@@ -1,10 +1,16 @@
-REARRANGED S060 - 0.3.1 INDEPENDENT WHEELSLIP TEST BUILD
+REARRANGED S060 - 0.3.1 MEYER REPAIR CANDIDATE
 
 Change the native S060's running gear through WHEEL REARRANGER on the comms
 radio or the UMM arrangement chooser. Identity, cab, fuel, water, damage, oil
 and save ownership remain with the same locomotive.
 
 IN THIS BUILD
+
+Meyer repair revision: the rear running plate and frame bearers now join the
+native cab chassis. The rear chain retains its relocated position when DV
+re-enables its visuals. The LP exhaust returns low along the frame, with
+running-plate hangers and a short rise at the smokebox. Mod metadata, existing
+save identities, independent drive and compound calibration are unchanged.
 
 Dockside and Meyer now have independently slipping powered groups, using DV's
 native adhesion/slip calculations. Each group drives its own crank phase,

@@ -22,6 +22,7 @@ namespace RearrangedS060
         private readonly List<Home> homes = new List<Home>();
         private readonly List<(CapsuleCollider collider, Vector3 centre, float height)> capsules = new List<(CapsuleCollider, Vector3, float)>();
         private readonly List<(Transform part, Vector3 position)> couplingVisuals = new List<(Transform, Vector3)>();
+        private readonly List<(ChainCouplerInteraction chain, Vector3 position)> chainHomes = new List<(ChainCouplerInteraction, Vector3)>();
         private Bounds bounds;
         private float interCoupler;
         private float logicLength;
@@ -141,11 +142,17 @@ namespace RearrangedS060
             // interior. Moving just the anchor or original rig leaves them at
             // the old end. Move the existing objects, preserving their controls.
             var parts = new[] { visual.transform, visual.chain, visual.hoses }.Where(t => t != null).Distinct().ToArray();
+            var chain = visual.chain != null ? visual.chain.GetComponent<ChainCouplerInteraction>() : null;
+            if (chain == null) throw new InvalidOperationException("Native rear chain interaction is not ready.");
+            chainHomes.Add((chain, chain.originalLocalPosition));
             foreach (var part in parts.Where(t => !parts.Any(parent => parent != t && t.IsChildOf(parent))))
             {
                 couplingVisuals.Add((part, part.localPosition));
                 part.position += delta;
             }
+            // Native visibility enable restores this cached local pose after
+            // DV has reparented the chain into the interior.
+            chain.originalLocalPosition = chain.transform.localPosition;
         }
         private static void CheckTrack(Bogie bogie, Vector3 position)
         {
@@ -190,6 +197,8 @@ namespace RearrangedS060
             capsules.Clear();
             foreach (var home in couplingVisuals) if (home.part != null) home.part.localPosition = home.position;
             couplingVisuals.Clear();
+            foreach (var home in chainHomes) if (home.chain != null) home.chain.originalLocalPosition = home.position;
+            chainHomes.Clear();
             if (car != null)
             {
                 car.RearCouplerAnchor.localPosition = rearAnchor; car._bounds = bounds; car._interCouplerDistance = interCoupler;

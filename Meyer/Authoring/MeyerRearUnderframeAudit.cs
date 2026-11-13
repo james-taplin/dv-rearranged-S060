@@ -45,6 +45,37 @@ public sealed class MeyerRearUnderframeAudit
             foreach(var floor in floors)minimumFloorGap=Mathf.Min(minimumFloorGap,FloorGap(pipe,floor));
         return checks;
     }
+    public bool RepairContract(Transform lpBody, string output)
+    {
+        var native = floors.Single(f=>f.name=="s060_body");
+        var plate = floors.Single(f=>f.name=="Meyer R2 ironwork");
+        bool Joins(MeshFilter added, Vector3 centre, Vector3 size)
+        {
+            var region = new Bounds(centre,size);
+            return new SteamMeshContact.Shell(added,root,region).Intersects(new SteamMeshContact.Shell(native,root,region));
+        }
+        bool left = Joins(fixedFrame,new Vector3(-.43f,1.60f,-4.10f),new Vector3(.22f,.09f,.42f));
+        bool right = Joins(fixedFrame,new Vector3(.43f,1.60f,-4.10f),new Vector3(.22f,.09f,.42f));
+        bool plateLeft = Joins(plate,new Vector3(-1.10f,1.64f,-4.10f),new Vector3(.25f,.10f,.50f));
+        bool plateRight = Joins(plate,new Vector3(1.10f,1.64f,-4.10f),new Vector3(.25f,.10f,.50f));
+        var trunk = lpBody.GetComponentsInChildren<MeshFilter>().Single(f=>f.name.StartsWith("Single "));
+        // Clip the actual faces: long straight spans need not have an interior
+        // vertex, and a vertex-only filter would falsely report an empty run.
+        var tv=Vertices(trunk);var tt=trunk.sharedMesh.triangles;var samples=new List<Vector3>();
+        for(int i=0;i<tt.Length;i+=3)
+        {
+            var poly=new List<Vector3>{tv[tt[i]],tv[tt[i+1]],tv[tt[i+2]]};
+            poly=Clip(poly,p=>p.z+4.20f,false);poly=Clip(poly,p=>p.z-2.20f,true);samples.AddRange(poly);
+        }
+        var course = samples.ToArray();
+        float top = course.Length==0 ? float.PositiveInfinity : course.Max(p=>p.y);
+        bool low = course.Length!=0 && top < 1.55f && course.Min(p=>p.z)<-3.9f && course.Max(p=>p.z)>2f;
+        bool passed=left&&right&&plateLeft&&plateRight&&low;
+        File.WriteAllText(Path.Combine(output,"meyer-repair-contract.json"),JsonUtility.ToJson(new RepairReport{
+            passed=passed,leftBearerJoinsNative=left,rightBearerJoinsNative=right,leftPlateJoinsNative=plateLeft,rightPlateJoinsNative=plateRight,
+            returnBelowRunningPlate=low,maximumLongCourseY=top,gameplayValidated=false},true));
+        return passed;
+    }
     private void Clear(MeshFilter a,MeshFilter b)
     {
         comparisons++;
@@ -98,5 +129,6 @@ public sealed class MeyerRearUnderframeAudit
         return gap;
     }
     [Serializable]private sealed class Report{public bool passed,bodyAndUnitOwnership,gameScene;public int poses,triangleComparisons;public float minimumFloorGapMetres,collectorLoweredMetres,bodyUnionLoweredMetres;}
+    [Serializable]private sealed class RepairReport{public bool passed,leftBearerJoinsNative,rightBearerJoinsNative,leftPlateJoinsNative,rightPlateJoinsNative,returnBelowRunningPlate,gameplayValidated;public float maximumLongCourseY;}
 }
 #endif

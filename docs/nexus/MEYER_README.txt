@@ -1,6 +1,10 @@
 REARRANGED S060 MEYER ASSET PACK - 0.7.0
 
-Included component of Rearranged S060 0.3.0. Runtime visuals now include the smooth single rear steam trunk, supported underframe, eight native heated brake shoes and eight visible supported leaf packs. The retained donor bundle remains 0.7.0. Custom Car Loader
+Included component of Rearranged S060 0.3.1. The repair revision joins the rear
+running plate and bearers to the native cab frame, retains the relocated rear
+chain through native visual re-enabling, and routes the LP return low along
+the frame on measured running-plate hangers. Eight native heated brake shoes
+and eight supported leaf packs remain. The donor bundle stays 0.7.0. Custom Car Loader
 discovers this bundle inside RearrangedS060/assets/Meyer. It has no separate
 UMM entry. Normal play selects Meyer through the native S060's
 WHEEL REARRANGER radio or the Rearranged S060 UMM panel.

@@ -81,6 +81,14 @@ public static class MeyerRearCouplingNativeAudit
             couplerType.GetField("visualCoupler").SetValue(rearCoupler, visual);
             var interior = Group(root.transform, "Native interior");
             if (reparented) { chain.SetParent(interior, true); hoses.SetParent(interior, true); }
+            // The native chain owns a cached local pose independently of the
+            // visual rig. Its real enable-entry method must survive relocation.
+            var interactionType = game.GetType("ChainCouplerInteraction", true);
+            var interaction = chain.gameObject.AddComponent(interactionType);
+            interactionType.GetMethod("Awake", Instance).Invoke(interaction, null);
+            var cachedPose = interactionType.GetField("originalLocalPosition", Instance);
+            var originalCachedPose = (Vector3)cachedPose.GetValue(interaction);
+            PrepareEnableEntry(game, interaction, chain, root.transform);
             foreach (string side in new[] { "L", "R" }) buffers.Find("Buffer_R" + side).SetParent(rig.Find(side == "R" ? "buffer anchor left" : "buffer anchor right"), true);
             var body = Group(root.transform, "Body");
             foreach (string side in new[] { "left", "right" }) Group(body, "s060_taillight_lower_" + side);
@@ -134,14 +142,54 @@ public static class MeyerRearCouplingNativeAudit
                 Check(bufferError < .0001f, "Existing rear buffers retained");
                 Check(Vector3.Distance(Local(bufferHeads[0]), bufferPositions[0]) < .0001f && Vector3.Distance(Local(bufferHeads[1]), bufferPositions[1]) < .0001f, "Front buffers unchanged");
                 Check(frontRig.localPosition == originals.Single(x=>x.t==frontRig).p && frontAnchor.localPosition == originals.Single(x=>x.t==frontAnchor).p, "Front coupling unchanged");
+                for (int visibilityCycle = 0; visibilityCycle < 3; visibilityCycle++)
+                {
+                    interactionType.GetMethod("Entry_Enabled", Instance).Invoke(interaction, null);
+                    Check(Vector3.Distance(Local(hook) - Local(plate), originalHookToPlate) < .0001f,
+                        "Native visibility enable retains relocated hook");
+                    foreach (string name in new[] { "knob", "knobFollower" })
+                    {
+                        var item = (Object)interactionType.GetField(name, Instance).GetValue(interaction);
+                        if (item is Component component) Object.DestroyImmediate(component.gameObject);
+                        else if (item != null) Object.DestroyImmediate(item);
+                    }
+                }
                 lightsType.GetMethod("Dispose").Invoke(binding, null);
                 supportType.GetMethod("Restore", Instance).Invoke(support, null);
+                Check((Vector3)cachedPose.GetValue(interaction) == originalCachedPose, "Native cached chain pose restored");
                 Check(originals.Where(x=>x.t!=root.transform).All(x=>x.t.parent==x.parent && Vector3.Distance(x.t.localPosition,x.p)<.0001f && Quaternion.Angle(x.t.localRotation,x.r)<.01f && x.t.localScale==x.s), "Exact stock transform restoration");
             }
         }
         finally { Object.DestroyImmediate(root); foreach (var item in owned) if(item!=null) Object.DestroyImmediate(item); }
     }
     private static Transform Group(Transform parent, string name) { var go = new GameObject(name); go.transform.SetParent(parent, false); return go.transform; }
+    private static void PrepareEnableEntry(Assembly game, Component interaction, Transform chain, Transform root)
+    {
+        var type = interaction.GetType();
+        Type Native(string name)
+        {
+            var found = game.GetType(name) ?? AppDomain.CurrentDomain.GetAssemblies().Select(a=>a.GetType(name)).FirstOrDefault(t=>t!=null);
+            if (found != null) return found;
+            foreach (var reference in game.GetReferencedAssemblies())
+            {
+                var assembly = Assembly.Load(reference);
+                found = assembly.GetType(name); if (found != null) return found;
+            }
+            throw new TypeLoadException(name);
+        }
+        var prefab = Group(root, "Inactive native knob fixture").gameObject; prefab.SetActive(false);
+        var highlight = prefab.AddComponent(Native("HighlightTag"));
+        var list = highlight.GetType().GetField("renderers");
+        if (list.GetValue(highlight) == null) list.SetValue(highlight, Activator.CreateInstance(list.FieldType));
+        prefab.AddComponent(Native("DV.CabControls.NonVR.GizmoNonVR"));
+        type.GetField("knobPrefab").SetValue(interaction, prefab);
+        type.GetField("parkedAnchor").SetValue(interaction, Group(chain, "Native parked anchor fixture"));
+        foreach (string name in new[] { "draggingIK", "attachedIK", "otherAttachedIK", "ownAttachPoint" })
+        {
+            var field = type.GetField(name);
+            field.SetValue(interaction, Group(root, "Inactive " + name).gameObject.AddComponent(field.FieldType));
+        }
+    }
     private static Transform Tree(Node node, Transform parent, Dictionary<string,Mesh> meshes)
     {
         var part=Group(parent,node.name); part.localPosition=node.position; part.localRotation=node.rotation; part.localScale=node.scale;

@@ -1,4 +1,4 @@
-param([string]$DocksideEvidence = '', [Parameter(Mandatory)][string]$NativeEvidence,
+param([switch]$SkipBuild, [string]$DocksideEvidence = '', [Parameter(Mandatory)][string]$NativeEvidence,
     [Parameter(Mandatory)][string]$IndependentEvidence)
 $ErrorActionPreference = 'Stop'
 $repo = $PSScriptRoot
@@ -20,7 +20,14 @@ if (Test-Path -LiteralPath $packageRoot) {
     Assert-CoreStage (Join-Path $packageRoot 'RearrangedS060') -AllowMissing
 }
 New-Item -ItemType Directory -Path $output -Force | Out-Null
-& (Join-Path $repo 'Build.Runtime.ps1')
+if (-not $SkipBuild) { & (Join-Path $repo 'Build.Runtime.ps1') }
+else {
+    $built = Get-Content (Join-Path $repo 'build\stage7\build-receipt.json') -Raw | ConvertFrom-Json
+    if ($built.output.Hash -ne (Get-FileHash (Join-Path $repo 'build\stage7\RearrangedS060.dll')).Hash) { throw 'Staged runtime differs from its build receipt.' }
+    foreach ($source in $built.sources) {
+        if ((Get-FileHash -LiteralPath $source.Path).Hash -ne $source.Hash) { throw "Production source changed after build: $($source.Path)" }
+    }
+}
 $nativeReport = Get-Content (Join-Path $NativeEvidence 'runtime-validation.json') -Raw | ConvertFrom-Json
 if (-not $nativeReport.passed -or $nativeReport.runtimeSha256 -ne (Get-FileHash (Join-Path $repo 'build\stage7\RearrangedS060.dll')).Hash) { throw 'Native runtime audits must match this exact DLL.' }
 $independentReport = Get-Content $IndependentEvidence -Raw | ConvertFrom-Json
@@ -54,6 +61,7 @@ if (-not $rearFit.passed -or $rearFit.minimumRearBeamGapMetres -lt .015 -or
     $rearFit.layoutSha256 -ne (Get-FileHash (Join-Path $repo 'RearrangedS060\S060MeyerLayout.cs')).Hash -or
     $rearFit.nativeFixtureSha256 -ne (Get-FileHash (Join-Path $config.QAPath 'native-preview.json')).Hash) { throw 'Hash-matched inward Meyer rear-wheel fit evidence is required.' }
 $inwardPipes = Get-Content ($nativeReport.reports | Where-Object name -eq 'meyer-inward-pipes').path -Raw | ConvertFrom-Json
+if ($inwardPipes.sourceRoutePreview) { throw 'Source route previews cannot substitute for exact-DLL native validation.' }
 if (-not $inwardPipes.inwardMeyerConnected -or -not $inwardPipes.docksideLegacyUnchanged -or
     -not $inwardPipes.cabEntryClear -or -not $inwardPipes.liveMaterialsAndCleanup -or -not $inwardPipes.singleRearTrunk -or -not $inwardPipes.noPipeBodyContacts) { throw 'Candidate inward Meyer and retained Dockside pipe checks are required.' }
 $exhaustFailure = Get-Content ($nativeReport.reports | Where-Object name -eq 'exhaust-failure').path -Raw | ConvertFrom-Json

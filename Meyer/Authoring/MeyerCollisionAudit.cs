@@ -41,12 +41,26 @@ public static class MeyerCollisionAudit
         var syncPose = ownerType.GetMethod("SyncPose", BindingFlags.Instance | BindingFlags.NonPublic);
         var bindNative = ownerType.GetMethod("BindNativeBogie", BindingFlags.Instance | BindingFlags.NonPublic);
         var encapsulate = ownerType.GetMethod("Encapsulate", BindingFlags.Instance | BindingFlags.NonPublic);
-        string folder = "Assets/_CCL_CARS/" + MeyerPlan.CarName;
-        var ids = AssetDatabase.FindAssets("t:CustomCarVariant", new[] { folder });
-        Require(ids.Length == 1, "One authored Meyer variant is required.");
-        var variant = AssetDatabase.LoadAssetAtPath<CustomCarVariant>(AssetDatabase.GUIDToAssetPath(ids[0]));
-        var prefabFrame = variant.prefab.GetComponentsInChildren<Transform>(true).Where(t => t.name == "bogie_car")
-            .OrderBy(t => variant.prefab.transform.InverseTransformPoint(t.position).z).First();
+        AssetBundle bundle = null;
+        GameObject prefab;
+        string releasedBundle = Environment.GetEnvironmentVariable("S060_MEYER_AUDIT_BUNDLE");
+        if (!string.IsNullOrEmpty(releasedBundle))
+        {
+            // A fresh audit project need not contain editable donor assets.
+            // Use the exact released bundle already selected by Test.Runtime.
+            bundle = AssetBundle.LoadFromFile(releasedBundle);
+            Require(bundle != null, "Released Meyer bundle is required.");
+            prefab = bundle.LoadAllAssets<CustomCarPack>().Single().Cars.SelectMany(c=>c.liveries).Single().prefab;
+        }
+        else
+        {
+            string folder = "Assets/_CCL_CARS/" + MeyerPlan.CarName;
+            var ids = AssetDatabase.FindAssets("t:CustomCarVariant", new[] { folder });
+            Require(ids.Length == 1, "One authored Meyer variant is required.");
+            prefab = AssetDatabase.LoadAssetAtPath<CustomCarVariant>(AssetDatabase.GUIDToAssetPath(ids[0])).prefab;
+        }
+        var prefabFrame = prefab.GetComponentsInChildren<Transform>(true).Where(t => t.name == "bogie_car")
+            .OrderBy(t => prefab.transform.InverseTransformPoint(t.position).z).First();
 
         var car = new GameObject("Meyer collision audit native car root");
         var bogie = new GameObject("Meyer collision audit native rear bogie");
@@ -197,7 +211,7 @@ public static class MeyerCollisionAudit
                 gameRuntimeValidated = false
             }, true));
         }
-        finally { Object.DestroyImmediate(bogie); Object.DestroyImmediate(car); Object.DestroyImmediate(material); }
+        finally { Object.DestroyImmediate(bogie); Object.DestroyImmediate(car); Object.DestroyImmediate(material); if(bundle!=null)bundle.Unload(true); }
     }
 
 

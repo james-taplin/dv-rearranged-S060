@@ -14,6 +14,7 @@ namespace RearrangedS060
     internal sealed class S060MeyerBodywork : IDisposable
     {
         internal const float PlateY = 1.62f, PlateTop = 1.66f, TankTop = 2.82f, HopperFront = -4.38f, HopperBack = -5.55f,
+            FrameFront = -3.92f,
             HopperTop = 3.45f, TankRear = -7.70f, BulkheadRear = MeyerPlan.BulkheadRear, BulkheadTop = MeyerPlan.BulkheadTop,
             // The beam stays where the native buffer stems expect it (old rear beam, z -7.98..-7.82):
             // the relocated buffer heads sit ~0.45 m behind its face, at -8.28..-8.57.
@@ -163,9 +164,11 @@ namespace RearrangedS060
                 const float reliefZ=-4.85f;
                 fixedFrame.Box(new Vector3(x-.035f,1.50f,BeamFront),new Vector3(x+.035f,PlateY+.006f,reliefZ));
                 fixedFrame.Box(new Vector3(x-.10f,1.50f,BeamFront),new Vector3(x+.10f,1.525f,reliefZ));
-                fixedFrame.Box(new Vector3(x-.035f,1.565f,reliefZ),new Vector3(x+.035f,PlateY+.006f,HopperFront));
-                fixedFrame.Box(new Vector3(x-.10f,1.565f,reliefZ),new Vector3(x+.10f,1.590f,HopperFront));
-                fixedFrame.Box(new Vector3(x-.10f,1.592f,BeamFront),new Vector3(x+.10f,PlateY+.006f,HopperFront));
+                // Seat the body bearers into the measured native cab frame
+                // (face z -3.98), across the former open joint.
+                fixedFrame.Box(new Vector3(x-.035f,1.565f,reliefZ),new Vector3(x+.035f,PlateY+.006f,FrameFront));
+                fixedFrame.Box(new Vector3(x-.10f,1.565f,reliefZ),new Vector3(x+.10f,1.590f,FrameFront));
+                fixedFrame.Box(new Vector3(x-.10f,1.592f,BeamFront),new Vector3(x+.10f,PlateY+.006f,FrameFront));
                 foreach(float z in new[]{-7.62f,-7.14f,-6.66f,-6.18f,-5.70f,-5.22f})
                     fixedFrame.Box(new Vector3(x+side*.035f-.009f,1.552f,z-.011f),new Vector3(x+side*.035f+.009f,1.574f,z+.011f));
             }
@@ -212,9 +215,9 @@ namespace RearrangedS060
         private static void Build(Builder paint, Builder dark, Builder beam, Builder sheet)
         {
             // Running plate continuous with the S060's, with angle-iron edges.
-            dark.Box(new Vector3(-1.40f, PlateY, BulkheadRear), new Vector3(1.40f, PlateTop, HopperFront));
+            dark.Box(new Vector3(-1.40f, PlateY, BulkheadRear), new Vector3(1.40f, PlateTop, FrameFront));
             foreach (float s in new[] { -1f, 1f })
-                dark.Box(new Vector3(s > 0 ? 1.37f : -1.41f, PlateY, BulkheadRear), new Vector3(s > 0 ? 1.41f : -1.37f, PlateTop + .03f, HopperFront)); // raised lip: the cylinder swing reaches 1.61 m below
+                dark.Box(new Vector3(s > 0 ? 1.37f : -1.41f, PlateY, BulkheadRear), new Vector3(s > 0 ? 1.41f : -1.37f, PlateTop + .03f, FrameFront)); // raised lip: the cylinder swing reaches 1.61 m below
             // High coal hopper behind the cab; sloped back keeps a view from the rear windows.
             paint.PrismX(-1.28f, 1.28f, new[] { new Vector2(HopperFront, PlateTop), new Vector2(HopperBack, PlateTop), new Vector2(HopperBack, 3.05f),
                 new Vector2(HopperBack + .25f, HopperTop), new Vector2(HopperFront, HopperTop) });
@@ -371,7 +374,7 @@ namespace RearrangedS060
             Box("Coal hopper", new Vector3(-1.28f, PlateTop, HopperBack), new Vector3(1.28f, HopperTop, HopperFront));
             Box("Rear tanks", new Vector3(-1.28f, PlateTop, TankRear), new Vector3(1.28f, TankTop, HopperBack));
             Box("Rear bulkhead", new Vector3(-1.30f, PlateY, BulkheadRear), new Vector3(1.30f, BulkheadTop, TankRear));
-            Box("Rear running plate", new Vector3(-1.40f, PlateY, BulkheadRear), new Vector3(1.40f, PlateTop, HopperFront));
+            Box("Rear running plate", new Vector3(-1.40f, PlateY, BulkheadRear), new Vector3(1.40f, PlateTop, FrameFront));
             Box("Rear buffer beam", new Vector3(-1.25f, .90f, BeamRear), new Vector3(1.25f, 1.25f, BeamFront));
             return group.transform;
         }
