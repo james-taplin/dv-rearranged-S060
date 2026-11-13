@@ -46,6 +46,17 @@ shank travel, wheels/rods/pipe clearance, plate colliders and restoration.
 Fixture source fitting is explicitly marked and cannot pass the package gate.
 Final previews come from the exact staged runtime DLL, with that mode unset.
 
+Final DLL SHA256:
+`BBA33D317AE8A46BE7B0C36DAD4C8C9908C93630BEA17580F97CF7880EF5269A`.
+All 16 native suites pass 28,906 checks; the private native ECS fixture passes
+101 checks. Across the 27 geometry poses the maximum pin error is below 0.001 mm
+and front shank travel is 45.73 mm from its straight pose. The old conventional
+fixture assumed five meshes and classified all additional meshes as upper body;
+it now identifies the four upper meshes by name, expects the new model parts
+and checks rear-fork ownership. Only that fixture and the remaining two suites
+were rerun; the earlier 13 exact-DLL results retain explicit provenance in the
+aggregate report. No production rebuild was made for this fixture correction.
+
 The clean build has zero warnings/errors. Semantic IL comparison protects all
 371 existing types and 1,761 methods outside the bodywork owner, including the
 previous coupler and steam-return fixes. The other donor bundles are reused

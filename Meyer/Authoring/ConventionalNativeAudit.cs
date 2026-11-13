@@ -500,12 +500,15 @@ public static class ConventionalNativeAudit
         var body=new GameObject("LocoS060_Body").transform;body.SetParent(root.transform,false);
         Draw(body,"s060_body",Mesh(bodyData,v=>!SteamNativePreview.NativeCylinder(v,-1)&&!SteamNativePreview.NativeCylinder(v,1)));
         var stub=new GameObject("rear frame stub").transform;stub.SetParent(root.transform,false);
+        stub.localPosition=new Vector3(0,0,-6.165f);
         foreach(var name in new[]{"[Attached rear platform]","[Meyer rear pannier L]","[Meyer rear pannier R]","[Period rear chassis]"})new GameObject(name).transform.SetParent(stub,false);
         var type=runtime.GetType("RearrangedS060.S060MeyerBodywork",true);
         var owner=type.GetMethod("Build",All,null,new[]{typeof(Transform),typeof(Transform),typeof(Transform)},null).Invoke(null,new object[]{root.transform,body,stub});
         var parts=((Transform)type.GetProperty("Root",All).GetValue(owner,null)).GetComponentsInChildren<MeshFilter>(true);
-        var upperParts=parts.Where(f=>f.name!="Meyer fixed tank-frame bearers").ToArray();
-        Check(parts.Length==5&&upperParts.Length==4&&parts.All(f=>f.sharedMesh!=null&&f.sharedMesh.vertexCount>0),"Meyer builds the original four upper body meshes and the new fixed tank-frame bearers");
+        var upperNames=new[]{"Meyer R2 paintwork","Meyer R2 ironwork","Meyer R2 buffer beam","Meyer R2 hopper tarpaulin"};
+        var upperParts=parts.Where(f=>upperNames.Contains(f.name)).ToArray();
+        Check(parts.Length==8&&upperParts.Length==4&&parts.All(f=>f.sharedMesh!=null&&f.sharedMesh.vertexCount>0),"Meyer builds four upper meshes, fixed bearers, short drawgear, loco fork and heavy link");
+        Check(stub.GetComponentsInChildren<MeshFilter>(true).Count(f=>f.name=="Meyer bogie drawgear pin")==1,"Rear pin and fork belong to the moving unit");
         var oldNames=new[]{"[Attached rear platform]","[Meyer rear pannier L]","[Meyer rear pannier R]","[Period rear chassis]"};
         Check(stub.Cast<Transform>().Where(t=>oldNames.Contains(t.name)).Count()==4&&stub.Cast<Transform>().Where(t=>oldNames.Contains(t.name)).All(t=>!t.gameObject.activeSelf),"Meyer retires the original bogie-borne deck, panniers and bunker box");
         Check(stub.GetComponentsInChildren<MeshFilter>(true).Count(f=>f.name=="Meyer rear plate frame and spring saddles"&&f.gameObject.activeSelf)==1,"New rear underframe belongs to the moving unit");
