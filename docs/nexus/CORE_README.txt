@@ -10,6 +10,8 @@ Meyer: the previous smooth upper LP steam return is restored. The rear chain
 retains its relocated position when DV re-enables its visuals. The heavy pinned
 drawbar and short drawgear remain beneath an open gap; no footplate or upper
 bearer bridges the gap to the tank.
+The new tank panels use clean weathered paint instead of projecting the stock
+tank's foothold and handle shadows onto the rear bodywork.
 
 Shay: custom metal finishes are assigned before activation and restored after
 paint/material replacement, so the native body atlas cannot repeat across the
@@ -24,8 +26,8 @@ native adhesion/slip calculations. Each group drives its own crank phase,
 running gear and slip effects. Meyer retains its finite HP -> receiver -> LP
 compound circuit, with separate HP/LP speeds and compatible old saves.
 The shaft-linked Shay remains one mechanically connected drive.
-Staged for James's gameplay testing; this package has not been installed or
-published. Native braking/wheel-slide and global cab slip indications remain
+Prepared for James's gameplay testing; this package has not been published.
+Native braking/wheel-slide and global cab slip indications remain
 car-wide. Uneven group demand can give less pull than the former pooled grip.
 
 Combined Meyer visual checkpoint 8293d76, Shay checkpoint db91158, Dockside

@@ -14,7 +14,7 @@ for obj in env.objects:
     if obj.type.name == 'Mesh':
         mesh = obj.read()
         if mesh.m_Name not in ('s060_body', 's060_Wheels_01', 's060_Wheels_02',
-                               's060_mech_wheels_connect', 's060_mech_push_rod_to_connect'):
+                               's060_mech_wheels_connect', 's060_mech_push_rod_to_connect', 's060_smokebox_door'):
             continue
         handler = MeshHandler(mesh)
         handler.process()

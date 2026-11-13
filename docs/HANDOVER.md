@@ -1,6 +1,25 @@
 # Rearranged S060 — handover
 
-## Current 0.3.2 visual repairs — STAGED ONLY
+## Current 0.3.2 detail revision — INSTALLED, 13 November 2026
+
+James requested the tender foothold texture smears and apparent missing
+smokebox door be addressed and installed in 0.3.2. Read
+[DETAIL-REPAIRS-0.3.2.md](DETAIL-REPAIRS-0.3.2.md). The tank/hopper now map to
+clean native paint. The door was omitted from the offline exporter; the real
+separate native door is now included in previews and checked for preservation.
+No production door replacement or hook was needed.
+
+Installed at 21:34 GMT with Install.Nexus.ps1, no backup, settings preserved.
+All 11 payload files match the package. DLL SHA256:
+13B4278E275096B1741818734F7E2EAB481B1781FAD48E16F5BBBB6AD49B3777.
+Info.json is byte-identical to the earlier 0.3.2 candidate. All prior 0.3.2
+repairs remain. Native suites: 16 / 28,651 checks; private ECS: 101; native UMM:
+57; extracted bundle reopening: 38; installer fixtures: 18 and 24.
+Evidence and receipt: build/details-0.3.2/validation.json and install-receipt.json.
+No DV launch, game testing, push or publication. James tests in game. Concurrent
+Documents 0.4 work was not edited or reverted.
+
+## Earlier 0.3.2 visual repair candidate — superseded staging checkpoint
 
 Read [VISUAL-REPAIRS-0.3.2.md](VISUAL-REPAIRS-0.3.2.md). This starts from the
 installed repaired 0.3.1 source, not Documents 0.4. James authorised the previous

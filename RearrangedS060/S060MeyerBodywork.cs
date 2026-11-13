@@ -335,17 +335,21 @@ namespace RearrangedS060
             double err = used.Average(k => (double)(At(local[k].z, local[k].y) - uv[k]).sqrMagnitude);
             if (err > 1e-5) return null;  // one clean linear island required
             float z0 = used.Min(k => local[k].z), z1 = used.Max(k => local[k].z), y0 = used.Min(k => local[k].y), y1 = used.Max(k => local[k].y);
+            // The full native panel includes painted foothold/handle shadows.
+            // This measured interior patch is plain weathered paint; physical
+            // rivets on our tank remain geometry rather than stretched decals.
+            float cleanZ0=Mathf.Clamp(-.45f,z0,z1),cleanZ1=Mathf.Clamp(.35f,z0,z1);
+            float cleanY0=Mathf.Clamp(1.78f,y0,y1),cleanY1=Mathf.Clamp(2.67f,y0,y1);
             // The tall hopper must use one affine projection over its entire height.
             // Wrapping only its upper vertices interpolated different atlas rows
             // across the fan triangles and made a false diagonal shading seam.
-            float Y(Vector3 p) => p.z >= HopperBack - .00001f
-                ? Mathf.Lerp(y0, y1, Mathf.InverseLerp(PlateTop, HopperTop, p.y))
-                : Mathf.Clamp(p.y, y0, y1);
-            float Z(float z) => Mathf.Clamp(z0 + (z - TankRear), z0, z1);
+            float Y(Vector3 p) => Mathf.Lerp(cleanY0,cleanY1,Mathf.InverseLerp(PlateTop,p.z>=HopperBack-.00001f?HopperTop:TankTop,p.y));
+            float Z(float z) => Mathf.Lerp(cleanZ0,cleanZ1,Mathf.InverseLerp(TankRear,HopperFront,z));
+            float Across(float x,float lo,float hi)=>Mathf.Lerp(lo,hi,Mathf.InverseLerp(-1.40f,1.40f,x));
             return (p, n) =>
             {
-                if (Mathf.Abs(n.y) > .7f) return At(Z(p.z), Mathf.Clamp(y0 + (p.x + 1.40f) * .35f, y0, y1));
-                if (Mathf.Abs(n.z) > .7f) return At(Mathf.Clamp(z0 + (p.x + 1.40f), z0, z1), Y(p));
+                if (Mathf.Abs(n.y) > .7f) return At(Z(p.z),Across(p.x,cleanY0,cleanY1));
+                if (Mathf.Abs(n.z) > .7f) return At(Across(p.x,cleanZ0,cleanZ1),Y(p));
                 return At(Z(p.z), Y(p));
             };
         }

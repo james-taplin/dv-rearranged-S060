@@ -88,6 +88,7 @@ public static class ConventionalNativeAudit
         var car=root.AddComponent(game.GetType("TrainCar",true));
         var body=new GameObject("LocoS060_Body").transform; body.SetParent(root.transform,false);
         foreach(var node in data.roots) Tree(body,node,data);
+        var nativeDoor=body.GetComponentsInChildren<MeshFilter>(true).Single(f=>f.name=="s060_smokebox_door");var doorMesh=nativeDoor.sharedMesh;
         bool Cylinder(Vector3 v,int side) => SteamNativePreview.NativeCylinder(v,side);
         bool Brake(Vector3 v) => Mathf.Abs(v.x)>=.41f&&Mathf.Abs(v.x)<=1f&&v.y<=.8215f&&((v.z>=2.16f&&v.z<=2.59f)||(v.z>=.6f&&v.z<=1.31f)||(v.z>=-.91f&&v.z<=-.57f));
         // Match the existing native preview/splitter masks: original brakes are
@@ -124,6 +125,7 @@ public static class ConventionalNativeAudit
             Check(powered.Length==count,"Candidate must return every live driven axle.");
             rods=(IDisposable)runtime.GetType("RearrangedS060.S060CouplingRods",true).GetMethod("Apply",All).Invoke(null,new[]{parts});
             float shift=(float)owner.GetType().GetProperty("CylinderShift",All).GetValue(owner,null); Call(scale,"PositionFittings",shift);
+            Check(nativeDoor.sharedMesh==doorMesh&&nativeDoor.gameObject.activeInHierarchy&&nativeDoor.GetComponent<MeshRenderer>().enabled,"Native smokebox door remains present on the fitted conventional layout");
             var wheels=right.Cast<Transform>().Where(t=>t.name.StartsWith("s060_Wheels_0")&&!t.name.Contains("LOD")).OrderBy(t=>t.position.z).ToArray();
             Check(wheels.Length==count,"Each side must have the required wheel count.");
             for(int i=1;i<wheels.Length;i++)
@@ -213,6 +215,7 @@ public static class ConventionalNativeAudit
         var car=root.AddComponent(game.GetType("TrainCar",true));
         var body=new GameObject("LocoS060_Body").transform; body.SetParent(root.transform,false);
         foreach(var node in data.roots) Tree(body,node,data);
+        var nativeDoor=body.GetComponentsInChildren<MeshFilter>(true).Single(f=>f.name=="s060_smokebox_door");var doorMesh=nativeDoor.sharedMesh;
         bool Cylinder(Vector3 v,int side) => SteamNativePreview.NativeCylinder(v,side);
         bool Brake(Vector3 v) => Mathf.Abs(v.x)>=.41f&&Mathf.Abs(v.x)<=1f&&v.y<=.8215f&&((v.z>=2.16f&&v.z<=2.59f)||(v.z>=.6f&&v.z<=1.31f)||(v.z>=-.91f&&v.z<=-.57f));
         // Match the existing native preview/splitter masks: original brakes are
@@ -260,6 +263,7 @@ public static class ConventionalNativeAudit
         wheelMaterial.EnableKeyword("_METALLICGLOSSMAP");
         ponyType.GetField("Near",All).SetValue(pony,Mesh(ponyData));ponyType.GetField("Material",All).SetValue(pony,wheelMaterial);ponyType.GetField("Scale",All).SetValue(pony,new Vector3(1,.4f/.3552532f,.4f/.3552532f));
         var returned=(Array)Call(owner,"BuildModels",prefab,pony);
+        Check(nativeDoor.sharedMesh==doorMesh&&nativeDoor.gameObject.activeInHierarchy&&nativeDoor.GetComponent<MeshRenderer>().enabled,"Shay conversion preserves the separate native smokebox door");
         Check(returned.Length==4,"Shay geometry returns four real native PoweredWheel objects");
         var markers=(Transform[])owner.GetType().GetProperty("Markers",All).GetValue(owner,null);
         var model=(GameObject)owner.GetType().GetProperty("Root",All).GetValue(owner,null);
@@ -346,11 +350,14 @@ public static class ConventionalNativeAudit
         Render(root,"shay");
         RenderWide(root,"shay-offside",new Vector3(-9,1.0f,.3f),new Vector3(0,1.0f,.3f),2.6f);
         RenderWide(root,"shay-front-low",new Vector3(-5,.7f,8),new Vector3(0,1.0f,2.8f),1.6f);
+        RenderWide(root,"shay-smokebox-door",new Vector3(-2.5f,2.8f,7),new Vector3(0,2.55f,3.75f),1.0f);
         RenderWide(root,"shay-sleeve-detail",new Vector3(4,2.2f,6),new Vector3(.85f,2.1f,3.15f),.6f);
         var detached=markers.Where(t=>t.name=="TRUCK_REAR"||t.name=="TRUCK_FRONT"||t.name=="TRUCK_REAR_PIVOT"||t.name=="TRUCK_FRONT_PIVOT").ToArray();
         Object.DestroyImmediate(motion);
         Check(engineHomes.All(p=>p.Key.sharedMesh==p.Value),"The fully authored R3 engine never replaces its shared engine meshes");
         Call(owner,"RestoreModels");Check(bodyFilter.sharedMesh==originalBody,"Leaving Shay restores the exact native body mesh");
+        Check(nativeDoor.sharedMesh==doorMesh&&nativeDoor.GetComponent<MeshRenderer>().enabled,"Leaving Shay retains the exact original smokebox door mesh");
+        File.WriteAllText(Path.Combine(output,"native-smokebox-door-validation.json"),"{\"passed\":true,\"separateNativeMesh\":true,\"visibleDuringShay\":true,\"exactMeshPreserved\":true,\"fixtureOnly\":true}");
         Check(detached.All(t=>t==null||!t.gameObject.activeSelf),"Leaving Shay retires every detached truck and transmission frame");
         Object.DestroyImmediate(root);bundle.Unload(true);
     }

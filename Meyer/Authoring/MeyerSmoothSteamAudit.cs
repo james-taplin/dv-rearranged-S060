@@ -123,6 +123,14 @@ public static class MeyerSmoothSteamAudit
             bool Shown(MeshFilter f)=>f.GetComponent<Renderer>()!=null&&f.GetComponent<Renderer>().enabled&&f.GetComponentsInParent<Transform>(true).Where(t=>t!=root.transform).All(t=>t.gameObject.activeSelf);
             var targets=root.GetComponentsInChildren<MeshFilter>(true).Where(f=>!pipes.Contains(f)&&f.sharedMesh!=null&&Shown(f)).ToArray();
             var underframe=new MeyerRearUnderframeAudit(root.transform,rear);
+            var tenderPaint=root.GetComponentsInChildren<MeshFilter>().Single(f=>f.name=="Meyer R2 paintwork");
+            var paintUv=tenderPaint.sharedMesh.uv;
+            bool cleanPaint=paintUv.Length==tenderPaint.sharedMesh.vertexCount&&paintUv.All(p=>p.x>=.805f&&p.x<=.879f&&p.y>=.344f&&p.y<=.411f)
+                &&paintUv.Max(p=>p.x)-paintUv.Min(p=>p.x)>.05f&&paintUv.Max(p=>p.y)-paintUv.Min(p=>p.y)>.05f;
+            File.WriteAllText(Path.Combine(output,"tender-paint-validation.json"),"{\"passed\":"+(cleanPaint?"true":"false")+",\"avoidsNativeFootholdDecals\":"+(cleanPaint?"true":"false")+",\"fixtureOnly\":true}");
+            Check(cleanPaint,"Tender paint uses the measured clean native paint patch instead of foothold/handle decals");
+            var nativeDoor=root.GetComponentsInChildren<MeshFilter>().Single(f=>f.sharedMesh!=null&&f.sharedMesh.name.StartsWith("s060_smokebox_door",StringComparison.Ordinal));
+            Check(nativeDoor.gameObject.activeInHierarchy&&nativeDoor.GetComponent<MeshRenderer>().enabled,"Separate native smokebox door is present in the Meyer preview");
             bool repairs=underframe.RepairContract(lpBody,output);
             if(Environment.GetEnvironmentVariable("S060_REPAIR_BASELINE")!="1")Check(repairs,"Upper bridge removed, open plate edge, pinned drawgear mounted to native frame and restored smooth upper return; see meyer-repair-contract.json.");
             if(fittingReturn==null&&Environment.GetEnvironmentVariable("S060_REPAIR_BASELINE")!="1")
@@ -140,6 +148,7 @@ public static class MeyerSmoothSteamAudit
             File.WriteAllLines(Path.Combine(output,"rear-native-bounds.txt"), new[]{"rear frame car position: "+root.transform.InverseTransformPoint(rear.position).ToString("F5")}.Concat(rear.GetComponentsInChildren<MeshFilter>(true).Where(f=>f.sharedMesh!=null).Select(f=>f.name+"; shown="+Shown(f)+"; rear="+BoundsOf(f,rear)+"; car="+BoundsOf(f,root.transform))));
             Render(root,"rear-chassis-right",new Vector3(8,2.6f,-6.1f),new Vector3(0,1.35f,-6.1f),1.5f);
             Render(root,"rear-chassis-left",new Vector3(-8,2.6f,-6.1f),new Vector3(0,1.35f,-6.1f),1.5f);
+            Render(root,"meyer-tender-paint",new Vector3(8,2.5f,-6.55f),new Vector3(0,2.3f,-6.55f),1.25f);
             Render(root,"drawgear-side",new Vector3(-5,1.15f,-4.45f),new Vector3(0,1.15f,-4.45f),.65f);
             Render(root,"drawgear-low-quarter",new Vector3(-2,.38f,-3.25f),new Vector3(0,1.12f,-4.48f),.65f);
             Render(root,"drawgear-underside",new Vector3(-.65f,-.4f,-4.60f),new Vector3(0,1.09f,-4.50f),.60f);

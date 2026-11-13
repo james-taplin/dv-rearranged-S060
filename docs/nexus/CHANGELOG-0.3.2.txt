@@ -11,6 +11,14 @@ Version 0.3.2 - staged visual repairs
 - Existing mod identity, dependencies, save IDs, independent drive, oiling and
   steam calibration are retained. Only the release/assembly version changes.
 
-Staged only. Installed 0.3.1 and the separate 0.4 work remain untouched.
+Additional 0.3.2 review corrections:
+- Remapped the Meyer rear tank/hopper panels to a clean native paint patch,
+  removing smeared foothold and handle shadows while retaining weathering.
+- Added the separate native smokebox door to offline exports/previews and
+  verified that conversions preserve it. The apparent missing door was an
+  omission in the preview fixture, not a replacement native-game door asset.
+
+Installation state and receipt are recorded in the handover. The separate
+0.4 work remains outside this release.
 Offline evidence and limits are recorded in docs/HANDOVER.md. James performs
-Derail Valley visual and driving acceptance after separately approved installation.
+Derail Valley visual and driving acceptance.

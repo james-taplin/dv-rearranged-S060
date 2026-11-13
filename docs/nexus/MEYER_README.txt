@@ -4,7 +4,8 @@ Included component of Rearranged S060 0.3.2. The previous smooth upper LP return
 is restored. The heavy pinned drawgear remains below an open gap, with no
 bridging footplate or upper bearers. The relocated rear chain retains its
 position through native visual re-enabling. Eight native heated brake shoes
-and eight supported leaf packs remain. The donor bundle stays 0.7.0. Custom Car Loader
+and clean weathered tank paint without borrowed foothold decals are retained.
+Eight supported leaf packs remain. The donor bundle stays 0.7.0. Custom Car Loader
 discovers this bundle inside RearrangedS060/assets/Meyer. It has no separate
 UMM entry. Normal play selects Meyer through the native S060's
 WHEEL REARRANGER radio or the Rearranged S060 UMM panel.

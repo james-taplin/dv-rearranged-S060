@@ -10,7 +10,10 @@ Peter Schinske / SatiricRug's original Rearranged S282.
 custom metal finish binding during paint changes, and retires the loose fixed
 valve-gear pieces on the short-wheelbase, Dockside, 0-8-0 and 0-10-0 layouts.
 The repaired rear coupler and pinned drawgear remain. This build is staged for
-offline review; the installed 0.3.1 and future 0.4 work are separate.
+review and James's gameplay testing; installation state is in the handover and
+future 0.4 work is separate. The tender paint now avoids borrowed foothold
+decals. Native smokebox-door geometry is included in the offline previews and
+checked for preservation during conversion.
 
 ## Retained 0.3.1 powered-group drive
 

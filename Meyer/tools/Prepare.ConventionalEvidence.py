@@ -43,13 +43,20 @@ roots = []
 for obj in env.objects:
     if obj.type.name == 'Transform':
         transform = obj.read()
-        if transform.m_GameObject.read().m_Name in ('DrivingMechanism_L', 'DrivingMechanism_R'):
+        name = transform.m_GameObject.read().m_Name
+        if name in ('DrivingMechanism_L', 'DrivingMechanism_R'):
             parent = transform.m_Father.read()
             if parent.m_GameObject.read().m_Name == 'LocoS060_Body':
                 roots.append(tree(obj))
-if len(roots) != 2:
-    raise RuntimeError(f'Expected two native S060 mechanisms, found {len(roots)}')
+        elif name == 'smokebox_door':
+            parent = transform.m_Father.read()
+            if parent.m_GameObject.read().m_Name == 'Static' and parent.m_Father.read().m_GameObject.read().m_Name == 'LocoS060_Body':
+                if any(abs(getattr(parent.m_LocalPosition,axis))>1e-6 for axis in 'xyz'):
+                    raise RuntimeError('Native Static parent pose changed; door fixture must include its transform')
+                roots.append(tree(obj))
+if len(roots) != 3 or sorted(root['name'] for root in roots) != ['DrivingMechanism_L','DrivingMechanism_R','smokebox_door']:
+    raise RuntimeError(f'Expected two mechanisms and the separate smokebox door, found {[root["name"] for root in roots]}')
 output = Path(args.output) / 'conventional-native.json'
 output.parent.mkdir(parents=True, exist_ok=True)
 output.write_text(json.dumps(dict(roots=roots, meshes=list(meshes.values()))))
-print(f'Prepared native S060 mechanisms: {len(roots)} roots, {len(meshes)} meshes -> {output}')
+print(f'Prepared native S060 mechanisms and smokebox door: {len(roots)} roots, {len(meshes)} meshes -> {output}')

@@ -43,6 +43,14 @@ public static class SteamNativePreview
                 if (entry.name != "s060_body" || !(Removed(entry.vertices[entry.triangles[i]]) && Removed(entry.vertices[entry.triangles[i + 1]]) && Removed(entry.vertices[entry.triangles[i + 2]])))
                 { triangles.Add(entry.triangles[i]); triangles.Add(entry.triangles[i + 1]); triangles.Add(entry.triangles[i + 2]); }
             mesh.triangles = triangles.ToArray(); mesh.RecalculateNormals(); mesh.RecalculateBounds(); owned.Add(mesh);
+            if(entry.name=="s060_smokebox_door"&&!clone.GetComponentsInChildren<MeshGrabberFilter>(true).Any(a=>a.ReplacementName==entry.name))
+            {
+                // Separate native mesh under Static/smokebox_door. The old
+                // preview exported only the body and falsely showed an open front.
+                var door=new GameObject("s060_smokebox_door");door.transform.SetParent(clone.transform,false);owned.Add(door);
+                door.AddComponent<MeshFilter>().sharedMesh=mesh;
+                door.AddComponent<MeshRenderer>().sharedMaterial=material;
+            }
             foreach (var alias in clone.GetComponentsInChildren<MeshGrabberFilter>(true).Where(a => a.ReplacementName == entry.name))
             { alias.Filter.sharedMesh = mesh; if (entry.name == "s060_body") alias.Filter.gameObject.name = "s060_body"; }
         }
