@@ -12,6 +12,9 @@ $output = Join-Path $repo ('build\dockside\authoring-' + [DateTime]::UtcNow.ToSt
 New-Item -ItemType Directory -Path $output -Force | Out-Null
 $env:DOCKSIDE_OUTPUT = $output
 $env:DOCKSIDE_FRANKLIN_BUNDLE = $FranklinBundle
+$env:DOCKSIDE_FRANKLIN_GEOMETRY = Join-Path $repo 'build\qa\franklin-original-geometry.json'
+& $config.Python -B (Join-Path $PSScriptRoot 'tools\Prepare.FranklinGeometry.py') --bundle $FranklinBundle --output $env:DOCKSIDE_FRANKLIN_GEOMETRY
+if ($LASTEXITCODE -ne 0) { throw 'Original Franklin geometry extraction failed.' }
 $env:S060_NATIVE_PREVIEW = Join-Path $repo 'build\qa\native-preview.json'
 $env:S060_DOCKSIDE_SUPPORTS = Join-Path $repo 'build\qa\s060-support-pivots.json'
 & $config.Python -B (Join-Path $PSScriptRoot 'tools\Prepare.Supports.py') --game $config.GamePath --output $env:S060_DOCKSIDE_SUPPORTS
@@ -31,7 +34,7 @@ foreach ($file in @('S060SteamPipes.cs','S060BodyPipes.cs','S060MeyerExhaustPipe
 Copy-Item -LiteralPath (Join-Path $repo 'RearrangedS060\S060OilCupGeometry.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
 Copy-Item -LiteralPath (Join-Path $repo 'RearrangedS060\S060RodMesh.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
 Copy-Item -LiteralPath (Join-Path $repo 'RearrangedS060\S060MeyerCollision.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
-$argsUnity = @('-projectPath',('"'+$project+'"'),'-executeMethod','DocksideDraftBuilder.CreateDraft','-logFile',('"'+(Join-Path $output 'unity.log')+'"'))
+$argsUnity = @('-batchmode','-projectPath',('"'+$project+'"'),'-executeMethod','DocksideDraftBuilder.CreateDraft','-logFile',('"'+(Join-Path $output 'unity.log')+'"'))
 $process = Start-Process -FilePath $Unity -ArgumentList $argsUnity -WindowStyle Hidden -PassThru
 [ordered]@{pid=$process.Id;project=$project;output=$output;sourceFranklin=(Get-FileHash -LiteralPath $FranklinBundle | Select-Object Path,Hash);gameLaunched=$false;runtimeValidated=$false} |
     ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $output 'launch.json') -Encoding UTF8

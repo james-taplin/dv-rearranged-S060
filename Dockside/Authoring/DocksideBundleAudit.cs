@@ -56,6 +56,13 @@ public static class DocksideBundleAudit
             // to be followed through the loaded prefab, not LoadAllAssets alone.
             var meshes = root.GetComponentsInChildren<MeshFilter>(true).Select(f => f.sharedMesh).Where(m => m != null).Concat(bundle.LoadAllAssets<Mesh>()).Distinct().ToArray();
             var franklinMeshes = meshes.Where(m => m.name.StartsWith("FranklinCustomMesh", StringComparison.Ordinal)).ToArray();
+            foreach(var mesh in franklinMeshes)
+            {
+                Require(mesh.isReadable,"Original custom Franklin geometry must be inspectable after export.");
+                var v=mesh.vertices;var actual=new Bounds(v[0],Vector3.zero);foreach(var p in v)actual.Encapsulate(p);
+                Require(actual.size.sqrMagnitude>.00001f && (actual.center-mesh.bounds.center).sqrMagnitude<1e-10f && (actual.size-mesh.bounds.size).sqrMagnitude<1e-10f,
+                    "Missing streamed Franklin vertex data despite cached bounds: "+mesh.name);
+            }
             // Cube/Cylinder are built-in Unity shapes used by SDK couplers and
             // dummy plates; the other four are supplied by the existing SDK.
             var sdkMeshes = new[] { "Buffer07", "HookPlate", "CableBase_01", "HeadEndPowerConnectorBase", "Cube", "Cylinder" };

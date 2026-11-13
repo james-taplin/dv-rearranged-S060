@@ -10,6 +10,11 @@ using Object=UnityEngine.Object;
 // rendered native wheels/rods and floor clearance in the same 27 poses.
 public sealed class MeyerRearUnderframeAudit
 {
+    // Measured native steps deliberately used as pipe brackets by James's
+    // rear-drop request; these are not horizontal cab-floor clearance faces.
+    internal static readonly Bounds[] StepBrackets={
+        new Bounds(new Vector3(1.3423f,1.55875f,-3.6966f),new Vector3(.1216f,.1233f,.2690f)),
+        new Bounds(new Vector3(1.3423f,2.08615f,-3.79885f),new Vector3(.1216f,.1233f,.2689f))};
     private readonly Transform root,rear;
     private readonly MeshFilter fixedFrame,unitFrame;
     private readonly MeshFilter[] floors;
@@ -86,7 +91,8 @@ public sealed class MeyerRearUnderframeAudit
         }
         var course = samples.ToArray();
         float top = course.Length==0 ? float.PositiveInfinity : course.Max(p=>p.y);
-        bool upper = trunk.name=="Single cab-roof steam trunk"&&course.Length!=0&&top>4.1f&&top<4.14f&&course.Min(p=>p.z)<-3.9f&&course.Max(p=>p.z)>2f;
+        // The requested early rear drop supersedes the old roof run to Z -4.15.
+        bool upper = trunk.name=="Single cab-roof steam trunk"&&course.Length!=0&&top>4.1f&&top<4.14f&&course.Min(p=>p.z)<-3.5f&&course.Max(p=>p.z)>2f;
         // The bottom face isolates the plate/lips from upright hopper edging.
         bool openPlate=!plateLeft&&!plateRight&&Vertices(plate).Where(p=>p.y>1.619f&&p.y<1.621f&&Mathf.Abs(p.x)>1f).Max(p=>p.z)<-4.379f;
         bool locoMount=Joins(housing,new Vector3(0,1.08f,-3.95f),new Vector3(.60f,.32f,.36f));
@@ -107,7 +113,7 @@ public sealed class MeyerRearUnderframeAudit
     public void Finish(string output)
     {
         if(float.IsInfinity(minimumFloorGap)||minimumFloorGap<.045f)throw new InvalidOperationException("Measured under-cab floor margin must exceed 45 mm; actual "+minimumFloorGap);
-        File.WriteAllText(Path.Combine(output,"rear-underframe-validation.json"),JsonUtility.ToJson(new Report{passed=true,poses=poses,triangleComparisons=comparisons,minimumFloorGapMetres=minimumFloorGap,maximumDrawgearTravel=maximumDrawgearTravel,maximumPinError=maximumPinError,collectorLoweredMetres=.04f,bodyUnionLoweredMetres=.12f,bodyAndUnitOwnership=true,gameScene=false},true));
+        File.WriteAllText(Path.Combine(output,"rear-underframe-validation.json"),JsonUtility.ToJson(new Report{passed=true,poses=poses,triangleComparisons=comparisons,minimumFloorGapMetres=minimumFloorGap,maximumDrawgearTravel=maximumDrawgearTravel,maximumPinError=maximumPinError,collectorLoweredMetres=.04f,bodyUnionHeightMetres=1.65f,bodyAndUnitOwnership=true,gameScene=false},true));
     }
     private Vector3[] Vertices(MeshFilter f)=>f.sharedMesh.vertices.Select(p=>root.InverseTransformPoint(f.transform.TransformPoint(p))).ToArray();
     private MeshFilter Outside(MeshFilter f,Bounds box)
@@ -139,6 +145,7 @@ public sealed class MeyerRearUnderframeAudit
         for(int i=0;i<t.Length;i+=3)
         {
             var a=v[t[i]];var b=v[t[i+1]];var c=v[t[i+2]];var n=Vector3.Cross(b-a,c-a).normalized;
+            if(floor.name=="s060_body"&&StepBrackets.Any(s=>s.Contains(a)&&s.Contains(b)&&s.Contains(c)))continue;
             if(Mathf.Abs(n.y)<.95f||a.y<1.45f||a.y>1.70f||b.y<1.45f||b.y>1.70f||c.y<1.45f||c.y>1.70f||Mathf.Max(a.z,Mathf.Max(b.z,c.z))< -5f||Mathf.Min(a.z,Mathf.Min(b.z,c.z))> -3.5f)continue;
             float Cross(Vector3 u,Vector3 w)=>u.x*w.z-u.z*w.x;
             float sign=Mathf.Sign(Cross(b-a,c-a));
@@ -151,7 +158,7 @@ public sealed class MeyerRearUnderframeAudit
         }
         return gap;
     }
-    [Serializable]private sealed class Report{public bool passed,bodyAndUnitOwnership,gameScene;public int poses,triangleComparisons;public float minimumFloorGapMetres,maximumDrawgearTravel,maximumPinError,collectorLoweredMetres,bodyUnionLoweredMetres;}
+    [Serializable]private sealed class Report{public bool passed,bodyAndUnitOwnership,gameScene;public int poses,triangleComparisons;public float minimumFloorGapMetres,maximumDrawgearTravel,maximumPinError,collectorLoweredMetres,bodyUnionHeightMetres;}
     [Serializable]private sealed class RepairReport{public bool passed,upperBridgeRemoved,plateGapOpen,locoDrawgearMounted,bogieForkMounted,separateDrawgearOwnership,smoothUpperReturnRestored,gameplayValidated;public float maximumLongCourseY;}
 }
 #endif

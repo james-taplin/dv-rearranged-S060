@@ -10,11 +10,11 @@ namespace RearrangedS060
     // chimney already carry LP exhaust; this introduces no ports or readers.
     internal sealed class S060MeyerExhaustPipe : IDisposable
     {
-        // Keep the unit collector and body-side bend below the cab floor even
-        // when suspension lifts the rear unit. The roof course is unchanged.
+        // Keep the collector below the floor and turn up into the body union
+        // outside the cab sheet, through the two native step brackets.
         internal const float Radius = .095f, HeaderY = 1.40f, SleeveLength = 1.18f;
         internal static readonly Vector3 RearBallPosition = new Vector3(1.10f, HeaderY, 1.70f);
-        internal static readonly Vector3 BodyBallPosition = new Vector3(1.60f, 1.32f, -4.95f);
+        internal static readonly Vector3 BodyBallPosition = new Vector3(1.47f, 1.65f, -3.80f);
         // Exact B99 smokebox sheet intersection and outward face normal.
         internal static readonly Vector3 SmokeboxSurface = new Vector3(.5529617f,2.80f,3.50f);
         internal static readonly Vector3 SmokeboxNormal = new Vector3(.7730095f,.6343944f,0);
@@ -66,15 +66,15 @@ namespace RearrangedS060
                 owner.RearJoint = owner.Marker(owner.RearRoot, "[LP unit union]", RearBallPosition);
                 owner.BodyJoint = owner.Marker(owner.BodyRoot, "[LP body union]", BodyBallPosition);
                 owner.Render(owner.BodyRoot, "Single cab-roof steam trunk", OpenEnds(SmoothPathMesh(new[] {
-                    BodyBallPosition, new Vector3(1.60f,1.32f,-5.45f),new Vector3(1.60f,3.78f,-5.45f),
-                    new Vector3(.85f,4.03f,-4.15f),new Vector3(.85f,4.03f,-.70f),
+                    BodyBallPosition, new Vector3(1.47f,3.65f,-3.80f),
+                    new Vector3(1.47f,4.03f,-3.80f),new Vector3(.85f,4.03f,-3.25f),new Vector3(.85f,4.03f,-.70f),
                     new Vector3(1.12f,3.08f,-.12f),new Vector3(1.12f,3.08f,1.85f),
                     SmokeboxSurface+SmokeboxNormal*.38f,SmokeboxPosition },Radius,.38f),true,false));
                 owner.SmokeboxJoint = owner.Marker(owner.BodyRoot, "[LP smokebox socket]", SmokeboxPosition);
                 owner.Render(owner.BodyRoot, "Smokebox inlet flange", SmoothPathMesh(new[] { SmokeboxSurface-SmokeboxNormal*.02f, SmokeboxPosition }, .125f));
                 // Two restrained straps meet the measured native roof, rather
                 // than hanging a pipe from guessed roof coordinates.
-                foreach (float z in new[] { -3.25f, -2.05f })
+                foreach (float z in new[] { -2.95f, -2.05f })
                 {
                     float roof = RoofHeight(body, nativeShell, .85f, z);
                     owner.Render(owner.BodyRoot, "Roof saddle " + z, SmoothPathMesh(new[] {
@@ -98,7 +98,7 @@ namespace RearrangedS060
                 foreach (var renderer in renderers) if (renderer != null) renderer.sharedMaterial = material;
             }
             connection.Move(BodyRoot.InverseTransformPoint(RearJoint.position), BodyBallPosition,
-                BodyRoot.InverseTransformDirection(RearRoot.TransformDirection(Vector3.right)), Vector3.back);
+                BodyRoot.InverseTransformDirection(RearRoot.TransformDirection(Vector3.right)), Vector3.up);
         }
         private static float RoofHeight(Transform body, Transform shell, float x, float z)
         {
@@ -207,6 +207,11 @@ namespace RearrangedS060
         }
         internal static Mesh SmoothPathMesh(Vector3[] points, float radius, float bend = .35f)
         {
+            var centres = SmoothCentres(points,bend);
+            return Tube(centres,Enumerable.Repeat(radius,centres.Length).ToArray(),24);
+        }
+        internal static Vector3[] SmoothCentres(Vector3[] points,float bend)
+        {
             var centres = new List<Vector3> { points[0] };
             for (int i = 1; i + 1 < points.Length; i++)
             {
@@ -219,7 +224,7 @@ namespace RearrangedS060
                 int steps = Mathf.Max(4,Mathf.CeilToInt(angle/(Mathf.PI/24)));
                 for (int j=0;j<=steps;j++) centres.Add(centre+Quaternion.AngleAxis(angle*Mathf.Rad2Deg*j/steps,normal)*radial);
             }
-            centres.Add(points[points.Length-1]); return Tube(centres.ToArray(),Enumerable.Repeat(radius,centres.Count).ToArray(),24);
+            centres.Add(points[points.Length-1]); return centres.ToArray();
         }
         private static Mesh OpenEnds(Mesh mesh,bool start,bool end)
         {

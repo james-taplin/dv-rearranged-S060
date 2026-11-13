@@ -135,6 +135,7 @@ namespace RearrangedS060
             if (IsMeyer) meyerSupport.BindCollisionFrame(liveFrames[0]);
             if (IsMeyer) meyerFrontMotion = S060MeyerFrontMotion.Bind(liveFrames[1]);
             if (IsMeyer) foreach (var frame in liveFrames) meyerGearMounts.Add(S060MeyerGearMounts.Bind(frame, Parts.Body));
+            else foreach (var frame in liveFrames) meyerGearMounts.Add(S060MeyerGearMounts.BindWheelCranks(frame));
             if (IsMeyer) meyerRunningGear=S060MeyerRunningGear.Bind(Parts.Car.transform,Parts.Body,liveFrames[1],liveFrames[0]);
             if (IsMeyer) nativeCylinders = S060NativeCylinders.Bind(Parts, liveFrames[1]);
             if (IsMeyer)

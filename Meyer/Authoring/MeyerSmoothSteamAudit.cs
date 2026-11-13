@@ -15,6 +15,9 @@ public static class MeyerSmoothSteamAudit
     private const BindingFlags All=BindingFlags.Public|BindingFlags.NonPublic|BindingFlags.Static|BindingFlags.Instance;
     private static int checks,poses;private static string output;
     private static readonly List<Bounds> ports=new List<Bounds>();
+    // Exact native step-casting envelopes. James explicitly requested the
+    // downpipe through these two pieces, using them as brackets.
+    private static readonly Bounds[] stepBrackets=MeyerRearUnderframeAudit.StepBrackets;
     public static void RunBatch()
     {
         output=Environment.GetEnvironmentVariable("S060_SMOOTH_STEAM_OUTPUT");Directory.CreateDirectory(output);
@@ -142,7 +145,12 @@ public static class MeyerSmoothSteamAudit
                 Object.DestroyImmediate(collision.gameObject);
             }
             Check(Mathf.Abs((float)lp.GetType().GetField("HeaderY",All).GetRawConstantValue()-1.40f)<.00001f,"Collector lowered 40 mm; clears native chest covers.");
-            Check(Mathf.Abs(((Vector3)lp.GetType().GetField("BodyBallPosition",All).GetValue(null)).y-1.32f)<.00001f,"Under-cab flexible return dropped 120 mm at body union.");
+            Check(Vector3.Distance((Vector3)lp.GetType().GetField("BodyBallPosition",All).GetValue(null),new Vector3(1.47f,1.65f,-3.80f))<.00001f,"Flexible outlet joins the early downpipe beside the native steps.");
+            var earlyTrunk=lpBody.Find("Single cab-roof steam trunk").GetComponent<MeshFilter>();
+            var lowerTurn=lpBody.Find("Rear articulated bend").GetComponent<MeshFilter>();
+            var nativeSheet=root.GetComponentsInChildren<MeshFilter>().Single(f=>f.name=="s060_body");
+            foreach(var bracket in stepBrackets)
+                Check(new[]{earlyTrunk,lowerTurn}.Any(f=>new SteamMeshContact.Shell(f,root.transform,bracket).Intersects(new SteamMeshContact.Shell(nativeSheet,root.transform,bracket))),"Early rear downpipe passes through each actual native step bracket.");
             var entries=CreateEntries(root.transform,native);
             var frontHome=front.parent.localPosition;var rearHome=rear.parent.localPosition;
             File.WriteAllLines(Path.Combine(output,"rear-native-bounds.txt"), new[]{"rear frame car position: "+root.transform.InverseTransformPoint(rear.position).ToString("F5")}.Concat(rear.GetComponentsInChildren<MeshFilter>(true).Where(f=>f.sharedMesh!=null).Select(f=>f.name+"; shown="+Shown(f)+"; rear="+BoundsOf(f,rear)+"; car="+BoundsOf(f,root.transform))));
@@ -155,6 +163,7 @@ public static class MeyerSmoothSteamAudit
             Render(root,"smooth-steam-left",new Vector3(-13,4.3f,-2.2f),new Vector3(0,2.2f,-1.9f),4.5f);
             Render(root,"smooth-steam-right",new Vector3(13,4.3f,-2.2f),new Vector3(0,2.2f,-1.9f),4.5f);
             Render(root,"smooth-steam-roof",new Vector3(-8,7,-6),new Vector3(-.5f,2.8f,-2.0f),3.3f);
+            Render(root,"early-rear-drop",new Vector3(9,3.0f,-3.9f),new Vector3(0,2.55f,-3.9f),1.8f);
             Render(root,"native-front-valve",new Vector3(-3,1.9f,6),new Vector3(-.35f,1.0f,4.05f),.7f);
             Render(root,"native-rear-valve",new Vector3(3,1.7f,-10),new Vector3(.35f,1.0f,-8.05f),.7f);
             detailAudit.HeatPreview(true);
@@ -188,7 +197,7 @@ public static class MeyerSmoothSteamAudit
                     {
                         if(poses>1&&!pipe.name.Contains("articulated bend")&&!pipe.transform.IsChildOf(front)&&!pipe.transform.IsChildOf(rear)&&!target.transform.IsChildOf(front)&&!target.transform.IsChildOf(rear))continue;
                         var targetBounds=BoundsOf(target,root.transform);if(!targetBounds.Intersects(region))continue;
-                        var carved=OutsidePorts(target,root.transform,region);if(carved==null)continue;
+                        var carved=OutsidePorts(target,root.transform,region,(pipe==earlyTrunk||pipe==lowerTurn)&&target==nativeSheet);if(carved==null)continue;
                         try
                         {
                             if(shell.Intersects(new SteamMeshContact.Shell(carved,root.transform,region),out var hit)&&contacts.Count<30)
@@ -249,7 +258,9 @@ public static class MeyerSmoothSteamAudit
         var result = new List<MeshFilter>();
         foreach (int side in new[] { -1, 1 })
         {
-            var b = new Bounds(new Vector3(side * 1.63f, 2.55f, -2.7f), new Vector3(.5f, 1.8f, 3.2f));
+            // Keep the entrance envelope forward of its native rear handrail
+            // (Z -3.439). The old coarse box included the requested step brackets.
+            var b = new Bounds(new Vector3(side * 1.63f, 2.55f, -2.265f), new Vector3(.5f, 1.8f, 2.33f));
             var a = b.min; var z = b.max;
             var mesh = new Mesh { name = "Unchanged cab entry QA volume", vertices = new[] {
                 new Vector3(a.x,a.y,a.z), new Vector3(z.x,a.y,a.z), new Vector3(z.x,z.y,a.z), new Vector3(a.x,z.y,a.z),
@@ -279,14 +290,14 @@ public static class MeyerSmoothSteamAudit
     private static Bounds BoundsOf(MeshFilter f,Transform root){var v=f.sharedMesh.vertices;var used=f.sharedMesh.triangles.Distinct().ToArray();var b=new Bounds(root.InverseTransformPoint(f.transform.TransformPoint(v[used[0]])),Vector3.zero);foreach(int i in used)b.Encapsulate(root.InverseTransformPoint(f.transform.TransformPoint(v[i])));b.Expand(.00001f);return b;}
     private static List<Vector3> Clip(List<Vector3> polygon,int axis,float edge,bool below)
     {var p=new List<Vector3>();for(int i=0;i<polygon.Count;i++){var a=polygon[i];var b=polygon[(i+1)%polygon.Count];float da=a[axis]-edge,db=b[axis]-edge;if(below?da<=0:da>=0)p.Add(a);if((da<0)!=(db<0))p.Add(Vector3.LerpUnclamped(a,b,da/(da-db)));}return p;}
-    private static MeshFilter OutsidePorts(MeshFilter f,Transform root,Bounds region)
+    private static MeshFilter OutsidePorts(MeshFilter f,Transform root,Bounds region,bool allowStepBrackets=false)
     {
         var v=f.sharedMesh.vertices.Select(p=>root.InverseTransformPoint(f.transform.TransformPoint(p))).ToArray();var t=f.sharedMesh.triangles;var result=new List<Vector3>();
         for(int i=0;i<t.Length;i+=3)
         {
             var tri=new List<Vector3>{v[t[i]],v[t[i+1]],v[t[i+2]]};var b=new Bounds(tri[0],Vector3.zero);b.Encapsulate(tri[1]);b.Encapsulate(tri[2]);if(!b.Intersects(region))continue;
             var polygons=new List<List<Vector3>>{tri};
-            foreach(var port in ports.Where(p=>p.Intersects(b)))
+            foreach(var port in ports.Concat(allowStepBrackets?stepBrackets:Array.Empty<Bounds>()).Where(p=>p.Intersects(b)))
             {
                 var next=new List<List<Vector3>>();foreach(var poly in polygons){var remainder=poly;for(int axis=0;axis<3&&remainder.Count>=3;axis++){var lo=Clip(remainder,axis,port.min[axis],true);if(lo.Count>=3)next.Add(lo);remainder=Clip(remainder,axis,port.min[axis],false);var hi=Clip(remainder,axis,port.max[axis],false);if(hi.Count>=3)next.Add(hi);remainder=Clip(remainder,axis,port.max[axis],true);}}polygons=next;
             }

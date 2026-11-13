@@ -12,6 +12,9 @@ using Object = UnityEngine.Object;
 
 public static class DocksideDraftBuilder
 {
+    [Serializable] private class Geometry { public SourceMesh[] meshes; }
+    [Serializable] private class SourceMesh { public string path; public Vector3[] vertices, normals; public Vector2[] uv; public int[] triangles; }
+    private static Dictionary<string,SourceMesh> originalGeometry;
     private const BindingFlags Flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance;
     public static void CreateDraft()
     {
@@ -49,7 +52,8 @@ public static class DocksideDraftBuilder
                 Alias(model, "S060 body (native alias)", MeyerPlan.BodyMesh, material, Vector3.one);
                 var front = Bogie(root.transform.Find("BogieF"), DocksidePlan.BogieCentre, material);
                 var rear = Bogie(root.transform.Find("BogieR"), -DocksidePlan.BogieCentre, material);
-                Franklin(front, folder, material); Franklin(rear, folder, material);
+                var franklinMetal = SteamBogieVisuals.Metal(folder, "FranklinGunmetal", new Color(.18f,.19f,.19f), .55f, .30f);
+                Franklin(front, folder, franklinMetal); Franklin(rear, folder, franklinMetal);
                 foreach (var unit in new[] { front, rear })
                 {
                     // Keep the original animated shaft hierarchy, replace only
@@ -159,15 +163,17 @@ public static class DocksideDraftBuilder
                 holder.localPosition = new Vector3(side * (DocksidePlan.PistonAxisX - source.transform.Find("cylinder").localPosition.x * .70f),
                     .50f - source.transform.Find("cylinder").localPosition.y * .70f,
                     DocksidePlan.CylinderZ - source.transform.Find("cylinder").localPosition.z * DocksidePlan.FranklinZScale);
-                int index = 0; CopyGeometry(source.transform, holder, folder, material, ref index);
+                originalGeometry = JsonUtility.FromJson<Geometry>(File.ReadAllText(Environment.GetEnvironmentVariable("DOCKSIDE_FRANKLIN_GEOMETRY"))).meshes.ToDictionary(m=>m.path);
+                int index = 0; CopyGeometry(source.transform, holder, folder, material, ref index, "");
             }
         }
         finally { bundle.Unload(true); }
     }
-    private static void CopyGeometry(Transform source, Transform target, string folder, Material material, ref int index)
+    private static void CopyGeometry(Transform source, Transform target, string folder, Material material, ref int index, string parentPath)
     {
         foreach (Transform child in source)
         {
+            string sourcePath = (parentPath.Length == 0 ? "" : parentPath + "/") + child.name;
             var copy = new GameObject(child.name).transform; copy.SetParent(target, false);
             copy.localPosition = child.localPosition; copy.localRotation = child.localRotation; copy.localScale = child.localScale;
             var filter = child.GetComponent<MeshFilter>();
@@ -176,13 +182,18 @@ public static class DocksideDraftBuilder
                 // Only the fork's own custom Franklin meshes are copied. No
                 // animations, scripts, native textures or materials are exported.
                 if (filter.sharedMesh.name != "default") throw new InvalidOperationException("Unexpected Franklin source mesh: " + filter.sharedMesh.name);
-                string meshPath = folder + "/FranklinCustomMesh" + index++ + ".asset";
-                var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(meshPath);
-                if (mesh == null) { mesh = Object.Instantiate(filter.sharedMesh); mesh.name = "Dockside custom Franklin " + (index - 1); AssetDatabase.CreateAsset(mesh, meshPath); }
+                index++;
+                // The old non-readable bundle-to-asset copies exported with
+                // zero positions but plausible cached bounds. Reauthor from
+                // the verified original bytes rather than copying those meshes.
+                var data = originalGeometry[sourcePath];
+                var mesh = new Mesh {name="FranklinCustomMesh"+(index-1),vertices=data.vertices,normals=data.normals,uv=data.uv,triangles=data.triangles};
+                mesh.RecalculateBounds(); mesh.RecalculateTangents();
+                mesh = DocksideDriveDetail.Save(folder,mesh);
                 copy.gameObject.AddComponent<MeshFilter>().sharedMesh = mesh;
-                var renderer = copy.gameObject.AddComponent<MeshRenderer>(); renderer.sharedMaterial = material; MaterialAlias(renderer);
+                var renderer = copy.gameObject.AddComponent<MeshRenderer>(); renderer.sharedMaterial = material;
             }
-            CopyGeometry(child, copy, folder, material, ref index);
+            CopyGeometry(child, copy, folder, material, ref index, sourcePath);
         }
     }
     private static void Clear(Transform parent) { if (parent == null) throw new InvalidOperationException("Template transform missing."); foreach (var child in parent.Cast<Transform>().ToArray()) Object.DestroyImmediate(child.gameObject); }

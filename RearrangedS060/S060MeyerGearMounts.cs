@@ -99,11 +99,28 @@ namespace RearrangedS060
                 Box(side, 1.17f, 1.24f, 1.20f, 1.25f, Mathf.Min(0, first) - .025f, last + .025f);
                 foreach (float z in new[] { first, last }) Box(side, 1.14f, 1.24f, .59f, 1.25f, z - .025f, z + .025f);
             }
+            FitWheels(frame);
+            Combine();
+        }
+        // Dockside uses the same native01 wheel and displaces the same two
+        // original return-crank islands. Keep the native journal and restoration.
+        internal static S060MeyerGearMounts BindWheelCranks(Transform frame)
+        {
+#if UNITY_EDITOR
+            var owner = new S060MeyerGearMounts();
+#else
+            var owner = frame.gameObject.AddComponent<S060MeyerGearMounts>();
+#endif
+            try { owner.FitWheels(frame); return owner; }
+            catch { owner.Dispose(); throw; }
+        }
+        private void FitWheels(Transform frame)
+        {
             foreach (var filter in frame.Find("[axle] rear").GetComponentsInChildren<MeshFilter>(true))
             {
                 var source = filter.sharedMesh;
                 if (source == null || !source.name.StartsWith("s060_Wheels_01", StringComparison.Ordinal)) continue;
-                if (!source.isReadable) throw new InvalidOperationException("Readable native01 wheel required for Meyer journal fitting.");
+                if (!source.isReadable) throw new InvalidOperationException("Readable native01 wheel required for articulated journal fitting.");
                 if (!wheelCopies.TryGetValue(source, out var copy))
                 {
                     var triangles = Enumerable.Range(0, source.subMeshCount).Select(source.GetTriangles).ToArray();
@@ -113,14 +130,13 @@ namespace RearrangedS060
                         (b.min.x > 1.06f && b.min.x < 1.08f && b.max.x > 1.16f && b.max.x < 1.19f && b.min.y > -.06f && b.max.y < 0 && b.min.z > -.17f && b.max.z < -.12f);
                     var remove = bounds.Select(ReturnCrank).ToArray();
                     if (remove.Count(b => b) != 2) throw new InvalidOperationException("Both measured unused native return-crank islands required.");
-                    copy = Object.Instantiate(source); copy.name = source.name + " (Meyer main journal retained)";
+                    copy = Object.Instantiate(source); copy.name = source.name + " (main journal retained)";
                     wheelCopies.Add(source, copy);
                     for (int sub = 0; sub < triangles.Length; sub++) copy.SetTriangles(Enumerable.Range(0, triangles[sub].Length / 3).Where(i => !remove[ids[triangles[sub][3 * i]]]).SelectMany(i => new[] { triangles[sub][3 * i], triangles[sub][3 * i + 1], triangles[sub][3 * i + 2] }).ToArray(), sub);
                 }
                 wheels.Add((filter, source)); filter.sharedMesh = copy;
             }
             if (wheels.Count != 2) throw new InvalidOperationException("Both main-rod wheels must retain their native01 journals.");
-            Combine();
         }
         private void MoveInboard(Transform part, float x)
         { if (part == null) throw new InvalidOperationException("Meyer suspension datum missing."); homes.Add((part, part.localPosition)); var p = part.localPosition; p.x = x; part.localPosition = p; }

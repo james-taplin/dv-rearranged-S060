@@ -29,7 +29,9 @@ namespace RearrangedS060
                 owner.Pipe("Shay offside under-boiler feed",.060f,new[]{Socket(-1)-Vector3.up*.10f,new Vector3(-.7052183f,1.74f,3.1679118f),new Vector3(-1.48f,1.74f,3.1679118f),new Vector3(-1.48f,1.35f,2.85f),new Vector3(-1.48f,1.35f,.72f),new Vector3(-1.48f,.88f,.80f),new Vector3(.90f,.88f,.80f),new Vector3(1.48f,.88f,.80f),junction});
                 owner.Pipe("Shay main admission riser",.070f,new[]{junction,new Vector3(1.48f,.88f,-.12f),new Vector3(1.48f,1.20f,-.48f),new Vector3(1.48f,inlet.y,-.48f),inlet});
                 var normal=new Vector3(.88192f,.47140f,0);
-                owner.Pipe("Shay single-chimney exhaust return",.070f,new[]{exhaust,new Vector3(1.64f,exhaust.y,exhaust.z),new Vector3(1.64f,2.72f,.96f),new Vector3(1.53f,2.72f,2.98f),new Vector3(1.53f,2.86f,3.45f),smokebox+normal*.24f,smokebox-normal*.015f});
+                var exhaustCourse=new[]{exhaust,new Vector3(1.64f,exhaust.y,exhaust.z),new Vector3(1.64f,2.72f,.96f),new Vector3(1.53f,2.86f,3.45f),smokebox+normal*.24f,smokebox-normal*.015f};
+                owner.Pipe("Shay single-chimney exhaust return",.070f,exhaustCourse);
+                var exhaustCentres=Rounded(exhaustCourse);
                 owner.Flange(inlet,Vector3.right,.095f,.026f);
                 owner.Flange(exhaust,Vector3.right,.105f,.026f);
                 owner.Flange(smokebox+normal*.004f,normal,.115f,.042f);
@@ -44,11 +46,15 @@ namespace RearrangedS060
                 }
                 owner.Collared(junction+Vector3.forward*.03f,Vector3.forward,.080f,.09f);
                 owner.Flange(new Vector3(1.48f,1.83f,-.48f),Vector3.up,.103f,.026f);
-                foreach(float z in new[]{1.48f,2.46f})
+                // Native information board spans Z 1.221..2.521 m. Seat both
+                // straps outside it, on the actual swept pipe (including bends).
+                foreach(float z in new[]{1.02f,2.73f})
                 {
-                    float x=Mathf.Lerp(1.64f,1.53f,(z-.96f)/(2.98f-.96f));
-                    owner.Collared(new Vector3(x,2.72f,z),Vector3.forward,.083f,.034f);
-                    owner.AddFitting(S060MeyerExhaustPipe.PathMesh(new[]{new Vector3(1.30f,2.10f,z),new Vector3(x,2.64f,z)},.018f,false));
+                    int i=Enumerable.Range(0,exhaustCentres.Length-1).First(n=>exhaustCentres[n].z<=z&&exhaustCentres[n+1].z>=z);
+                    var a=exhaustCentres[i];var b=exhaustCentres[i+1];
+                    var centre=Vector3.Lerp(a,b,(z-a.z)/(b.z-a.z));
+                    owner.Collared(centre,(b-a).normalized,.083f,.034f);
+                    owner.AddFitting(S060MeyerExhaustPipe.PathMesh(new[]{new Vector3(1.30f,2.10f,z),centre-Vector3.up*.08f},.018f,false));
                 }
                 owner.CombineFittings();return owner;
             }
@@ -61,17 +67,10 @@ namespace RearrangedS060
                 for(int i=0;i<centres.Length;i++)radii[i]=Mathf.Lerp(.070f,radius,Mathf.Clamp01(Vector3.Distance(centres[i],points[points.Length-1])/.15f));
             Render(name,Hollow(centres,radii,radii.Select(r=>r-.008f).ToArray()),iron);
         }
+        // Reuse the proven circular sweep: a broad tangent elbow rather than
+        // a short quadratic corner. Hollow walls and end sockets are retained.
         internal static Vector3[] Rounded(Vector3[] points)
-        {
-            var result=new List<Vector3>{points[0]};
-            for(int i=1;i<points.Length-1;i++)
-            {
-                float cut=Mathf.Min(.28f,Mathf.Min(Vector3.Distance(points[i-1],points[i]),Vector3.Distance(points[i],points[i+1]))*.42f);
-                var a=points[i]+(points[i-1]-points[i]).normalized*cut;var b=points[i]+(points[i+1]-points[i]).normalized*cut;
-                for(int j=0;j<=8;j++){float t=j/8f;result.Add((1-t)*(1-t)*a+2*(1-t)*t*points[i]+t*t*b);}
-            }
-            result.Add(points[points.Length-1]);return result.ToArray();
-        }
+            =>S060MeyerExhaustPipe.SmoothCentres(points,.38f);
         private static Mesh Hollow(Vector3[] centres,float[] outer,float[] inner,int sides=24)
         {
             var vertices=new List<Vector3>();var uv=new List<Vector2>();var triangles=new List<int>();

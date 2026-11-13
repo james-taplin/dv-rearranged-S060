@@ -1,5 +1,19 @@
 # Rearranged S060 — handover
 
+## 0.3.2 Shay/Dockside/Meyer polish — commit only, 13 November 2026
+
+Read [GEARED-POLISH-0.3.2.md](GEARED-POLISH-0.3.2.md). Shay has circular pipe
+elbows and collared stays clear of the measured native information board.
+Dockside reuses the proven native return-crank removal and restores the actual
+Franklin gearbox/shaft vertex data lost by the old streamed-mesh copy. All 17
+custom source meshes now reopen with exact original positions. Runtime/version
+remain 0.3.2. James's follow-up moves the Meyer rear return down earlier beside
+the bunker, through the native steps as brackets, then back into the unchanged
+manifold. This follow-up is amended into the same commit; the corrected lower
+bend and updated native geometry evidence are documented in that handover.
+Source/build evidence only; no installation, push or publication.
+The installed detail revision below remains installed. James owns DV testing.
+
 ## Current 0.3.2 detail revision — INSTALLED, 13 November 2026
 
 James requested the tender foothold texture smears and apparent missing

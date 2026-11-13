@@ -317,6 +317,23 @@ public static class ConventionalNativeAudit
             Object.DestroyImmediate(root);bundle.Unload(true);return;
         }
         ValidateShayPipes(root.transform,model.transform,bodyFilter,markers);
+        var exhaustReturn=model.GetComponentsInChildren<MeshFilter>(true).Single(f=>f.name=="Shay single-chimney exhaust return");
+        var pumpJoin=new Bounds(new Vector3(1.31f,2.85f,3.45f),Vector3.one*.16f);
+        Check(model.transform.Find("Trucks/BODY_ROOT/SHAY_FRAME_DETAILS").GetComponentsInChildren<MeshFilter>(true)
+            .Where(f=>f.name.EndsWith("LOD0")).Any(f=>new SteamMeshContact.Shell(f,root.transform,pumpJoin)
+                .Intersects(new SteamMeshContact.Shell(exhaustReturn,root.transform,pumpJoin))),"Broader Shay elbow retains the actual compressor exhaust tee");
+        // Native TrainCarPlate prefab: 10 x 320 x 1300 mm at the measured
+        // S060 anchors (+/-1.30, 2.065, 1.871). Include it in this fixture:
+        // it is generated separately and was absent from the body-only check.
+        var fittings=model.GetComponentsInChildren<MeshFilter>(true).Single(f=>f.name=="Shay pipe flanges, studs and supports");
+        foreach(int side in new[]{-1,1})
+        {
+            var board=GameObject.CreatePrimitive(PrimitiveType.Cube);board.transform.SetParent(root.transform,false);
+            board.transform.localPosition=new Vector3(side*1.30f,2.065f,1.871f);board.transform.localScale=new Vector3(.01f,.32f,1.30f);
+            try {Check(!new SteamMeshContact.Shell(fittings,root.transform).Intersects(new SteamMeshContact.Shell(board.GetComponent<MeshFilter>(),root.transform)),"Shay collared stays must clear the real information-board dimensions on both sides");}
+            finally {Object.DestroyImmediate(board);}
+        }
+        RenderWide(root,"shay-upper-pipe-detail",new Vector3(5,2.5f,2.2f),new Vector3(1.2f,2.5f,2.2f),.85f);
         var bank=New("S060EngineBank");var slot=System.Runtime.Serialization.FormatterServices.GetUninitializedObject(runtime.GetType("RearrangedS060.S060EngineSlot"));
         var engineType=runtime.GetType("RearrangedS060.S060ShayEngine");var engine=System.Runtime.Serialization.FormatterServices.GetUninitializedObject(engineType);
         var nativeEngine=engineType.BaseType;var engines=Array.CreateInstance(nativeEngine,4);engines.SetValue(engine,3);
