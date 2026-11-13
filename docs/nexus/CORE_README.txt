@@ -1,4 +1,4 @@
-REARRANGED S060 - 0.3.1 MEYER REPAIR CANDIDATE
+REARRANGED S060 - 0.3.2 VISUAL REPAIR CANDIDATE
 
 Change the native S060's running gear through WHEEL REARRANGER on the comms
 radio or the UMM arrangement chooser. Identity, cab, fuel, water, damage, oil
@@ -6,11 +6,18 @@ and save ownership remain with the same locomotive.
 
 IN THIS BUILD
 
-Meyer repair revision: the rear running plate and frame bearers now join the
-native cab chassis. The rear chain retains its relocated position when DV
-re-enables its visuals. The LP exhaust returns low along the frame, with
-running-plate hangers and a short rise at the smokebox. Mod metadata, existing
-save identities, independent drive and compound calibration are unchanged.
+Meyer: the previous smooth upper LP steam return is restored. The rear chain
+retains its relocated position when DV re-enables its visuals. The heavy pinned
+drawbar and short drawgear remain beneath an open gap; no footplate or upper
+bearer bridges the gap to the tank.
+
+Shay: custom metal finishes are assigned before activation and restored after
+paint/material replacement, so the native body atlas cannot repeat across the
+new parts' metric UVs. Native wheel UVs and materials remain separate.
+
+Loose static expansion-link castings and mountings are retired on the short-
+wheelbase, Dockside, 0-8-0 and 0-10-0 layouts. Returning to stock restores them.
+Save identities, independent drive and compound calibration are unchanged.
 
 Dockside and Meyer now have independently slipping powered groups, using DV's
 native adhesion/slip calculations. Each group drives its own crank phase,

@@ -111,6 +111,9 @@ namespace RearrangedS060
                 state.Apply();
                 if (state is S060FourCoupled || state is S060EightCoupled) state.fittedCouplingRods = S060CouplingRods.Apply(parts);
                 state.Scale.PositionFittings(state.CylinderShift);
+#if B99_S060_ARTICULATED
+                if(state is S060Dockside)state.Scale.RetireFixedValveGear();
+#endif
                 state.AlignAxlesToWheels();
                 S060Oiling.Select(car, state.Selection);
                 S060OilCups.Refresh(car);

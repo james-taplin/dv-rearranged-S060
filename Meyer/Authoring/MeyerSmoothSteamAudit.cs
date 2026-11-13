@@ -124,7 +124,7 @@ public static class MeyerSmoothSteamAudit
             var targets=root.GetComponentsInChildren<MeshFilter>(true).Where(f=>!pipes.Contains(f)&&f.sharedMesh!=null&&Shown(f)).ToArray();
             var underframe=new MeyerRearUnderframeAudit(root.transform,rear);
             bool repairs=underframe.RepairContract(lpBody,output);
-            if(Environment.GetEnvironmentVariable("S060_REPAIR_BASELINE")!="1")Check(repairs,"Upper bridge removed, open plate edge, pinned drawgear mounted to native frame and low exhaust return; see meyer-repair-contract.json.");
+            if(Environment.GetEnvironmentVariable("S060_REPAIR_BASELINE")!="1")Check(repairs,"Upper bridge removed, open plate edge, pinned drawgear mounted to native frame and restored smooth upper return; see meyer-repair-contract.json.");
             if(fittingReturn==null&&Environment.GetEnvironmentVariable("S060_REPAIR_BASELINE")!="1")
             {
                 // All collision, walking and item layers use this same factory.

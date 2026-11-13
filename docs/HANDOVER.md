@@ -1,5 +1,21 @@
 # Rearranged S060 — handover
 
+## Current 0.3.2 visual repairs — STAGED ONLY
+
+Read [VISUAL-REPAIRS-0.3.2.md](VISUAL-REPAIRS-0.3.2.md). This starts from the
+installed repaired 0.3.1 source, not Documents 0.4. James authorised the previous
+smooth upper Meyer return as fallback; it is restored exactly after lower-route
+fitting contacts. Keep the pinned drawgear/open upper gap and rear coupler fix.
+Shay custom finishes now retain ownership across paint/material replacement.
+The loose fixed curved links and mountings are retired on short-wheelbase,
+Dockside, 0-8-0 and 0-10-0, with exact stock restoration.
+
+Source: B:/GitHub repo/rearranged-s060-032-polish-20261113/source.
+Evidence: build/polish-0.3.2/validation.json. Version/assembly become 0.3.2;
+other metadata, save identities and bundles are retained. The installed 0.3.1
+below remains the installed build. No install, DV launch, push or publication.
+James performs in-game testing. Leave the active Documents 0.4 work alone.
+
 ## Current 0.3.1 correction — heavy link and pin, INSTALLED
 
 James explicitly authorised installation of this repaired build without a

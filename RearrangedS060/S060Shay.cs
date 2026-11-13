@@ -82,6 +82,9 @@ namespace RearrangedS060
             foreach(var renderer in Parts.Body.GetComponentsInChildren<Renderer>(true).Where(r=>r.name.StartsWith("s060_cylinder_",StringComparison.Ordinal)||r.name.Contains("caliper")||r.name.Contains("brake_shoes")))
             {renderers.Add((renderer,renderer.enabled));renderer.enabled=false;}
             materialSource=Parts.Body.GetComponentsInChildren<MeshRenderer>(true).First(r=>r.name=="s060_body"&&r.sharedMaterial!=null);
+            // Resolve the authored slots before activation/painting can replace
+            // their names with the car's atlas material.
+            RefreshMaterials(Root.GetComponentsInChildren<Transform>(true));
             var all=Root.GetComponentsInChildren<Transform>(true); Markers=all;
             Transform Find(string name)=>all.Single(t=>t.name==name);
             foreach(bool rear in new[]{true,false})
@@ -125,15 +128,18 @@ namespace RearrangedS060
         private void RefreshMaterials(Transform[] parts)
         {
             lastMaterial=materialSource.sharedMaterial;
+            var owner=Root.GetComponent<S060ShayMaterials>();
+            owner?.RestoreFinishes();
             // The Shay meshes have their own UVs, not the S060 body atlas, so painted
             // and machined slots get working finishes rather than the livery sheet.
             foreach(var renderer in parts.SelectMany(t=>t.GetComponents<MeshRenderer>()))
             {
+                if(!S060ShayMaterials.IsCustom(renderer))continue;
                 var material=renderer.sharedMaterial; if(material==null) continue;
-                if(material.name.Contains("PAINT")||material.name.Contains("painted")) renderer.sharedMaterial=S060ShayFinish.Gunmetal(material);
+                if(material==lastMaterial||material.name.Contains("PAINT")||material.name.Contains("painted")) renderer.sharedMaterial=S060ShayFinish.Gunmetal(material);
                 else if(material.name=="gear_steel"||material.name=="shaft_steel"||material.name=="S060_MACHINED") renderer.sharedMaterial=S060ShayFinish.Steel(material);
             }
-            Root.AddComponent<S060ShayMaterials>().Bind(materialSource,parts);
+            (owner??Root.AddComponent<S060ShayMaterials>()).Bind(materialSource,parts);
         }
         private void Hide(GameObject part){hidden.Add((part,part.activeSelf));part.SetActive(false);}
         protected override void Undo()
@@ -192,10 +198,20 @@ namespace RearrangedS060
         private static bool Live(Material m)=>m!=null&&m.shader!=null&&m.shader.isSupported;
         private static Material Make(Material template,string name,Color color,float metallic,float gloss)
         {
-            var m=new Material(template){name=name,color=color,mainTexture=Grime(),mainTextureScale=new Vector2(2,2)};
-            m.SetTexture("_MetallicGlossMap",null);m.DisableKeyword("_METALLICGLOSSMAP");
+            var m=new Material(template){name=name,color=color};
+            ClearAtlasMaps(m);
             m.SetFloat("_Metallic",metallic);m.SetFloat("_Glossiness",gloss);
             return m;
+        }
+        private static void ClearAtlasMaps(Material m)
+        {
+            foreach(var property in m.GetTexturePropertyNames())m.SetTexture(property,null);
+            m.shaderKeywords=new string[0];
+            m.mainTexture=Grime();m.mainTextureScale=new Vector2(2,2);m.mainTextureOffset=Vector2.zero;
+        }
+        internal static void RestoreTextures()
+        {
+            foreach(var m in new[]{gunmetal,steel})if(Live(m)&&m.mainTexture!=Grime())ClearAtlasMaps(m);
         }
         // Tileable soot/oil mottling used as an albedo multiplier; generated, so nothing is shipped.
         internal static Texture2D Grime()
@@ -223,10 +239,20 @@ namespace RearrangedS060
 
     internal sealed class S060ShayMaterials:MonoBehaviour
     {
-        private Renderer source;private Renderer[] targets;private Material current;
+        private readonly Dictionary<Renderer,Material> finishes=new Dictionary<Renderer,Material>();
+        internal static bool IsCustom(Renderer r)=>!r.name.Contains("_NATIVE_")&&r.name!="Native wheel distant";
         internal void Bind(Renderer source,Transform[] parts)
-        {this.source=source;current=source.sharedMaterial;targets=parts.SelectMany(t=>t.GetComponents<MeshRenderer>()).Where(r=>r.sharedMaterial==current).Cast<Renderer>().ToArray();}
-        private void LateUpdate(){if(source==null||source.sharedMaterial==current)return;current=source.sharedMaterial;foreach(var r in targets)if(r!=null)r.sharedMaterial=current;}
+        {
+            foreach(var r in parts.SelectMany(t=>t.GetComponents<MeshRenderer>()).Concat(GetComponentsInChildren<MeshRenderer>(true)).Distinct().Where(IsCustom))
+                if(r.sharedMaterial!=null&&!finishes.ContainsKey(r))finishes.Add(r,r.sharedMaterial);
+            RestoreFinishes();
+        }
+        internal void RestoreFinishes()
+        {
+            S060ShayFinish.RestoreTextures();
+            foreach(var pair in finishes)if(pair.Key!=null&&pair.Key.sharedMaterial!=pair.Value)pair.Key.sharedMaterial=pair.Value;
+        }
+        private void LateUpdate()=>RestoreFinishes();
     }
 }
 

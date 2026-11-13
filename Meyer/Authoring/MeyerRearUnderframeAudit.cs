@@ -86,17 +86,17 @@ public sealed class MeyerRearUnderframeAudit
         }
         var course = samples.ToArray();
         float top = course.Length==0 ? float.PositiveInfinity : course.Max(p=>p.y);
-        bool low = course.Length!=0 && top < 1.55f && course.Min(p=>p.z)<-3.9f && course.Max(p=>p.z)>2f;
+        bool upper = trunk.name=="Single cab-roof steam trunk"&&course.Length!=0&&top>4.1f&&top<4.14f&&course.Min(p=>p.z)<-3.9f&&course.Max(p=>p.z)>2f;
         // The bottom face isolates the plate/lips from upright hopper edging.
         bool openPlate=!plateLeft&&!plateRight&&Vertices(plate).Where(p=>p.y>1.619f&&p.y<1.621f&&Mathf.Abs(p.x)>1f).Max(p=>p.z)<-4.379f;
         bool locoMount=Joins(housing,new Vector3(0,1.08f,-3.95f),new Vector3(.60f,.32f,.36f));
         bool unitMount=new SteamMeshContact.Shell(rearFork,root).Intersects(new SteamMeshContact.Shell(unitFrame,root));
         bool owned=rearFork.transform.IsChildOf(rear)&&!frontFork.transform.IsChildOf(rear)&&!link.transform.IsChildOf(rear);
         bool upperBridgeRemoved=!left&&!right&&Vertices(fixedFrame).Max(p=>p.z)<-4.379f;
-        bool passed=upperBridgeRemoved&&openPlate&&locoMount&&unitMount&&owned&&low;
+        bool passed=upperBridgeRemoved&&openPlate&&locoMount&&unitMount&&owned&&upper;
         File.WriteAllText(Path.Combine(output,"meyer-repair-contract.json"),JsonUtility.ToJson(new RepairReport{
             passed=passed,upperBridgeRemoved=upperBridgeRemoved,plateGapOpen=openPlate,locoDrawgearMounted=locoMount,bogieForkMounted=unitMount,separateDrawgearOwnership=owned,
-            returnBelowRunningPlate=low,maximumLongCourseY=top,gameplayValidated=false},true));
+            smoothUpperReturnRestored=upper,maximumLongCourseY=top,gameplayValidated=false},true));
         return passed;
     }
     private void Clear(MeshFilter a,MeshFilter b)
@@ -152,6 +152,6 @@ public sealed class MeyerRearUnderframeAudit
         return gap;
     }
     [Serializable]private sealed class Report{public bool passed,bodyAndUnitOwnership,gameScene;public int poses,triangleComparisons;public float minimumFloorGapMetres,maximumDrawgearTravel,maximumPinError,collectorLoweredMetres,bodyUnionLoweredMetres;}
-    [Serializable]private sealed class RepairReport{public bool passed,upperBridgeRemoved,plateGapOpen,locoDrawgearMounted,bogieForkMounted,separateDrawgearOwnership,returnBelowRunningPlate,gameplayValidated;public float maximumLongCourseY;}
+    [Serializable]private sealed class RepairReport{public bool passed,upperBridgeRemoved,plateGapOpen,locoDrawgearMounted,bogieForkMounted,separateDrawgearOwnership,smoothUpperReturnRestored,gameplayValidated;public float maximumLongCourseY;}
 }
 #endif

@@ -177,6 +177,7 @@ namespace RearrangedS060
         internal float Factor = 1; internal S060DriverScale(S060Parts _) {}
         internal void Apply(float scale) => Factor = scale;
         internal void PositionFittings(float shift) {}
+        internal void RetireFixedValveGear() {} // Native geometry is covered by ConventionalNativeAudit.
         internal void Restore() { Faults.ScaleRestores++; Factor = 1; Faults.Throw(ref Faults.ScaleRestoreFailures, "injected scale restore"); }
         internal void ReleaseResources() => Faults.MeshReleases++;
     }

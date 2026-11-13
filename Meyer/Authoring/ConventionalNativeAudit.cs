@@ -39,6 +39,7 @@ public static class ConventionalNativeAudit
             if(Environment.GetEnvironmentVariable("S060_ONLY_SHAY")!="1")foreach (bool ten in new[] { false, true }) Validate(data, bodyData, ten);
             if(!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("S060_SHAY_AUDIT_BUNDLE"))) ValidateShay(data,bodyData);
             if(!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("S060_MEYER_AUDIT_BUNDLE"))) if(Environment.GetEnvironmentVariable("S060_ONLY_SHAY")!="1")ValidateMeyerBody(data,bodyData);
+            if(Environment.GetEnvironmentVariable("S060_ONLY_SHAY")!="1")ValidateFixedValveGear(bodyData);
             bool preview=Environment.GetEnvironmentVariable("S060_SHAY_PREVIEW_ONLY")=="1",shayOnly=Environment.GetEnvironmentVariable("S060_ONLY_SHAY")=="1";
             File.WriteAllText(Path.Combine(output, "conventional-validation.json"), JsonUtility.ToJson(new Report { passed = true, checks = checks,
                 actualNativeMeshes = true, candidateGeometry = true, fiveDrivenAxles = !shayOnly, fullSizeCylinders = !preview, tenOilSites = !shayOnly, cleanup = true, crankSweep = !preview, tyreClearance = !shayOnly, previewOnly=preview, runtimeSha256 = Hash(dll),
@@ -289,6 +290,18 @@ public static class ConventionalNativeAudit
         Check(!finishes.Any(m=>m==bodyFilter.GetComponent<MeshRenderer>().sharedMaterial),"No Shay part wears the S060 body atlas material");
         Check(!finishes.Any(m=>m.name.Contains("PAINT")||m.name.Contains("painted")||m.name=="gear_steel"||m.name=="shaft_steel"||m.name=="S060_MACHINED"),"Shay painted and machined slots use the run-time gunmetal and steel finishes");
         Check(finishes.Any(m=>m.name=="S060 Shay dirty gunmetal")&&finishes.Any(m=>m.name=="S060 Shay oily steel"),"Both Shay finishes are applied");
+        // Reproduce the reported full-atlas repeat after a paint/material
+        // replacement. The old fixture only examined untouched bundle slots.
+        var finishTargets=markers.SelectMany(t=>t.GetComponents<MeshRenderer>()).Concat(model.GetComponentsInChildren<MeshRenderer>(true)).Distinct()
+            .Where(r=>r.sharedMaterial!=null&&r.sharedMaterial.name=="S060 Shay dirty gunmetal").Take(2).ToArray();
+        var finishHomes=finishTargets.Select(r=>r.sharedMaterial).ToArray();
+        var nativeWheelHomes=markers.Where(t=>t.name.EndsWith("_NATIVE_SET",StringComparison.Ordinal)).SelectMany(t=>t.GetComponents<MeshRenderer>()).ToDictionary(r=>r,r=>r.sharedMaterial);
+        foreach(var r in finishTargets)r.sharedMaterial=material;
+        Call(model.GetComponent(runtime.GetType("RearrangedS060.S060ShayMaterials",true)),"LateUpdate");
+        bool finishRestored=finishTargets.Select((r,i)=>r.sharedMaterial==finishHomes[i]).All(v=>v);
+        File.WriteAllText(Path.Combine(output,"shay-finish-paint-validation.json"),"{\"passed\":"+(finishRestored?"true":"false")+",\"fullAtlasReplacementReproduced\":true,\"gameScene\":false}");
+        Check(finishRestored,"Shay custom finishes recover after a full-body atlas material replaces them");
+        Check(nativeWheelHomes.All(p=>p.Key.sharedMaterial==p.Value),"Finish recovery preserves native wheel UVs and wheel materials");
         if(Environment.GetEnvironmentVariable("S060_SHAY_PREVIEW_ONLY")=="1")
         {
             File.WriteAllText(Path.Combine(output,"shay-fitted-body.json"),JsonUtility.ToJson(new Entry{name="Fitted native Shay body",vertices=bodyFilter.sharedMesh.vertices.Select(v=>root.transform.InverseTransformPoint(bodyFilter.transform.TransformPoint(v))).ToArray(),triangles=bodyFilter.sharedMesh.triangles}));
@@ -555,6 +568,33 @@ public static class ConventionalNativeAudit
         var target=new RenderTexture(1800,900,24); camera.targetTexture=target; camera.Render(); var previous=RenderTexture.active;RenderTexture.active=target;
         var image=new Texture2D(1800,900,TextureFormat.RGB24,false);image.ReadPixels(new Rect(0,0,1800,900),0,0);image.Apply();File.WriteAllBytes(Path.Combine(output,name+"-native-preview.png"),image.EncodeToPNG());
         RenderTexture.active=previous;camera.targetTexture=null;Object.DestroyImmediate(image);Object.DestroyImmediate(target);EditorSceneManager.ClosePreviewScene(scene);
+    }
+
+    private static void ValidateFixedValveGear(Entry bodyData)
+    {
+        var root=new GameObject("Native fixed valve gear retirement fixture");
+        var body=Draw(root.transform,"s060_body",Mesh(bodyData));
+        var filter=body.GetComponent<MeshFilter>();var original=filter.sharedMesh;
+        var uv=original.uv;var normals=original.normals;
+        var type=runtime.GetType("RearrangedS060.S060FixedValveGear",true);
+        IDisposable owner=null;
+        try
+        {
+            owner=(IDisposable)type.GetMethod("Apply",All).Invoke(null,new object[]{root.transform});
+            var copy=filter.sharedMesh;
+            Check(copy!=original&&original.triangles.Length-copy.triangles.Length>600,"Retire both measured curved castings and their detached mountings");
+            Check(copy.uv.SequenceEqual(uv)&&copy.normals.SequenceEqual(normals),"Retiring gear preserves UVs and normals on retained native geometry");
+            var kept=new HashSet<int>(copy.triangles);var v=original.vertices;
+            var removed=original.triangles.Distinct().Where(i=>!kept.Contains(i)).Select(i=>v[i]).ToArray();
+            Check(removed.Any(p=>p.x>.83f)&&removed.Any(p=>p.x<-.83f),"Retire the fixed gear on both sides");
+            Check(removed.All(p=>Mathf.Abs(p.x)>=.83f&&Mathf.Abs(p.x)<=1.20f&&p.y>=.87f&&p.y<=1.64f&&p.z>=.72f&&p.z<=1.34f),"No wheels, moving rods, cylinders or frame faces removed outside the reported gear region");
+            RenderWide(root,"retired-fixed-gear",new Vector3(-5,1.30f,1.02f),new Vector3(0,1.30f,1.02f),.62f);
+            owner.Dispose();owner=null;
+            Check(filter.sharedMesh==original,"Restoring stock restores the exact original fixed gear mesh");
+            owner=(IDisposable)type.GetMethod("Apply",All).Invoke(null,new object[]{root.transform});owner.Dispose();owner=null;
+            Check(filter.sharedMesh==original,"Repeated fixed gear retirement/restoration is reversible");
+        }
+        finally{owner?.Dispose();Object.DestroyImmediate(root);}
     }
 
     private static void Render(GameObject body,string name)

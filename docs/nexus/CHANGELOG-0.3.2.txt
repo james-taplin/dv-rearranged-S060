@@ -1,0 +1,16 @@
+Version 0.3.2 - staged visual repairs
+
+- Restored the previous smooth upper Meyer LP return. The rejected low return
+  is removed; the repaired rear coupling and heavy pinned drawgear remain.
+- Corrected Shay custom finish assignment and recovery after paint/material
+  replacement. The full native body atlas no longer belongs on these parts'
+  metric UVs. Native wheel geometry, UVs and wheel materials are preserved.
+- Retired loose static expansion-link castings and their mountings on the
+  short-wheelbase, Dockside, 0-8-0 and 0-10-0 layouts. Stock restoration returns
+  the exact original meshes. Moving gear, frames and cylinders remain.
+- Existing mod identity, dependencies, save IDs, independent drive, oiling and
+  steam calibration are retained. Only the release/assembly version changes.
+
+Staged only. Installed 0.3.1 and the separate 0.4 work remain untouched.
+Offline evidence and limits are recorded in docs/HANDOVER.md. James performs
+Derail Valley visual and driving acceptance after separately approved installation.

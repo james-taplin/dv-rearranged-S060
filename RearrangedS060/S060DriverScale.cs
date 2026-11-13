@@ -35,6 +35,7 @@ namespace RearrangedS060
         private readonly List<Renderer> hiddenBrakes = new List<Renderer>();
         private readonly S060Parts parts;
         private S060CylinderFittings fittings;
+        private S060FixedValveGear fixedValveGear;
 
         internal float Factor { get; private set; } = Stock;
         internal float DriverRadius => S060Parts.DriverRadius * Factor;
@@ -72,6 +73,7 @@ namespace RearrangedS060
 
         internal void Restore()
         {
+            fixedValveGear?.Dispose();fixedValveGear=null;
             fittings?.Dispose(); fittings = null;
             foreach (var (mechanism, scale) in originals)
                 if (mechanism != null) mechanism.localScale = scale;
@@ -84,13 +86,16 @@ namespace RearrangedS060
         // Destruction fallback: release owned meshes without touching dead
         // transforms, native physics or detached audio controller lifetimes.
         internal void ReleaseResources()
-        { fittings?.ReleaseResources(); fittings = null; }
+        { fixedValveGear?.ReleaseResources();fixedValveGear=null;fittings?.ReleaseResources(); fittings = null; }
 
         internal void PositionFittings(float forwardOffset)
         {
             if (!Mathf.Approximately(Factor, Stock) || Math.Abs(forwardOffset) > .00001f)
                 fittings = S060CylinderFittings.Apply(parts, Factor, forwardOffset);
+            if(!Mathf.Approximately(Factor,Stock))RetireFixedValveGear();
         }
+        internal void RetireFixedValveGear()
+        {if(fixedValveGear==null)fixedValveGear=S060FixedValveGear.Apply(parts.Body);}
 
         private IEnumerable<Renderer> BrakeRenderers() =>
             parts.Body.GetComponentsInChildren<Renderer>(true)

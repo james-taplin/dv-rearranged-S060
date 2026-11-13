@@ -4,7 +4,15 @@ Change the S060's running gear through a dedicated comms-radio mode in Derail
 Valley. This project forks the Rearranged S282 B99/Re:Arranged branch, based on
 Peter Schinske / SatiricRug's original Rearranged S282.
 
-## Current candidate: S060 0.3.1, Meyer assets 0.7.0, Dockside assets 0.8.1
+## Current candidate: S060 0.3.2, Meyer assets 0.7.0, Dockside assets 0.8.1
+
+0.3.2 restores the previous smooth upper Meyer return, corrects the Shay's
+custom metal finish binding during paint changes, and retires the loose fixed
+valve-gear pieces on the short-wheelbase, Dockside, 0-8-0 and 0-10-0 layouts.
+The repaired rear coupler and pinned drawgear remain. This build is staged for
+offline review; the installed 0.3.1 and future 0.4 work are separate.
+
+## Retained 0.3.1 powered-group drive
 
 0.3.1 adds reusable native powered-group wheelslip for Dockside and Meyer.
 Each engine has its own wheel RPM, adhesion limit and phase; the Meyer keeps
