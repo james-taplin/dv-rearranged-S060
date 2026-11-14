@@ -1,0 +1,7 @@
+Rearranged S060 0.3.4
+
+Complete UMM package with Meyer, Franklin Dockside and Shay parts.
+The spawner hides the separate Meyer and Dockside asset entries.
+Select arrangements through WHEEL REARRANGER on an ordinary S060.
+Install the requirements.
+Then drag this ZIP into UMM.

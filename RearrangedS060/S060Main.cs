@@ -24,6 +24,7 @@ namespace RearrangedS060
                 S060Oiling.Register(harmony);
                 S060Lifecycle.Register(harmony);
 #if B99_S060_ARTICULATED
+                harmony.CreateClassProcessor(typeof(S060DonorVisibility)).Patch();
                 S060ArticulatedSimulation.Register(harmony);
                 S060IndependentDrive.Register(harmony);
                 S060GroupSlipEffects.Register(harmony);

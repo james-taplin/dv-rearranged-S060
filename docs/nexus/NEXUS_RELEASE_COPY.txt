@@ -1,4 +1,4 @@
-REARRANGED S060 0.3.3
+REARRANGED S060 0.3.4
 
 Change the S060 wheel arrangement through WHEEL REARRANGER on the comms radio.
 You can also use the arrangement menu in Unity Mod Manager.
@@ -13,6 +13,7 @@ The Meyer adds rear water tanks, a coal hopper and a heavy pinned connection.
 The 0-4-0 adds two air reservoirs and their fittings.
 
 The ZIP includes all Meyer, Dockside and Shay parts.
+The spawner hides the separate Meyer and Dockside asset entries.
 Install it directly with Unity Mod Manager. No separate asset-pack installation is necessary.
 
 REQUIREMENTS
@@ -36,8 +37,8 @@ INSTALLATION
 2. Install the requirements.
 3. Remove separate RS060_Meyer_0440 or RS060_Franklin_Dockside_0440 entries from UMM, if present.
 4. Keep Rearranged S060 and its Settings.xml file.
-5. Drag RearrangedS060-0.3.3-UMM.zip into the UMM Mods tab.
-6. Make sure that version 0.3.3 is enabled.
+5. Drag RearrangedS060-0.3.4-UMM.zip into the UMM Mods tab.
+6. Make sure that version 0.3.4 is enabled.
 7. Start the game.
 
 USE

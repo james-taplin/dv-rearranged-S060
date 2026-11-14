@@ -1,5 +1,22 @@
 # Rearranged S060 — handover
 
+## 0.3.4 donor visibility — STAGED ONLY, 14 November 2026
+
+James requested hiding the Meyer and Dockside asset donors while keeping the
+radio arrangements and Shay working. He then rescinded installation: **stage
+only**. Do not install this candidate. The initial 0.3.3 installation was later
+replaced by 0.4.4-indev during the run; no real installation was performed by
+this task. Leave that live 0.4 installation and its settings alone. Read
+[DONOR-VISIBILITY-0.3.4.md](DONOR-VISIBILITY-0.3.4.md) for the native flag,
+the narrow existing-runtime change, focused native checks and evidence paths.
+
+The patch sets the two native livery hidden flags before the standard spawner
+caches choices. Donor registration, IDs, prefabs and all three bundles remain.
+Use build/release-0.3.4/validation.json for the final staged ZIP evidence and
+source-checkpoint.json for its isolated local commit. No DV launch, installation,
+push or publication. Separate 0.4 work is outside this change. James owns game
+acceptance; a generic validation request does not authorise gameplay.
+
 ## 0.3.3 clean release — INSTALLED, 14 November 2026
 
 James requested a clean Nexus UMM ZIP, a code review, ASD-STE100-style public

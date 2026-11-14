@@ -1,4 +1,4 @@
-REARRANGED S060 - 0.3.3 RELEASE
+REARRANGED S060 - 0.3.4 RELEASE
 
 Rearranged S060 changes the wheel arrangement of the S060 locomotive.
 Use WHEEL REARRANGER on the comms radio or the arrangement menu in Unity Mod Manager.
@@ -33,6 +33,7 @@ Custom Car Loader and its requirements, including DV Language Helper
 
 Install these requirements separately. Rearranged S282 is not required.
 This ZIP contains the Meyer, Dockside and Shay parts.
+The spawner hides the separate Meyer and Dockside asset entries.
 Read INSTALL.txt for installation and use instructions.
 Read CHANGELOG.txt for the release history.
 
