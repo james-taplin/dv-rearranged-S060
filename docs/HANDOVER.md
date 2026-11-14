@@ -1,6 +1,20 @@
 # Rearranged S060 — handover
 
-## 0.3.3 integration — STAGED ONLY, 14 November 2026
+## 0.3.3 clean release — INSTALLED, 14 November 2026
+
+James requested a clean Nexus UMM ZIP, a code review, ASD-STE100-style public
+documents and installation of that exact package. This new authorisation
+supersedes the earlier installation rescission below. Read
+[RELEASE-0.3.3.md](RELEASE-0.3.3.md) for the confirmed scaled 0-4-0 cleanup repair,
+exact offline evidence, package hashes and the installed state.
+
+The release ZIP contains 12 files and a full concise changelog through 0.3.3.
+Public documents are plain text without Git references, BBCode or testing notes.
+Installed bytes match the verified ZIP; settings preserved, no backup created.
+Separate Documents 0.4 work and the canonical active branch/index are untouched.
+No DV launch, gameplay testing, push or publication. James owns game acceptance.
+
+## Earlier 0.3.3 integration — staged checkpoint, 14 November 2026
 
 James requested combining a008bee, 08c8500 and 5c12c1d into 0.3.3, then
 explicitly rescinded installation: **commit and stage only**. Do not install

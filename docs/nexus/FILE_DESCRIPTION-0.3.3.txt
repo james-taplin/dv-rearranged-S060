@@ -1,0 +1,5 @@
+Rearranged S060 0.3.3
+
+Complete UMM package with Meyer, Franklin Dockside and Shay parts.
+Includes all changes through 0.3.3.
+Install the requirements, then drag this ZIP into UMM.

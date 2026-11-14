@@ -29,6 +29,7 @@ Copy-Item -LiteralPath $runtimeEntry[0].Path -Destination $stage -Force
 foreach ($name in @('Info.json','LICENSE','CREDITS.md')) { Copy-Item -LiteralPath (Join-Path $repo $name) -Destination $stage -Force }
 Copy-Item -LiteralPath (Join-Path $repo 'docs\nexus\CORE_README.txt') -Destination (Join-Path $stage 'README.md') -Force
 Copy-Item -LiteralPath (Join-Path $repo 'docs\nexus\INSTALL.txt') -Destination $stage -Force
+Copy-Item -LiteralPath (Join-Path $repo "docs\nexus\CHANGELOG-$Version.txt") -Destination (Join-Path $stage 'CHANGELOG.txt') -Force
 $assets = @(
     @{ id='RS060_Meyer_0440'; directory='Meyer'; version='0.7.0'; readme='MEYER_README.txt' },
     @{ id='RS060_Franklin_Dockside_0440'; directory='Dockside'; version='0.8.1'; readme='DOCKSIDE_README.txt' }
@@ -56,7 +57,7 @@ New-Item -ItemType Directory -Path $shayTarget -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $shay.FullName 'shay_running_gear') -Destination $shayTarget -Force
 $payload += [ordered]@{ relative='assets\Shay\shay_running_gear'; hash=$conventional.shayBundleSha256; kind='Original-only Shay models; live DV wheel aliases' }
 foreach ($file in $payload) { if ((Get-FileHash (Join-Path $stage $file.relative)).Hash -ne $file.hash) { throw 'Runtime/asset payload changed.' } }
-$expected = @('RearrangedS060.dll','Info.json','LICENSE','CREDITS.md','README.md','INSTALL.txt','assets\Meyer\ccl_bundle','assets\Meyer\README.md','assets\Dockside\ccl_bundle','assets\Dockside\README.md','assets\Shay\shay_running_gear')
+$expected = @('RearrangedS060.dll','Info.json','LICENSE','CREDITS.md','README.md','INSTALL.txt','CHANGELOG.txt','assets\Meyer\ccl_bundle','assets\Meyer\README.md','assets\Dockside\ccl_bundle','assets\Dockside\README.md','assets\Shay\shay_running_gear')
 $actual = @(Get-ChildItem -LiteralPath $stage -Recurse -File | ForEach-Object { $_.FullName.Substring($stage.Length + 1) })
 if (@(Compare-Object $expected $actual).Count -or @(Get-ChildItem $package -Force).Count -ne 1) { throw 'Unexpected files in the combined package.' }
 $archive = Join-Path $out "RearrangedS060-$Version-UMM.zip"
@@ -81,9 +82,13 @@ if ($StagedOnly) {
     Copy-Item -LiteralPath (Join-Path $repo "docs\nexus\CHANGELOG-$Version.txt") -Destination (Join-Path $out 'STAGED-README.txt') -Force
 } else {
     Copy-Item -LiteralPath (Join-Path $repo 'docs\nexus\NEXUS_RELEASE_COPY.txt') -Destination $out -Force
+    $description = Join-Path $repo "docs\nexus\FILE_DESCRIPTION-$Version.txt"
+    if (Test-Path -LiteralPath $description) { Copy-Item -LiteralPath $description -Destination $out -Force }
+    $oldStageNote = Join-Path $out 'STAGED-README.txt'
+    if (Test-Path -LiteralPath $oldStageNote) { Remove-Item -LiteralPath $oldStageNote }
 }
 [ordered]@{
-    utc=[DateTime]::UtcNow.ToString('o'); version=$Version; status=$(if ($StagedOnly) { 'Staged candidate; not installed or published' } else { 'Public beta package; not published' })
+    utc=[DateTime]::UtcNow.ToString('o'); version=$Version; status=$(if ($StagedOnly) { 'Staged candidate; not installed or published' } else { 'Release package; not published' })
     testedPackageReceipt=$receiptPath; testedPackageReceiptSha256=(Get-FileHash $receiptPath).Hash
     runtimeSha256=$runtimeEntry[0].Hash; binaryPayloadUnchanged=$true; payload=$payload
     packaging='One UMM ZIP, one RearrangedS060 folder/Info.json, two recursively discovered native CCL bundles and original-only Shay model bundle; no nested ZIPs'

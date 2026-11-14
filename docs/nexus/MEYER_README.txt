@@ -1,55 +1,24 @@
-REARRANGED S060 MEYER ASSET PACK - 0.7.0
+REARRANGED S060 0.3.3 - MEYER
 
-Included component of Rearranged S060 0.3.3. The rear LP return descends beside
-the bunker through the native step brackets into the existing manifold.
-The heavy pinned drawgear remains below an open gap, with no
-bridging footplate or upper bearers. The relocated rear chain retains its
-position through native visual re-enabling. Eight native heated brake shoes
-and clean weathered tank paint without borrowed foothold decals are retained.
-Eight supported leaf packs remain. The donor bundle stays 0.7.0. Custom Car Loader
-discovers this bundle inside RearrangedS060/assets/Meyer. It has no separate
-UMM entry. Normal play selects Meyer through the native S060's
-WHEEL REARRANGER radio or the Rearranged S060 UMM panel.
+This package includes the Meyer 0-4+4-0T parts.
+Use WHEEL REARRANGER on the S060 to select Meyer.
+Do not install a separate Meyer asset pack.
 
-Meyer-style 0-4+4-0T: two driven axles beneath the S060 and two on a
-swinging rear engine unit. It remains one locomotive identity and save,
-with shared cab controls, a compound HP -> receiver -> LP steam circuit and
-one chimney. The runtime adds rear
-bodywork with extra water and coal capacity; see the main README.
+The front engine supplies exhaust steam to the rear engine through a receiver.
+Each powered wheel group can slip separately.
+The rear steam pipe returns the exhaust to the single chimney.
 
-S060 0.23.0 turns the front engine inward to face the rear cylinders, with
-matched animation and steam connections. The rear running gear moves 65 mm aft;
-the bodywork, coupler and lamp positions stay fixed. The asset bundle remains
-0.7.0 because these changes are fitted by the S060 runtime.
+The rear tanks and coal hopper remain fixed to the locomotive body.
+A heavy link and pins connect the rear unit through short drawgear.
+There is no footplate across this connection.
+The rear return pipe passes through the step brackets beside the bunker.
 
-S060 0.23.1 moves those front cylinders another 850 mm towards the cab, fitting
-2 m main rods and their guides/piston rods together. A compact lower admission
-feed replaces redundant upper pipework. Mounted air-brake equipment fills the
-original front cylinder space; the native brake/compressor simulation is retained.
+Capacity is 8,800 litres of water and 3,500 kilograms of coal.
+Use the original S060 service points.
+When you leave Meyer, the mod keeps up to 4,500 litres of water and 1,200 kilograms of coal.
+The mod discards the excess.
 
-S060 0.23.3 adds frame-mounted guide carriers and inboard spring seats/hangers
-to both engines. Redundant native suspension/supports and unused return cranks
-are retired in Meyer only; the native main crank journals remain.
-
-S060 0.23.4 aligns the rear hook and brake-hose/angle-cock assembly with its
-mounting pocket. Native buffer heads and stems remain in place.
-
-Stop and close the regulator before switching. Before adding/removing Meyer,
-uncouple its rear, disconnect the hose and leave clear track behind. Native
-identity, fuel, water, damage and saved state are retained.
-
-The CCL standalone entry is a debug asset donor, not a second supported play
-mode or a separate powered B vehicle. Use the native S060 radio arrangement.
-
-This pack uses live S060 materials and native references from your installed
-game. See the core README for the initial beta's known issues and diagnostics.
-Retained MIT notices and complete attribution are in LICENSE and CREDITS.md.
-
-RESOURCE CAPACITY NOTE: Leaving Meyer retains fuel/water only up to stock
-capacity (4,500 L water / 1,200 kg coal). Any excess is discarded with a log
-message. Switching does not repair damage or create replacement resources.
-
-Meyer refilling: use the original S060 coal and water filling points. They
-serve combined stores of 3,500 kg coal and 8,800 L water, including the extra
-rear capacity; no separate bogie fill point is required. This candidate corrects
-the native servicing cache that previously stopped purchases at stock limits.
+Before you select or leave Meyer, disconnect the rear coupler.
+Before you select or leave Meyer, disconnect the rear brake hose.
+Keep the track clear behind the locomotive.
+Read INSTALL.txt in the main mod folder for the full procedure.

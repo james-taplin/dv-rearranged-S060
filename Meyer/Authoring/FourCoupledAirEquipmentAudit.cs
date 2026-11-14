@@ -55,6 +55,7 @@ public static class FourCoupledAirEquipmentAudit
                 var rods=(IDisposable)runtime.GetType("RearrangedS060.S060CouplingRods").GetMethod("Apply",All).Invoke(null,new[]{parts});
                 var equipmentType=runtime.GetType("RearrangedS060.S060FourCoupledAirEquipment");
                 var owner=(IDisposable)equipmentType.GetMethod("Bind",All).Invoke(null,new object[]{body,scale});
+                var layout=FitBody(runtime,parts,body,scale);
                 Check(bodyFilter.sharedMesh!=bodyHome&&bodyFilter.sharedMesh.triangles.Length<bodyHome.triangles.Length,"Requested fixed curved gear castings must be removed.");
                 Check(body.GetComponentsInChildren<MeshRenderer>(true).Where(r=>r.name=="s060_mech_03"||r.name=="s060_mech_03_LOD1").All(r=>r.enabled),"Working animated reverser and its LOD must stay visible.");
                 var equipment=(Transform)equipmentType.GetProperty("Root",All).GetValue(owner,null);
@@ -89,13 +90,16 @@ public static class FourCoupledAirEquipmentAudit
                 var source=body.GetComponentsInChildren<MeshRenderer>().Single(r=>r.name=="s060_body");source.sharedMaterial=alternate;
                 equipmentType.GetMethod("LateUpdate",All).Invoke(owner,null);Check(renderer.sharedMaterial==alternate,"Finish must follow the native material.");
                 owner.Dispose();owner.Dispose();Check(equipment==null&&mesh==null,"Leaving the layout must release root and mesh idempotently.");
+                layout.GetType().GetMethod("Restore",All).Invoke(layout,null);
                 Check(bodyFilter.sharedMesh==bodyHome,"Leaving 040 must restore the exact native body mesh.");
                 Check(body.GetComponentsInChildren<MeshRenderer>(true).Where(r=>r.name=="s060_mech_03"||r.name=="s060_mech_03_LOD1").All(r=>r.enabled),"Leaving 040 must restore the link renderers.");
                 owner=(IDisposable)equipmentType.GetMethod("Bind",All).Invoke(null,new object[]{body,scale});
+                layout=FitBody(runtime,parts,body,scale);
                 equipment=(Transform)equipmentType.GetProperty("Root",All).GetValue(owner,null);mesh=equipment.GetComponent<MeshFilter>().sharedMesh;
                 // Late-loaded production MonoBehaviour messages are not driven
                 // by this EditMode fixture. Exercise the callback explicitly.
                 equipmentType.GetMethod("OnDestroy",All).Invoke(owner,null);
+                layout.GetType().GetMethod("Restore",All).Invoke(layout,null);
                 Check(bodyFilter.sharedMesh==bodyHome,"Destruction callback must restore the exact native body mesh.");
                 rods.Dispose();Object.DestroyImmediate(root);Check(mesh==null,"Destruction callback must release its generated mesh.");
                 Object.DestroyImmediate(alternate);
@@ -105,5 +109,23 @@ public static class FourCoupledAirEquipmentAudit
             EditorApplication.Exit(0);
         }
         catch(Exception e){File.WriteAllText(Path.Combine(output,"error.txt"),e.ToString());Debug.LogException(e);EditorApplication.Exit(1);}
+    }
+
+    // Match Convert/ResetRunningGear's actual body-mesh owner order: air parts,
+    // translated cylinder pipes, fixed gear; then air disposal and Scale.Restore.
+    // The old standalone air test omitted the pipe copy made at non-stock sizes.
+    static object FitBody(Assembly runtime,object parts,Transform body,float scale)
+    {
+        var layout=Activator.CreateInstance(runtime.GetType("RearrangedS060.S060DriverScale"),All,null,new[]{parts},null);
+        if(!Mathf.Approximately(scale,1f))
+        {
+            var delta=(Vector3)runtime.GetType("RearrangedS060.S060PipeGeometry").GetMethod("CylinderOffset",All).Invoke(null,new object[]{scale,0f});
+            var pipes=runtime.GetType("RearrangedS060.S060BodyPipes").GetMethod("Apply",All).Invoke(null,new object[]{body,delta,false,true});
+            var fittings=Activator.CreateInstance(runtime.GetType("RearrangedS060.S060CylinderFittings"),true);
+            fittings.GetType().GetField("pipes",All).SetValue(fittings,pipes);
+            layout.GetType().GetField("fittings",All).SetValue(layout,fittings);
+        }
+        layout.GetType().GetMethod("RetireFixedValveGear",All).Invoke(layout,null);
+        return layout;
     }
 }

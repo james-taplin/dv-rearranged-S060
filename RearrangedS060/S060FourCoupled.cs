@@ -97,7 +97,6 @@ namespace RearrangedS060
         internal Transform Root { get; private set; }
         private Mesh ownedMesh;
         private MeshRenderer source, equipmentRenderer;
-        private S060FixedValveGear fixedValveGear;
         private bool disposed;
 
         internal static S060FourCoupledAirEquipment Bind(Transform body, float scale)
@@ -111,9 +110,8 @@ namespace RearrangedS060
                 owner.source = body.GetComponentsInChildren<MeshRenderer>(true)
                     .Where(r => r.name == "s060_body" && r.sharedMaterial != null)
                     .OrderByDescending(r => r.enabled && r.gameObject.activeInHierarchy).First();
-                owner.fixedValveGear = S060FixedValveGear.Apply(body);
-                // Only the surplus fixed casting is removed. The working
-                // animated reverser (s060_mech_03 and its LOD) stays visible.
+                // Scale owns fixed-gear retirement after cylinder-pipe fitting.
+                // This owner only controls the added air equipment.
                 owner.ownedMesh = BuildMesh(scale);
                 go.AddComponent<MeshFilter>().sharedMesh = owner.ownedMesh;
                 owner.equipmentRenderer = go.AddComponent<MeshRenderer>();
@@ -228,22 +226,13 @@ namespace RearrangedS060
         public void Dispose()
         {
             if (disposed) return; disposed = true;
-            try { RestoreFixedGear(); }
-            finally
-            {
-                if (Root != null) { Root.gameObject.SetActive(false); Release(Root.gameObject); }
-                if (ownedMesh != null) Release(ownedMesh);
-                ownedMesh = null; source = null; equipmentRenderer = null;
-            }
+            if (Root != null) { Root.gameObject.SetActive(false); Release(Root.gameObject); }
+            if (ownedMesh != null) Release(ownedMesh);
+            ownedMesh = null; source = null; equipmentRenderer = null;
         }
         private void OnDestroy()
         {
-            try { RestoreFixedGear(); }
-            finally { if (ownedMesh != null) Release(ownedMesh); ownedMesh = null; }
-        }
-        private void RestoreFixedGear()
-        {
-            fixedValveGear?.Dispose(); fixedValveGear = null;
+            if (ownedMesh != null) Release(ownedMesh); ownedMesh = null;
         }
         private static void Release(UnityEngine.Object value)
         { if (Application.isPlaying) UnityEngine.Object.Destroy(value); else UnityEngine.Object.DestroyImmediate(value); }

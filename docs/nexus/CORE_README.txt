@@ -1,82 +1,58 @@
-REARRANGED S060 - 0.3.3 STAGED CANDIDATE
+REARRANGED S060 - 0.3.3 RELEASE
 
-Change the native S060's running gear through WHEEL REARRANGER on the comms
-radio or the UMM arrangement chooser. Identity, cab, fuel, water, damage, oil
-and save ownership remain with the same locomotive.
-
-IN THIS BUILD
-
-Meyer: the rear LP return descends beside the bunker, through the native step
-castings as brackets, then curves back into the existing manifold. The rear chain
-retains its relocated position when DV re-enables its visuals. The heavy pinned
-drawbar and short drawgear remain beneath an open gap; no footplate or upper
-bearer bridges the gap to the tank.
-The new tank panels use clean weathered paint instead of projecting the stock
-tank's foothold and handle shadows onto the rear bodywork.
-
-Shay: custom metal finishes are assigned before activation and restored after
-paint/material replacement, so the native body atlas cannot repeat across the
-new parts' metric UVs. Native wheel UVs and materials remain separate.
-Smoother circular pipe bends and stays clear the information boards. Original
-six-phase exhaust banks and closely spaced running loops follow native geared
-cadence; the updated Shay bundle is required alongside this DLL.
-
-Dockside: restored original Franklin gearbox and shaft geometry; surplus
-native return cranks are removed with exact stock restoration.
-
-0-4-0: twin air reservoirs, hangers, straps, unions, lines and drain cocks fill
-the vacated middle-driver pockets. The working animated reverser remains visible;
-only the surplus fixed casting is removed.
-
-Loose static expansion-link castings and mountings are retired on the short-
-wheelbase, Dockside, 0-8-0 and 0-10-0 layouts. Returning to stock restores them.
-Save identities, independent drive and compound calibration are unchanged.
-
-Dockside and Meyer now have independently slipping powered groups, using DV's
-native adhesion/slip calculations. Each group drives its own crank phase,
-running gear and slip effects. Meyer retains its finite HP -> receiver -> LP
-compound circuit, with separate HP/LP speeds and compatible old saves.
-The shaft-linked Shay remains one mechanically connected drive.
-Prepared for James's gameplay testing; this package has not been published.
-Native braking/wheel-slide and global cab slip indications remain
-car-wide. Uneven group demand can give less pull than the former pooled grip.
-
-Combined Meyer visual checkpoint 8293d76, Shay checkpoint db91158, Dockside
-checkpoint 1b39170 and the staged arrangement physics fixes.
-
-Meyer: inward-facing HP/LP units, smoother connected steam return, supported
-rear underframe, eight native heated brake shoes and eight supported visible
-leaf packs. Compound starting follows native crank/valve mechanics while
-retaining the conserved HP -> receiver -> LP circuit and single chimney.
-The common cab control operates both cylinder-cock sets. Supply-mass changes
-refresh native mass immediately during arrangement restoration/removal.
-
-Shay: 0.80 m live native wheelsets, three 252 x 300.808 mm cylinders, 4.3:1
-gearing, 45 L chest and 1.6 kg/s flow ceiling. Approximately 150 kN warm near-
-start effort before grip limits. Shorten cutoff as speed rises. Coils, connected
-brake rigging, chassis, fitted steam/exhaust piping and front compressor detail
-are included. Boiler sustainability and haulage remain gameplay tests.
-
-Dockside: one articulated 0-4-4-0T with two simple-expansion units, 1 m wheels,
-Franklin bearing/rod/crosshead presentation, fitted smokebox sleeves and 4.70 m
-driven wheelbase. Existing cylinder calibration and 2 kg/s combined flow remain.
+Rearranged S060 changes the wheel arrangement of the S060 locomotive.
+Use WHEEL REARRANGER on the comms radio or the arrangement menu in Unity Mod Manager.
 
 ARRANGEMENTS
 
-0-6-0 Stock; 0-4-0; 0-6-0 Short Wheelbase; 0-8-0; 0-10-0 Tank; 0-6-2;
-Meyer-style 0-4+4-0T; Franklin Dockside 0-4-4-0T; two-truck Shay.
+Stock 0-6-0
+0-4-0
+0-6-0 Short Wheelbase
+0-6-2
+0-8-0
+0-10-0 Tank
+Meyer 0-4+4-0T
+Franklin Dockside 0-4-4-0T
+Two-truck Shay
 
-SAVES AND INSTALLATION
+The Meyer and Dockside have two powered wheel groups. Each group can slip separately.
+The Shay has one engine connected to both trucks through shafts and gears.
+The 0-4-0 has two air reservoirs in the space of the removed middle axle.
 
-Existing arrangement, engine and oil IDs are retained. Optional Meyer trapped-
-cylinder pressure fields preserve hot-save continuation; older saves still load.
-Stop and close the regulator before changing layouts. Returning from Meyer
-clamps water/coal above stock capacity according to the existing behavior.
+This mod keeps the locomotive identity, cab, paint, damage and saved state.
+It also keeps the oil quantities and oil-cup lid positions.
+You can enable random arrangements for new S060 locomotives in the mod settings.
+The random selection does not include the Shay.
 
-One UMM package includes all model assets. Install Loco Mesh Splitter and Custom
-Car Loader, including its required dependencies, separately. See INSTALL.txt.
-No native game meshes or textures are redistributed in the Shay model bundle.
+REQUIREMENTS
 
-This is the integrated 0.3.0 line. The separate original-layout/six-axle Meyer
-experiment has been reassigned to future 0.4.0 and is not included here.
-Offline checks do not establish in-game appearance or haulage acceptance.
+Derail Valley B99 for Windows
+Unity Mod Manager 0.27.3 or later
+Loco Mesh Splitter
+Custom Car Loader and its requirements, including DV Language Helper
+
+Install these requirements separately. Rearranged S282 is not required.
+This ZIP contains the Meyer, Dockside and Shay parts.
+Read INSTALL.txt for installation and use instructions.
+Read CHANGELOG.txt for the release history.
+
+MEYER CAPACITY
+
+The Meyer holds 8,800 litres of water and 3,500 kilograms of coal.
+Use the original S060 water and coal service points.
+Other arrangements hold up to 4,500 litres of water and 1,200 kilograms of coal.
+When you leave Meyer, the mod discards quantities above those limits.
+
+OPERATING LIMITS
+
+Stop the locomotive before you change its arrangement.
+Close the regulator.
+Wait until the wheels stop slipping or sliding.
+Before you select or leave Meyer, disconnect the rear coupler.
+Before you select or leave Meyer, disconnect the rear brake hose.
+Keep the track clear behind the locomotive.
+Changes to the arrangement do not repair damage.
+
+The cylinder-cock lever operates all cylinder sets.
+Brake slide and the cab slip indication apply to the complete locomotive.
+Some paint schemes can repeat their markings on the Meyer rear tanks.

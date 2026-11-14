@@ -1,58 +1,60 @@
-REARRANGED S060 - INTEGRATED TEST BUILD 0.3.2
+REARRANGED S060 0.3.3 - INSTALLATION AND USE
 
-ONE ZIP - DRAG DIRECTLY INTO UNITY MOD MANAGER
-
-This package includes the runtime, both Meyer/Dockside bundles and Shay models.
-There are no ZIPs inside this ZIP. UMM installs one RearrangedS060 folder;
-Custom Car Loader finds the included bundles in its assets subfolders.
+BEFORE INSTALLATION
 
 1. Close Derail Valley.
-2. Install Unity Mod Manager, Loco Mesh Splitter, Custom Car Loader and CCL's
-   own requirements first (including DV Language Helper for CCL 3.1.11).
-3. Open UMM, select Derail Valley and open the Mods tab.
-4. Drag RearrangedS060-0.3.2-UMM.zip directly into UMM.
-5. Check Rearranged S060 is installed and enabled, then launch the game.
+2. Install Unity Mod Manager 0.27.3 or later for Derail Valley.
+3. Install Loco Mesh Splitter.
+4. Install Custom Car Loader and its requirements, including DV Language Helper.
 
-UPGRADING AN EARLIER THREE-PART TEST INSTALL - ONE-TIME STEP
+UPDATE AN OLDER INSTALLATION
 
-Before installing this combined package, use UMM to uninstall ONLY these two
-old standalone entries, if present:
-  RS060_Meyer_0440 - S060 Meyer with attached pannier steam bogie
-  RS060_Franklin_Dockside_0440 - Franklin Dockside 0-4-4-0T prototype
+If UMM lists either separate asset pack below, remove that entry before you install this ZIP.
 
-Keep RearrangedS060 itself and its Settings.xml. UMM's normal update retains
-its settings. The new package contains the same asset IDs inside one mod;
-leaving the old asset packs enabled would make CCL find duplicate IDs. UMM
-does not automatically remove separate old mods. New users skip this step.
+RS060_Meyer_0440
+RS060_Franklin_Dockside_0440
 
-Required: Derail Valley B99, UMM 0.27.3 or newer, Loco Mesh Splitter and Custom
-Car Loader. Rearranged S282 is not required. Dependencies are not bundled.
-Runtime 0.23.4 keeps the two-truck Shay to the radio and UMM arrangement chooser.
-Both asset bundles stay at 0.7.0; existing saves and settings remain compatible.
-Existing single-folder installs update normally through UMM. Older mod versions
-cannot restore the new Shay arrangement; this version reads earlier saves.
+Keep the Rearranged S060 entry and its Settings.xml file.
+The new ZIP includes both asset packs. Duplicate packs can prevent correct loading.
+If these separate entries are absent, continue with INSTALL THE MOD.
 
-ASSET PACK WARNING
+INSTALL THE MOD
 
-Meyer and Dockside packs are included. A missing/not-loaded warning can mean
-CCL failed to import them. Check CCL and its dependencies, especially DV Language
-Helper, for loading errors in the in-game UMM panel. Fully restart after an
-install or update. If it persists, report your versions and Player.log from
-%USERPROFILE%\AppData\LocalLow\Altfuture\Derail Valley\Player.log.
+1. Open Unity Mod Manager.
+2. Select Derail Valley.
+3. Open the Mods tab.
+4. Drag RearrangedS060-0.3.3-UMM.zip into the Mods tab.
+5. Make sure that Rearranged S060 shows version 0.3.3.
+6. Make sure that the mod and its requirements are enabled.
+7. Start Derail Valley.
 
-CHOOSING AN ARRANGEMENT
+Do not extract the ZIP before you use UMM.
+The ZIP installs one RearrangedS060 folder. It includes all locomotive parts.
 
-Use WHEEL REARRANGER on the comms radio and point at a native S060. Arrangement
-selection is also available in Rearranged S060's UMM panel. The CCL spawner
-entries remain debug asset donors; use the native S060 radio for normal play.
+SELECT AN ARRANGEMENT
 
-Stop and close the regulator before switching. Before entering or leaving
-Meyer, uncouple the rear, disconnect its hose and leave clear track behind.
+1. Stop the S060.
+2. Close the regulator.
+3. Wait until the wheels stop slipping or sliding.
+4. If you select or leave Meyer, disconnect the rear coupler.
+5. If you select or leave Meyer, disconnect the rear brake hose.
+6. If you select or leave Meyer, make sure that the track behind the locomotive is clear.
+7. Select WHEEL REARRANGER on the comms radio.
+8. Point the radio at the S060.
+9. Select the required arrangement.
+10. Confirm the selection on the radio.
 
-INITIAL BETA STATUS
+You can also select an arrangement in the Rearranged S060 menu in UMM.
+Use the original S060 locomotive. Do not use the CCL asset entries as separate locomotives.
 
-The latest Meyer-to-Dockside window-damage and stationary-bob reports still
-need gameplay confirmation after the collision correction. Report repeats
-with the exact transition, Player.log and the mod's automatic diagnostics.
-Existing damage is retained; changing arrangements does not repair the engine.
-See README.md, LICENSE and CREDITS.md for features, use and attribution.
+IF AN ASSET PACK IS NOT AVAILABLE
+
+1. Close Derail Valley.
+2. Make sure that Custom Car Loader and its requirements are installed and enabled.
+3. Make sure that Loco Mesh Splitter is installed and enabled.
+4. Remove duplicate standalone Meyer or Dockside asset entries, if present.
+5. Start Derail Valley again.
+
+If the problem remains, include the game version, mod version and Player.log in your report.
+Player.log is in this folder:
+%USERPROFILE%\AppData\LocalLow\Altfuture\Derail Valley

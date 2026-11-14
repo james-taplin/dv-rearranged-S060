@@ -1,30 +1,18 @@
-REARRANGED S060 FRANKLIN DOCKSIDE ASSET PACK - 0.8.1
+REARRANGED S060 0.3.3 - FRANKLIN DOCKSIDE
 
-Included component of the single Rearranged S060 UMM package. Custom Car Loader
-discovers this bundle inside RearrangedS060/assets/Dockside. It has no separate
-UMM entry. Normal play selects Franklin Dockside through the native S060's
-WHEEL REARRANGER radio or the Rearranged S060 UMM panel.
+This package includes the Franklin Dockside 0-4-4-0T parts.
+Use WHEEL REARRANGER on the S060 to select Franklin Dockside.
+Do not install a separate Dockside asset pack.
 
-S060 0.3.3 restores the original Franklin gearbox and shaft vertex geometry,
-and retires displaced native return cranks alongside the loose fixed castings.
-Native wheels restore exactly; the donor identity/version remains 0.8.1.
+Two engines receive steam directly from the boiler.
+Each powered wheel group can slip separately.
+Both engines discharge through the single chimney.
 
-Franklin Dockside 0-4-4-0T: two simple-expansion powered units and fitted
-1.00 m drivers and a 4.70 m driven wheelbase beneath one tank locomotive. Both units receive boiler steam
-directly. Animated Franklin gear, shaped rods, cylinders and connected steam
-pipes fit the S060 wheels. Each unit contributes chuffs and exhaust to the
-single chimney; both sets of cylinder cocks use the existing cab control.
-There is no rear appendage or companion vehicle.
+The locomotive has four powered axles and 1.00 metre wheels.
+The total driven wheelbase is 4.70 metres.
+The cylinder-cock lever operates both engine sets.
+There are two oil cups for each driven axle.
 
-Each driven axle has two functional oil cups. Native identity, cab,
-fuel, water, damage and saved state are retained across arrangement changes.
-Stop and close the regulator before switching. When leaving Meyer for this
-layout, also uncouple its rear, disconnect the hose and leave clear track.
-
-The CCL standalone entry is a debug asset donor. Use the native S060 radio
-arrangement. See the core README for the initial beta's known issues and
-diagnostics. Retained MIT notices and attribution are in LICENSE and CREDITS.md.
-
-RESOURCE CAPACITY NOTE: Leaving Meyer retains fuel/water only up to stock
-capacity (4,500 L water / 1,200 kg coal). Any excess is discarded with a log
-message. Switching does not repair damage or create replacement resources.
+The parts include the Franklin gearboxes, drive shafts, rods and guides.
+All parts remain below the S060 body. There is no separate vehicle.
+Read INSTALL.txt in the main mod folder for the full procedure.
