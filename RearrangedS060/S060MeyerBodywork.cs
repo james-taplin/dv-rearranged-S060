@@ -26,7 +26,7 @@ namespace RearrangedS060
         private S060MeyerDrawgear drawgear;
         internal void UpdateGeometry() => drawgear?.UpdateGeometry();
 
-        private sealed class Builder
+        internal sealed class Builder
         {
             internal readonly List<Vector3> V = new List<Vector3>(); internal readonly List<int> T = new List<int>(); internal readonly List<Vector2> UV = new List<Vector2>();
             internal Vector2 Paint; internal Func<Vector3, Vector3, Vector2> Map;

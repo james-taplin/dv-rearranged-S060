@@ -1,5 +1,20 @@
 # Rearranged S060 — handover
 
+## 0.3.3 integration — STAGED ONLY, 14 November 2026
+
+James requested combining a008bee, 08c8500 and 5c12c1d into 0.3.3, then
+explicitly rescinded installation: **commit and stage only**. Do not install
+this candidate without new authorisation. The repaired installed 0.3.2 stays.
+Read [INTEGRATION-0.3.3.md](INTEGRATION-0.3.3.md) for source provenance, exact
+validation and package evidence. Separate Documents 0.4 work was not modified.
+No DV launch, game testing, push or publication. James owns gameplay acceptance.
+
+The existing 0.3.2 export checkout is reused for this release, so its directory
+name still contains 032. Current source/version is 0.3.3; historical 0.3.2
+packages and reports remain separately named. This integration inherits the
+approved rear-drop Meyer route from 08c8500, superseding the earlier upper-line
+fallback described in the historical sections below.
+
 ## 0.3.2 Shay/Dockside/Meyer polish — commit only, 13 November 2026
 
 Read [GEARED-POLISH-0.3.2.md](GEARED-POLISH-0.3.2.md). Shay has circular pipe

@@ -21,6 +21,12 @@ namespace RearrangedS060
                 ?? throw new InvalidOperationException("Shay running-gear prefab is unavailable.");
         }
         internal static TextAsset Motion => bundle.LoadAllAssets<TextAsset>().Single();
+        internal static AudioClip Audio(string name)
+        {
+            if (bundle == null) Resolve();
+            return bundle.LoadAsset<AudioClip>("assets/shayintegration/audio/" + name.ToLowerInvariant() + ".wav")
+                ?? throw new InvalidOperationException("Update the included Shay bundle for its original geared exhaust: " + name);
+        }
         internal static void ValidateMotion(TextAsset data)
         {
             var specification = JObject.Parse(data.text);

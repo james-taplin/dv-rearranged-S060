@@ -38,13 +38,15 @@ public static class ShayBundleBuild
             if (aliases.Length != 4) throw new InvalidOperationException("R2 needs one native pony wheelset placeholder per axle.");
             var prefabPath = destination + "/S060Shay.prefab";
             PrefabUtility.SaveAsPrefabAsset(root, prefabPath); AssetDatabase.SaveAssets(); AssetDatabase.Refresh();
-            var build = new AssetBundleBuild { assetBundleName = "shay_running_gear", assetNames = new[] { prefabPath, destination + "/motion.json" } };
+            var audio = ShayExhaustBuild.Import(Environment.GetEnvironmentVariable("S060_SHAY_AUDIO_SOURCE"));
+            var build = new AssetBundleBuild { assetBundleName = "shay_running_gear", assetNames = new[] { prefabPath, destination + "/motion.json" }.Concat(audio).ToArray() };
             if (BuildPipeline.BuildAssetBundles(output, new[] { build }, BuildAssetBundleOptions.ChunkBasedCompression, BuildTarget.StandaloneWindows64) == null)
                 throw new InvalidOperationException("Shay bundle build failed.");
             var bundle = AssetBundle.LoadFromFile(Path.Combine(output,"shay_running_gear"));
             var saved = bundle.LoadAsset<GameObject>(prefabPath);
             if (saved == null || saved.GetComponentsInChildren<MonoBehaviour>(true).Length != 0 ||
-                saved.GetComponentsInChildren<Rigidbody>(true).Length != 0 || bundle.LoadAllAssets<TextAsset>().Length != 1)
+                saved.GetComponentsInChildren<Rigidbody>(true).Length != 0 || bundle.LoadAllAssets<TextAsset>().Length != 1 ||
+                bundle.LoadAllAssets<AudioClip>().Length != 60)
                 throw new InvalidOperationException("Reopened Shay bundle is incomplete.");
             string[] frames = saved.GetComponentsInChildren<Transform>(true).Where(t => t.name == "TRUCK_REAR" || t.name == "TRUCK_FRONT").Select(t=>t.name).ToArray();
             if (frames.Length != 2) throw new InvalidOperationException("Exactly two native truck attachment frames required.");

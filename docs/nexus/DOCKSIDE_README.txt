@@ -5,8 +5,9 @@ discovers this bundle inside RearrangedS060/assets/Dockside. It has no separate
 UMM entry. Normal play selects Franklin Dockside through the native S060's
 WHEEL REARRANGER radio or the Rearranged S060 UMM panel.
 
-S060 0.3.2 retires the loose original fixed expansion-link castings and their
-mountings; the articulated Franklin gear and the 0.8.1 donor bundle are retained.
+S060 0.3.3 restores the original Franklin gearbox and shaft vertex geometry,
+and retires displaced native return cranks alongside the loose fixed castings.
+Native wheels restore exactly; the donor identity/version remains 0.8.1.
 
 Franklin Dockside 0-4-4-0T: two simple-expansion powered units and fitted
 1.00 m drivers and a 4.70 m driven wheelbase beneath one tank locomotive. Both units receive boiler steam

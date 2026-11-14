@@ -1,4 +1,4 @@
-REARRANGED S060 - 0.3.2 VISUAL REPAIR CANDIDATE
+REARRANGED S060 - 0.3.3 STAGED CANDIDATE
 
 Change the native S060's running gear through WHEEL REARRANGER on the comms
 radio or the UMM arrangement chooser. Identity, cab, fuel, water, damage, oil
@@ -6,7 +6,8 @@ and save ownership remain with the same locomotive.
 
 IN THIS BUILD
 
-Meyer: the previous smooth upper LP steam return is restored. The rear chain
+Meyer: the rear LP return descends beside the bunker, through the native step
+castings as brackets, then curves back into the existing manifold. The rear chain
 retains its relocated position when DV re-enables its visuals. The heavy pinned
 drawbar and short drawgear remain beneath an open gap; no footplate or upper
 bearer bridges the gap to the tank.
@@ -16,6 +17,16 @@ tank's foothold and handle shadows onto the rear bodywork.
 Shay: custom metal finishes are assigned before activation and restored after
 paint/material replacement, so the native body atlas cannot repeat across the
 new parts' metric UVs. Native wheel UVs and materials remain separate.
+Smoother circular pipe bends and stays clear the information boards. Original
+six-phase exhaust banks and closely spaced running loops follow native geared
+cadence; the updated Shay bundle is required alongside this DLL.
+
+Dockside: restored original Franklin gearbox and shaft geometry; surplus
+native return cranks are removed with exact stock restoration.
+
+0-4-0: twin air reservoirs, hangers, straps, unions, lines and drain cocks fill
+the vacated middle-driver pockets. The working animated reverser remains visible;
+only the surplus fixed casting is removed.
 
 Loose static expansion-link castings and mountings are retired on the short-
 wheelbase, Dockside, 0-8-0 and 0-10-0 layouts. Returning to stock restores them.

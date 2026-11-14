@@ -201,6 +201,7 @@ namespace RearrangedS060
             internal readonly ChuffClipsSimReader Reader;
             internal ChuffClipsSimReader Extra;
             private bool extraInitAttempted;
+            private S060ShayExhaust shay;
             private readonly S060EngineMode mode;
             internal S060EngineMode Mode => mode;
             private readonly string[] ids;
@@ -217,6 +218,7 @@ namespace RearrangedS060
                 // Verde's LP reader uses these lower pressure bands. Retain the
                 // native volume curves, clips and loops rather than forcing gain.
                 if (mode == S060EngineMode.Meyer) { Reader.mediumPressureThreshold = 3; Reader.highPressureThreshold = 4.5f; }
+                if (mode == S060EngineMode.Shay) shay = S060ShayExhaust.Apply(Reader);
             }
             internal void Complete()
             {
@@ -294,6 +296,7 @@ namespace RearrangedS060
                     () => { if (extra != null)
                         { if (Application.isPlaying) UnityEngine.Object.Destroy(extra.gameObject); else UnityEngine.Object.DestroyImmediate(extra.gameObject); } },
                     () => StopLoops(Reader),
+                    () => { shay?.Dispose(); shay = null; },
                     () => { SetIds(Reader, ids); Reader.mediumPressureThreshold = medium; Reader.highPressureThreshold = high; });
             }
             private static string[] Ids(ChuffClipsSimReader reader) => new[] { reader.chuffEventPortId,

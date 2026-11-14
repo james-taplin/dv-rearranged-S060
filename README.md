@@ -4,11 +4,13 @@ Change the S060's running gear through a dedicated comms-radio mode in Derail
 Valley. This project forks the Rearranged S282 B99/Re:Arranged branch, based on
 Peter Schinske / SatiricRug's original Rearranged S282.
 
-## Current candidate: S060 0.3.2, Meyer assets 0.7.0, Dockside assets 0.8.1
+## Current candidate: S060 0.3.3, Meyer assets 0.7.0, Dockside assets 0.8.1
 
-0.3.2 restores the previous smooth upper Meyer return, corrects the Shay's
-custom metal finish binding during paint changes, and retires the loose fixed
-valve-gear pieces on the short-wheelbase, Dockside, 0-8-0 and 0-10-0 layouts.
+0.3.3 combines original geared Shay exhaust audio and smoother pipe bends,
+the requested Meyer rear steam-return route through its step brackets,
+restored Franklin gearbox/shaft geometry and twin 0-4-0 air reservoirs.
+The 0-4-0 retains its working animated reverser while retiring surplus fixed gear.
+Earlier finish-binding and loose-gear repairs are retained.
 The repaired rear coupler and pinned drawgear remain. This build is staged for
 review and James's gameplay testing; installation state is in the handover and
 future 0.4 work is separate. The tender paint now avoids borrowed foothold

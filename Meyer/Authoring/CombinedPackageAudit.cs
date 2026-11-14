@@ -61,7 +61,9 @@ public static class CombinedPackageAudit
                 Require(prefab.GetComponentsInChildren<MeshFilter>(true).Count(f=>f.sharedMesh==null&&f.name.EndsWith("_NATIVE_SET"))==4,"R2: exactly four pony-wheelset placeholders remain unbundled.");
                 Require(prefab.GetComponentsInChildren<MonoBehaviour>(true).Length==0 && prefab.GetComponentsInChildren<Collider>(true).Length==0,"Original Shay bundle has no runtime scripts or physics.");
                 Require(shay.LoadAllAssets<TextAsset>().Length==1,"Transmission binding table must be present.");
-                Require(shay.LoadAllAssets<CustomCarPack>().Length==0 && shay.LoadAllAssets<Texture>().Length==0 && shay.LoadAllAssets<AudioClip>().Length==0,"Shay adds no donor car, native textures or audio.");
+                Require(shay.LoadAllAssets<CustomCarPack>().Length==0 && shay.LoadAllAssets<Texture>().Length==0,"Shay adds no donor car or native textures.");
+                var exhaust=shay.LoadAllAssets<AudioClip>();
+                Require(exhaust.Length==60 && exhaust.All(c=>c.name.StartsWith("RS060_Shay_",StringComparison.Ordinal) && c.channels==1 && c.frequency==24000),"Shay includes only its 60 original exhaust recordings.");
             }
             finally {shay.Unload(true);}
             Directory.CreateDirectory(Path.GetDirectoryName(output));

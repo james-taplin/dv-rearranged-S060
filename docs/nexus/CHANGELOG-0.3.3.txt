@@ -1,0 +1,19 @@
+Version 0.3.3 - staged integration
+
+- Shay: original six-phase exhaust banks and eight running-loop rates retain
+  native geared cadence; smoother pipe bends and relocated information-board stays.
+- Meyer: rear steam return descends beside the bunker through the native step
+  brackets and curves into the unchanged manifold. Retains pinned drawgear,
+  clean tender paint, rear coupler streaming repair and native smokebox door.
+- Franklin Dockside: restores original gearbox/shaft geometry lost by the old
+  streamed-mesh copy and removes surplus native return cranks.
+- 0-4-0: fitted twin air reservoirs and service details; surplus fixed casting
+  removed while the working animated reverser remains visible.
+
+Combines a008bee, 08c8500 and 5c12c1d on the repaired 0.3 line. Mod identity,
+dependencies, save/resource IDs, oiling and powered-group calibration remain.
+Includes the updated Shay audio/model and Franklin bundles with the new DLL.
+
+Commit and stage only: James rescinded installation. Installed 0.3.2 and the
+separate 0.4 work are untouched. No publication or gameplay testing by the agent.
+Offline evidence and remaining James-owned game checks are in docs/HANDOVER.md.

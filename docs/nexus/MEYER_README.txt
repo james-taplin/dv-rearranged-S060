@@ -1,7 +1,8 @@
 REARRANGED S060 MEYER ASSET PACK - 0.7.0
 
-Included component of Rearranged S060 0.3.2. The previous smooth upper LP return
-is restored. The heavy pinned drawgear remains below an open gap, with no
+Included component of Rearranged S060 0.3.3. The rear LP return descends beside
+the bunker through the native step brackets into the existing manifold.
+The heavy pinned drawgear remains below an open gap, with no
 bridging footplate or upper bearers. The relocated rear chain retains its
 position through native visual re-enabling. Eight native heated brake shoes
 and clean weathered tank paint without borrowed foothold decals are retained.
