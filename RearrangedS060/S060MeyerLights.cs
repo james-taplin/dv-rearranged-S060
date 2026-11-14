@@ -73,12 +73,12 @@ namespace RearrangedS060
                 if (plate == null) throw new InvalidOperationException("Native rear hook plate is missing.");
                 owner.homes.Add(new Home { Part = plate, Parent = plate.parent, Position = plate.localPosition,
                     Rotation = plate.localRotation, Scale = plate.localScale, Sibling = plate.GetSiblingIndex() });
+                owner.BindBuffers(car, rearFrame);
                 var platePosition = car.InverseTransformPoint(plate.position);
                 var plateRotation = Quaternion.Inverse(car.rotation) * plate.rotation;
                 plate.SetParent(rearFrame, false);
                 plate.localPosition = platePosition + new Vector3(0, 0, 2.105f);
                 plate.localRotation = plateRotation;
-                owner.BindBuffers(car, rearFrame, bodyMounted ? MeyerPlan.RearCouplingCorrectionZ : 0f);
                 var stems = body.GetComponentsInChildren<MeshFilter>(true).Where(f => f.name == "s060_buffer_stems").ToArray();
                 if (stems.Length == 0) throw new InvalidOperationException("Native buffer stem mesh is missing.");
                 foreach (var filter in stems)
@@ -141,7 +141,7 @@ namespace RearrangedS060
             if (float.IsNegativeInfinity(top)) throw new InvalidOperationException("Native upper rear lamp housing mesh is missing.");
             return top;
         }
-        private void BindBuffers(Transform car, Transform rearFrame, float couplingCorrectionZ)
+        private void BindBuffers(Transform car, Transform rearFrame)
         {
             var buffers = car.Find("[buffers]");
             var rig = buffers == null ? null : buffers.Cast<Transform>().SingleOrDefault(t => t.name == "BuffersAndChainRig" && car.InverseTransformPoint(t.position).z < 0);
@@ -149,19 +149,15 @@ namespace RearrangedS060
             var anchors = new[] { rig.Find("buffer anchor left"), rig.Find("buffer anchor right") };
             if (anchors.Any(t => t == null)) throw new InvalidOperationException("Native rear buffer anchors are missing.");
             var wrapper = new GameObject("[Meyer native rear buffers]"); added.Add(wrapper); wrapper.transform.SetParent(rearFrame, false);
-            // The R2 hook/hose rig now moves farther aft to its pocket. Its
-            // buffer heads stay on the existing beam and native stem ends.
-            wrapper.transform.localPosition = car.InverseTransformPoint(rig.position) - new Vector3(0, 0, MeyerPlan.RearCentre + couplingCorrectionZ);
+            // Native compression measures in the controller's transform and
+            // writes anchor-local Z. Move the complete rig, never its anchors
+            // alone, so both operations keep the same reference frame.
+            wrapper.transform.localPosition = car.InverseTransformPoint(rig.position) - new Vector3(0, 0, MeyerPlan.RearCentre);
             wrapper.transform.localRotation = Quaternion.Inverse(car.rotation) * rig.rotation;
-            foreach (var anchor in anchors)
-                homes.Add(new Home { Part = anchor, Parent = anchor.parent, Position = anchor.localPosition,
-                    Rotation = anchor.localRotation, Scale = anchor.localScale, Sibling = anchor.GetSiblingIndex() });
-            foreach (var anchor in anchors)
-            {
-                var home = homes.Single(h => h.Part == anchor);
-                anchor.SetParent(wrapper.transform, false); anchor.localPosition = home.Position;
-                anchor.localRotation = home.Rotation; anchor.localScale = home.Scale;
-            }
+            homes.Add(new Home { Part = rig, Parent = rig.parent, Position = rig.localPosition,
+                Rotation = rig.localRotation, Scale = rig.localScale, Sibling = rig.GetSiblingIndex() });
+            rig.SetParent(wrapper.transform, false);
+            rig.localPosition = Vector3.zero; rig.localRotation = Quaternion.identity;
         }
         private void JoinSourceLods(Transform car, Renderer source, Renderer addedRenderer)
         {
@@ -197,8 +193,10 @@ namespace RearrangedS060
                 if (home.Part == null) continue;
                 home.Part.SetParent(home.Parent, false);
                 home.Part.localPosition = home.Position; home.Part.localRotation = home.Rotation; home.Part.localScale = home.Scale;
-                home.Part.SetSiblingIndex(home.Sibling);
             }
+            // Restore every parent before rebuilding its original child order.
+            foreach (var home in homes.OrderBy(home => home.Sibling))
+                if (home.Part != null) home.Part.SetSiblingIndex(home.Sibling);
             homes.Clear();
             foreach (var part in added) if (part != null) { part.SetActive(false); if (Application.isPlaying) UnityEngine.Object.Destroy(part); else UnityEngine.Object.DestroyImmediate(part); }
             added.Clear();

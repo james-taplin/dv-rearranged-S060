@@ -1,4 +1,4 @@
-REARRANGED S060 0.3.4 - FRANKLIN DOCKSIDE
+REARRANGED S060 0.3.5-hotfix - FRANKLIN DOCKSIDE
 
 This package includes the Franklin Dockside 0-4-4-0T parts.
 Use WHEEL REARRANGER on the S060 to select Franklin Dockside.

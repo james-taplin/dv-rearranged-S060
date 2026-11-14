@@ -1,4 +1,4 @@
-REARRANGED S060 0.3.4 - INSTALLATION AND USE
+REARRANGED S060 0.3.5-hotfix - INSTALLATION AND USE
 
 BEFORE INSTALLATION
 
@@ -23,8 +23,8 @@ INSTALL THE MOD
 1. Open Unity Mod Manager.
 2. Select Derail Valley.
 3. Open the Mods tab.
-4. Drag RearrangedS060-0.3.4-UMM.zip into the Mods tab.
-5. Make sure that Rearranged S060 shows version 0.3.4.
+4. Drag RearrangedS060-0.3.5-hotfix-UMM.zip into the Mods tab.
+5. Make sure that Rearranged S060 shows version 0.3.5-hotfix.
 6. Make sure that the mod and its requirements are enabled.
 7. Start Derail Valley.
 

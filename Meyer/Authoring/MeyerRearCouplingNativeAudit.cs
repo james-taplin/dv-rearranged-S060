@@ -50,7 +50,9 @@ public static class MeyerRearCouplingNativeAudit
                 string.Join(",", failures.Distinct().Select(s => "\"" + s + "\"")) + "]}");
             bool baseline = Environment.GetEnvironmentVariable("S060_COUPLING_BASELINE") == "1";
             bool reproduced = failures.Contains("Hook pocket alignment") && failures.Contains("Angle cock exposed behind sill");
-            EditorApplication.Exit(baseline ? (reproduced ? 0 : 1) : (failures.Count == 0 ? 0 : 1));
+            bool compressionBaseline = Environment.GetEnvironmentVariable("S060_BUFFER_COMPRESSION_BASELINE") == "1";
+            EditorApplication.Exit(compressionBaseline ? (failures.Contains("Native rear buffer compression matches its visible datum") ? 0 : 1) :
+                baseline ? (reproduced ? 0 : 1) : (failures.Count == 0 ? 0 : 1));
         }
         catch (Exception ex) { File.WriteAllText(Path.Combine(output, "error.txt"), ex.ToString()); Debug.LogException(ex); EditorApplication.Exit(1); }
         finally { AppDomain.CurrentDomain.AssemblyResolve -= Resolve; }
@@ -90,6 +92,7 @@ public static class MeyerRearCouplingNativeAudit
             var originalCachedPose = (Vector3)cachedPose.GetValue(interaction);
             PrepareEnableEntry(game, interaction, chain, root.transform);
             foreach (string side in new[] { "L", "R" }) buffers.Find("Buffer_R" + side).SetParent(rig.Find(side == "R" ? "buffer anchor left" : "buffer anchor right"), true);
+            var bufferController = NativeBuffer(game, rig, rig.Find("buffer anchor left"), rig.Find("buffer anchor right"));
             var body = Group(root.transform, "Body");
             foreach (string side in new[] { "left", "right" }) Group(body, "s060_taillight_lower_" + side);
             var upper = Group(body, "s060_taillight_upper"); upper.gameObject.AddComponent<MeshFilter>().sharedMesh = meshes["Buffer04"];
@@ -142,6 +145,7 @@ public static class MeyerRearCouplingNativeAudit
                 Check(bufferError < .0001f, "Existing rear buffers retained");
                 Check(Vector3.Distance(Local(bufferHeads[0]), bufferPositions[0]) < .0001f && Vector3.Distance(Local(bufferHeads[1]), bufferPositions[1]) < .0001f, "Front buffers unchanged");
                 Check(frontRig.localPosition == originals.Single(x=>x.t==frontRig).p && frontAnchor.localPosition == originals.Single(x=>x.t==frontAnchor).p, "Front coupling unchanged");
+                ValidateCompression(game, root.transform, bufferController);
                 for (int visibilityCycle = 0; visibilityCycle < 3; visibilityCycle++)
                 {
                     interactionType.GetMethod("Entry_Enabled", Instance).Invoke(interaction, null);
@@ -163,6 +167,50 @@ public static class MeyerRearCouplingNativeAudit
         finally { Object.DestroyImmediate(root); foreach (var item in owned) if(item!=null) Object.DestroyImmediate(item); }
     }
     private static Transform Group(Transform parent, string name) { var go = new GameObject(name); go.transform.SetParent(parent, false); return go.transform; }
+    private static Component NativeBuffer(Assembly game, Transform rig, Transform left, Transform right)
+    {
+        var scanner=rig.gameObject.AddComponent(game.GetType("CouplingScanner",true));
+        var controller=rig.gameObject.AddComponent(game.GetType("TrainBufferController",true));
+        var type=controller.GetType();
+        type.GetField("couplingScanner").SetValue(controller,scanner);
+        type.GetField("bufferAnchorLeft").SetValue(controller,left);
+        type.GetField("bufferAnchorRight").SetValue(controller,right);
+        type.GetField("bufferModelLeft").SetValue(controller,left.childCount>0?left.GetChild(0):Group(left,"buffer model"));
+        type.GetField("bufferModelRight").SetValue(controller,right.childCount>0?right.GetChild(0):Group(right,"buffer model"));
+        type.GetMethod("Awake",Instance).Invoke(controller,null);
+        return controller;
+    }
+    private static void ValidateCompression(Assembly game, Transform root, Component actual)
+    {
+        var type=actual.GetType();var left=(Transform)type.GetField("bufferAnchorLeft").GetValue(actual);
+        var right=(Transform)type.GetField("bufferAnchorRight").GetValue(actual);var basis=left.parent;
+        var reference=Group(root,"Native buffer reference"); reference.SetPositionAndRotation(basis.position,basis.rotation);
+        var opponent=Group(root,"Native opposing buffers");
+        Component Make(Transform rig)
+        {
+            var l=Group(rig,"left");l.localPosition=new Vector3(-.864f,0,.3f);
+            var r=Group(rig,"right");r.localPosition=new Vector3(.864f,0,.3f);
+            return NativeBuffer(game,rig,l,r);
+        }
+        var expected=Make(reference);var other=Make(opponent);
+        try
+        {
+            foreach(float yaw in new[]{-5f,0f,5f})foreach(float distance in new[]{.8f,.6f,.45f,.3f,.1f,0f})
+            {
+                opponent.SetPositionAndRotation(basis.TransformPoint(new Vector3(0,0,distance)),basis.rotation*Quaternion.Euler(0,180+yaw,0));
+                type.GetMethod("SetOtherBuffer").Invoke(actual,new object[]{other});
+                type.GetMethod("SetOtherBuffer").Invoke(expected,new object[]{other});
+                type.GetMethod("UpdateBuffers").Invoke(actual,null);type.GetMethod("UpdateBuffers").Invoke(expected,null);
+                var expectedLeft=(Transform)type.GetField("bufferAnchorLeft").GetValue(expected);
+                var expectedRight=(Transform)type.GetField("bufferAnchorRight").GetValue(expected);
+                Check(Mathf.Abs(left.localPosition.z-expectedLeft.localPosition.z)<.0001f&&Mathf.Abs(right.localPosition.z-expectedRight.localPosition.z)<.0001f,
+                    "Native rear buffer compression matches its visible datum");
+            }
+            type.GetMethod("SetOtherBuffer").Invoke(actual,new object[]{null});
+            Check(Mathf.Abs(left.localPosition.z-.3f)<.0001f&&Mathf.Abs(right.localPosition.z-.3f)<.0001f,"Uncoupling restores both native rear buffers");
+        }
+        finally {Object.DestroyImmediate(reference.gameObject);Object.DestroyImmediate(opponent.gameObject);}
+    }
     private static void PrepareEnableEntry(Assembly game, Component interaction, Transform chain, Transform root)
     {
         var type = interaction.GetType();

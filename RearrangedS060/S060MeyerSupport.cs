@@ -145,11 +145,15 @@ namespace RearrangedS060
             var chain = visual.chain != null ? visual.chain.GetComponent<ChainCouplerInteraction>() : null;
             if (chain == null) throw new InvalidOperationException("Native rear chain interaction is not ready.");
             chainHomes.Add((chain, chain.originalLocalPosition));
-            foreach (var part in parts.Where(t => !parts.Any(parent => parent != t && t.IsChildOf(parent))))
-            {
-                couplingVisuals.Add((part, part.localPosition));
-                part.position += delta;
-            }
+            var positions = parts.Select(part => (part, world: part.position)).ToArray();
+            foreach (var part in parts) couplingVisuals.Add((part, part.localPosition));
+            // The native buffer controller, scanner and anchors share this rig.
+            // Keep that complete datum at the beam; only the chain and hose
+            // follow the additional coupling-pocket correction.
+            visual.transform.position += delta - car.transform.TransformVector(
+                new Vector3(0, 0, MeyerPlan.RearCouplingCorrectionZ));
+            foreach (var item in positions.Where(item => item.part != visual.transform))
+                item.part.position = item.world + delta;
             // Native visibility enable restores this cached local pose after
             // DV has reparented the chain into the interior.
             chain.originalLocalPosition = chain.transform.localPosition;

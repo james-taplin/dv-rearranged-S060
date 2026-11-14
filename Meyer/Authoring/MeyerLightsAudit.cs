@@ -100,7 +100,9 @@ public static class MeyerLightsAudit
                     }
                     Require(Mathf.Abs(used.Max(i => rearStem.sharedMesh.vertices[i].z) - (MeyerPlan.RearBeamCentreZ + MeyerPlan.RearBeamDepth / 2)) < .00001f, "Native stem mounting flange must meet beam front face."); checks++;
                     var wrapper = frame.Find("[Meyer native rear buffers]");
-                    Require(anchorLeft.parent == wrapper && anchorRight.parent == wrapper && anchorLeft.localPosition == new Vector3(-.864f, 0, .3f), "Native anchors retain their native compression coordinates."); checks++;
+                    Require(anchorLeft.parent == bufferRig && anchorRight.parent == bufferRig && bufferRig.parent == wrapper &&
+                        bufferRig.localPosition.sqrMagnitude < .000001f && Quaternion.Angle(bufferRig.localRotation, Quaternion.identity) < .001f &&
+                        anchorLeft.localPosition == new Vector3(-.864f, 0, .3f), "Native controller rig and anchors retain one compression datum."); checks++;
                     foreach (float compressionZ in new[] { .3f, .15f, 0 })
                     {
                         anchorLeft.localPosition = new Vector3(-.864f, 0, compressionZ);
@@ -121,7 +123,8 @@ public static class MeyerLightsAudit
                 { Require(restoredLods[level].renderers.SequenceEqual(originalLods[level].renderers), "Native LOD renderer arrays must restore exactly."); checks++; }
                 Require(group.localReferencePoint == originalLodPoint && group.size == originalLodSize, "Original native LOD bounds must restore."); checks++;
                 foreach (var home in original.Where(p => p.t != car.transform))
-                { Require(home.t.parent == home.parent && home.t.localPosition == home.pos && home.t.localRotation == home.rot && home.t.localScale == home.scale && home.t.GetSiblingIndex() == home.sibling && home.t.gameObject.activeSelf == home.active, "Every moved native transform must restore exactly."); checks++; }
+                { Require(home.t.parent == home.parent && home.t.localPosition == home.pos && home.t.localRotation == home.rot && home.t.localScale == home.scale && home.t.GetSiblingIndex() == home.sibling && home.t.gameObject.activeSelf == home.active,
+                    "Every moved native transform must restore exactly: " + home.t.name + "; sibling " + home.t.GetSiblingIndex() + "/" + home.sibling + "; position " + home.t.localPosition + "/" + home.pos); checks++; }
             }
             File.WriteAllText(Path.Combine(output, "meyer-lights-validation.json"), "{\"passed\":true,\"checks\":" + checks + ",\"nativeStemGlassAndBuffer04Geometry\":true,\"nativeStemRendererCount\":1,\"sourceStemLodLevels\":[0,1],\"rearStemMatchesNativeLods\":true,\"originalLodArraysAndBoundsRestored\":true,\"yawDegrees\":[-15,0,15],\"bufferCompressionCoordinates\":[0.3,0.15,0],\"headStemBeamBoundsConnected\":true,\"upperLampUnmoved\":true,\"gameRuntimeValidated\":false}");
         }

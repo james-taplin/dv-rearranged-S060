@@ -1,0 +1,6 @@
+Rearranged S060 0.3.5-hotfix
+
+Repairs Meyer rear buffer compression when coupled.
+Includes all existing arrangements and asset parts.
+Install the requirements.
+Then drag this ZIP into Unity Mod Manager.

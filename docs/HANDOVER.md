@@ -1,5 +1,20 @@
 # Rearranged S060 — handover
 
+## 0.3.5-hotfix — buffer repair, 14 November 2026
+
+Read [BUFFER-HOTFIX-0.3.5.md](BUFFER-HOTFIX-0.3.5.md). James paused sound work
+and requested finishing, committing and installing the buffer-only hotfix.
+He explicitly authorised replacing the live 0.4.5-indev mod; 0.4 source and
+staged builds remain separate. The exact package and installation status are
+recorded in build/hotfix/validation.json and install-receipt.json.
+
+The native buffer rig now keeps its controller, scanner and anchors together.
+Hook, chain and hose retain the corrected coupling pocket. Native coupled
+compression and release pass 248 checks; lamp/stem/LOD and restoration pass
+7,596 checks. Native UMM extraction, bundle reopening and installer fixtures
+pass. Audio code and all three bundles are unchanged. No DV launch or gameplay
+testing; James owns in-game acceptance. Missing chuffs remain unresolved.
+
 ## 0.3.4 donor visibility — STAGED ONLY, 14 November 2026
 
 James requested hiding the Meyer and Dockside asset donors while keeping the

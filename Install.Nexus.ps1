@@ -3,7 +3,7 @@ $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'Build.Config.ps1')
 $config=Get-S060BuildConfig -GamePath $GamePath
 if(-not $Version){$Version=$config.Version}
-if($Version -notmatch '^\d+\.\d+\.\d+$'){throw 'Invalid version.'}
+if($Version -notmatch '^\d+\.\d+\.\d+(?:-[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*)?$'){throw 'Invalid version.'}
 if(Get-Process -Name DerailValley -ErrorAction SilentlyContinue){throw 'Close Derail Valley before installation.'}
 $output=Join-Path $PSScriptRoot "build\nexus-$Version-single"
 $receiptPath=Join-Path $output 'nexus-package-receipt.json'
@@ -17,6 +17,9 @@ if($bundleProof.shayBundleSha256 -ne ($receipt.payload | Where-Object relative -
 $stage=[IO.Path]::GetFullPath((Join-Path $output 'package'))
 $mods=[IO.Path]::GetFullPath((Join-Path $config.GamePath 'Mods'))
 $target=Join-Path $mods 'RearrangedS060'
+if(Test-Path -LiteralPath (Join-Path $target 'Info.json')){
+    if((Get-Content -LiteralPath (Join-Path $target 'Info.json') -Raw|ConvertFrom-Json).Id -ne 'RearrangedS060'){throw 'Installed mod identity mismatch.'}
+}
 $info=Get-Content (Join-Path $stage 'RearrangedS060\Info.json') -Raw | ConvertFrom-Json
 if($info.Id -ne 'RearrangedS060' -or $info.Version -ne $Version){throw 'Package identity mismatch.'}
 foreach($file in $receipt.files){
@@ -38,7 +41,13 @@ foreach($id in @('RS060_Meyer_0440','RS060_Franklin_Dockside_0440')){
 $protected=@(Join-Path $target 'Settings.xml')+@(Get-ChildItem -LiteralPath $mods -Directory | Where-Object {$_.Name -notin @('RearrangedS060','RS060_Meyer_0440','RS060_Franklin_Dockside_0440')} | ForEach-Object {Get-ChildItem -LiteralPath $_.FullName -File -Filter 'Info.json'})
 # Resolve strings and FileInfo alike; Windows PowerShell 5.1 cannot pipe a bare path string into Get-FileHash.
 $before=@($protected | ForEach-Object {if($_ -is [IO.FileInfo]){$_.FullName}else{[string]$_}} | Where-Object {Test-Path -LiteralPath $_} | ForEach-Object {Get-FileHash -LiteralPath $_} | Select-Object Path,Hash)
-$record=[ordered]@{utc=[DateTime]::UtcNow.ToString('o');packageReceipt=$receiptPath;gameClosed=$true;backupCreated=$false;legacyRemoved=$legacy;protected=$before;status='preflight verified'}
+$obsolete=@()
+foreach($name in @('RearrangedS060.Multiplayer.dll','MULTIPLAYER_TESTING.txt')){
+    $path=[IO.Path]::GetFullPath((Join-Path $target $name))
+    if([IO.Path]::GetDirectoryName($path) -ne $target){throw 'Obsolete payload escaped mod folder.'}
+    if($name -notin @($receipt.files|ForEach-Object{[IO.Path]::GetFileName($_.Path)}) -and (Test-Path -LiteralPath $path -PathType Leaf)){$obsolete+=$path}
+}
+$record=[ordered]@{utc=[DateTime]::UtcNow.ToString('o');packageReceipt=$receiptPath;gameClosed=$true;backupCreated=$false;legacyRemoved=$legacy;obsoleteRemoved=$obsolete;protected=$before;status='preflight verified'}
 $record | ConvertTo-Json -Depth 6 | Set-Content (Join-Path $output 'install-receipt-latest.json') -Encoding UTF8
 if(Get-Process -Name DerailValley -ErrorAction SilentlyContinue){throw 'Game started during preparation; installation cancelled.'}
 foreach($file in $receipt.files){
@@ -50,7 +59,8 @@ foreach($file in $receipt.files){
 # Every recursive target above has been resolved, bounded and identified before
 # mutation. The replacement bytes are verified before removing the old aliases.
 foreach($path in $legacy){Remove-Item -LiteralPath $path -Recurse -Force}
-foreach($cache in Get-ChildItem -LiteralPath $target -File -Filter 'RearrangedS060.dll.*.cache'){
+foreach($path in $obsolete){Remove-Item -LiteralPath $path}
+foreach($cache in Get-ChildItem -LiteralPath $target -File -Filter 'RearrangedS060*.dll.*.cache'){
     if([IO.Path]::GetDirectoryName([IO.Path]::GetFullPath($cache.FullName)) -ne $target){throw 'Cache escaped runtime folder.'}
     Remove-Item -LiteralPath $cache.FullName
 }

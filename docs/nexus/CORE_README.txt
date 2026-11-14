@@ -1,4 +1,4 @@
-REARRANGED S060 - 0.3.4 RELEASE
+REARRANGED S060 - 0.3.5-hotfix RELEASE
 
 Rearranged S060 changes the wheel arrangement of the S060 locomotive.
 Use WHEEL REARRANGER on the comms radio or the arrangement menu in Unity Mod Manager.

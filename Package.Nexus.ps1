@@ -2,7 +2,7 @@ param([string]$Version = '', [switch]$StagedOnly)
 $ErrorActionPreference = 'Stop'
 $repo = $PSScriptRoot
 if (-not $Version) { $Version = (Get-Content (Join-Path $repo 'Info.json') -Raw | ConvertFrom-Json).Version }
-if ($Version -notmatch '^\d+\.\d+\.\d+$') { throw 'Invalid version.' }
+if ($Version -notmatch '^\d+\.\d+\.\d+(?:-[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*)?$') { throw 'Invalid version.' }
 if (-not (Get-Content (Join-Path $repo 'docs\nexus\CORE_README.txt') -Raw).Contains(" $Version ")) { throw 'Release documents must match the package version.' }
 $tested = Join-Path $repo "build\articulated-$Version"
 $receiptPath = Join-Path $tested 'package-receipt.json'
