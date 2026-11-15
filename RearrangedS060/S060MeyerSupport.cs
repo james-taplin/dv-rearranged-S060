@@ -64,6 +64,7 @@ namespace RearrangedS060
         }
         internal static void RequireRearFree(TrainCar car)
         {
+            if (S060MultiplayerSync.ApplyingRemote) return; // host has checked the connection state
             if (car.rearCoupler == null || car.rearCoupler.coupledTo != null || car.rearCoupler.hoseAndCock.IsHoseConnected)
                 throw new InvalidOperationException("Uncouple and disconnect the rear hose before adding or removing the Meyer steam bogie.");
         }
@@ -74,7 +75,7 @@ namespace RearrangedS060
             var targets = new[] { (bogie: car.FrontBogie, z: MeyerPlan.FrontCentre), (bogie: car.RearBogie, z: MeyerPlan.RearCentre) };
             // Resolve both track positions before changing a joint or pivot.
             foreach (var target in targets) CheckTrack(target.bogie, new Vector3(0, target.bogie.startingLocalPosition.y, target.z));
-            if (!restoring)
+            if (!restoring && !S060MultiplayerSync.ApplyingRemote)
                 foreach (var hit in UnityEngine.Physics.OverlapBox(car.transform.TransformPoint(new Vector3(0, 1.25f, MeyerPlan.RearCentre - .25f)), new Vector3(1.25f, 1.0f, 2.25f), car.transform.rotation))
                 {
                     var other = hit.GetComponentInParent<TrainCar>();

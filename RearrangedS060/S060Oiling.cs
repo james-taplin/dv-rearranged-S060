@@ -64,6 +64,7 @@ namespace RearrangedS060
             if (points?.oilingPoints.Length != TotalPoints) throw new InvalidOperationException("S060 oiling circuit extension failed.");
             // New reservoirs start full once per newly created flow. The native
             // save loader runs later and restores all previously saved values.
+            if (S060MultiplayerSync.IsSimulationAuthority)
             for (int i = NativePoints; i < TotalPoints; i++)
             { points.oilingPoints[i].oilLevelReadOut.Value = points.capacity; points.oilingPoints[i].oilLevelNormalizedReadOut.Value = 1; }
             // The stock locomotive also has three driven axles. Its two extra
@@ -86,7 +87,7 @@ namespace RearrangedS060
         // oil, lid and refill state afterwards: selecting another layout is not a refill.
         internal static void BeforeTick(ManualOilingPoints __instance)
         {
-            if (!States.TryGetValue(__instance, out var state) || state.Active == null) return;
+            if (!S060MultiplayerSync.IsSimulationAuthority || !States.TryGetValue(__instance, out var state) || state.Active == null) return;
             if (state.Depth++ != 0) return;
             for (int i = 0; i < TotalPoints; i++)
             {

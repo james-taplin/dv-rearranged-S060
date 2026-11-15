@@ -20,6 +20,7 @@ namespace RearrangedS060
         private bool waitingReported;
         private bool restoringSave;
         internal string Status { get; private set; }
+        internal bool HasPending => state.Pending.HasValue;
 
         internal static void Register(Harmony harmony)
         {
@@ -42,28 +43,35 @@ namespace RearrangedS060
 
         private static void Schedule(TrainCar candidate)
         {
+            if (S060MultiplayerSync.DeferAutomatic(candidate)) return;
             var owner = For(candidate);
             if (owner == null) return;
             owner.state.SelectInitial(Main.Options.PickInitial(Random));
             owner.StartPending();
         }
 
-        internal static bool TryApply(TrainCar candidate, S060Selection selection, out string message)
+        internal static bool TryApply(TrainCar candidate, S060Selection selection, out string message) =>
+            S060MultiplayerSync.RequestChange(candidate, selection, out message);
+
+        internal static bool ApplyLocal(TrainCar candidate, S060Selection selection, out string message, bool restoring = false)
         {
+            if (!S060MultiplayerSync.BeforeSwitch(candidate)) { message = "Only the host can apply arrangements."; return false; }
             var owner = For(candidate);
             if (owner == null) { message = "Select an initialized S060."; return false; }
             try
             {
-                S060Conversion.SwitchTo(candidate, selection);
+                S060Conversion.SwitchTo(candidate, selection, restoring);
                 owner.CancelPending();
                 owner.state.RecordApplied(selection);
                 owner.restoringSave = false;
+                S060MultiplayerSync.OnApplied(candidate, selection);
                 owner.Status = message = candidate.ID + ": " + selection.Description;
                 Main.Logger.Log(message);
                 return true;
             }
             catch (Exception ex)
             {
+                S060MultiplayerSync.OnSwitchFailed(candidate);
                 owner.Status = message = "Not applied: " + ex.Message;
                 Main.Logger.LogException("S060 selection refused", ex);
                 return false;
@@ -72,10 +80,11 @@ namespace RearrangedS060
 
         private void StartPending()
         {
-            if (!state.Pending.HasValue || car == null) return;
+            if (!state.Pending.HasValue || car == null || S060MultiplayerSync.DeferAutomatic(car)) return;
             if (state.Pending.Value.IsStock && S060Conversion.Current(car) == null)
             {
                 state.RecordApplied(S060Selection.Stock);
+                S060MultiplayerSync.OnApplied(car, S060Selection.Stock);
                 Status = "Stock 0-6-0";
                 return;
             }
@@ -129,6 +138,7 @@ namespace RearrangedS060
             yield return null;
             while (car != null && car.logicCar != null && state.Guid == car.CarGUID && state.Pending.HasValue)
             {
+                if (S060MultiplayerSync.DeferAutomatic(car)) break;
                 if (Ready())
                 {
                     var selection = state.Pending.Value;
@@ -136,6 +146,7 @@ namespace RearrangedS060
                     {
                         S060Conversion.SwitchTo(car, selection, restoringSave);
                         state.RecordApplied(selection);
+                        S060MultiplayerSync.OnApplied(car, selection);
                         restoringSave = false;
                         Status = "Restored " + selection.Description;
                         Main.Logger.Log(car.ID + ": " + Status);
@@ -187,7 +198,7 @@ namespace RearrangedS060
 #if B99_S060_ARTICULATED
             private static void Prefix(TrainCar spawnedCar, JObject simCarState)
             {
-                if (!S060Parts.IsS060(spawnedCar)) return;
+                if (!S060Parts.IsS060(spawnedCar) || S060MultiplayerSync.DeferAutomatic(spawnedCar)) return;
                 var saved = new S060SavedState();
                 if (!saved.Load(simCarState?[S060SavedState.SaveKey]) || saved.Pending?.Arrangement != S060Arrangement.Meyer) return;
                 // Restore the longer supports/coupling anchor before native
@@ -198,6 +209,7 @@ namespace RearrangedS060
 #endif
             private static void Postfix(TrainCar spawnedCar, JObject simCarState)
             {
+                if (S060MultiplayerSync.DeferAutomatic(spawnedCar)) return;
                 var owner = For(spawnedCar);
                 if (owner == null) return;
                 owner.CancelPending();
@@ -220,6 +232,7 @@ namespace RearrangedS060
             private static bool Prefix(TrainCar __instance)
             {
                 if (!S060Parts.IsS060(__instance)) return true;
+                S060MultiplayerSync.Forget(__instance);
                 var owner = __instance.GetComponent<S060Lifecycle>();
                 if (owner != null)
                 {

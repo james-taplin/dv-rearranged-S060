@@ -59,6 +59,12 @@ namespace RearrangedS060
             originalPort = poweredAxlesPort.Value;
             poweredDefinition = car.transform.Find("[sim]/poweredAxles").GetComponent<LocoSim.Definitions.ConfigurablePortDefinition>();
             originalDefinition = poweredDefinition.value;
+            // Native port updates can arrive before the arrangement snapshot.
+            // Normalize only when the physical three-axle stock rig is intact.
+            if (S060MultiplayerSync.IsClient && S060MultiplayerSync.ApplyingRemote &&
+                originalShared.numOfAxles == 3 && car.NumberOfAxles == 3 &&
+                originalPowered.Length == expectedPoweredAxles && originalDefinition == expectedPoweredAxles)
+                originalPort = originalDefinition;
             originalForceEnabled = sim.drivingForce.enabled;
             originalEngineBrakingPort = sim.wheelslipController.engineBrakingActivePort;
             originalForceRadius = sim.drivingForce.wheelRadius;

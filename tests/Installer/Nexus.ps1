@@ -50,8 +50,8 @@ Check $rejected 'Changed payload must be rejected before mutation.'
 foreach($file in $receipt.files){$relative=$file.Path.Substring((Join-Path $candidate 'package').Length+1);Check ((Get-FileHash (Join-Path $mods $relative)).Hash -eq $file.Hash) 'Every installed byte must match its receipt.'}
 Check ((Get-FileHash (Join-Path $main 'Settings.xml')).Hash -eq $settings) 'Settings must survive.'
 Check ((Get-FileHash (Join-Path $mods 'OtherMod\Info.json')).Hash -eq $other) 'Unrelated mod must survive.'
-Check (-not(Test-Path -LiteralPath (Join-Path $main 'RearrangedS060.Multiplayer.dll'))) 'Unshipped optional bridge must be retired.'
-Check (-not(Test-Path -LiteralPath (Join-Path $main 'MULTIPLAYER_TESTING.txt'))) 'Unshipped optional bridge instructions must be retired.'
+Check ((Test-Path -LiteralPath (Join-Path $main 'RearrangedS060.Multiplayer.dll')) -eq (Test-Path -LiteralPath (Join-Path $candidate 'package\RearrangedS060\RearrangedS060.Multiplayer.dll'))) 'Optional bridge presence must match the package.'
+Check ((Test-Path -LiteralPath (Join-Path $main 'MULTIPLAYER_TESTING.txt')) -eq (Test-Path -LiteralPath (Join-Path $candidate 'package\RearrangedS060\MULTIPLAYER_TESTING.txt'))) 'Optional bridge instructions must match the package.'
 Check (-not (Test-Path (Join-Path $mods 'RS060_Meyer_0440')) -and -not (Test-Path (Join-Path $mods 'RS060_Franklin_Dockside_0440'))) 'Old donor packs must be retired to avoid duplicate CCL IDs.'
 & $installer -GamePath $game
 Check ((Get-FileHash (Join-Path $main 'Settings.xml')).Hash -eq $settings) 'Repeated installation must preserve settings.'

@@ -81,7 +81,7 @@ namespace RearrangedS060
                     UpdateParticle(definition.sparksLeftPS, controller, emit, rpm, slip);
                     UpdateParticle(definition.sparksRightPS, controller, emit, rpm, slip);
                 }
-                if (ignition > 0) controller.Ignite(ignition);
+                if (ignition > 0 && S060MultiplayerSync.IsSimulationAuthority) controller.Ignite(ignition);
             }
         }
         private static void UpdateParticle(ParticleSystem particle, WheelslipSparksController controller, bool emit, float rpm, float slip)

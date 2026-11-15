@@ -11,7 +11,11 @@ namespace RearrangedS060
         {
             GUILayout.Label("Rearranged S060 — radio and saved arrangements");
             GUILayout.Label("Stop and close the regulator before changing running gear. Each arrangement has fitted wheels and geometry.");
+            S060MultiplayerSync.Draw();
+            bool enabled = GUI.enabled;
+            GUI.enabled = enabled && !S060MultiplayerSync.IsClient;
             Main.Options.Draw();
+            GUI.enabled = enabled;
             GUILayout.Space(10);
             var car = S060Targeting.Target();
             GUILayout.Label(car == null ? "No S060 in view or within 30 m." : "Target: " + S060Conversion.Describe(car));

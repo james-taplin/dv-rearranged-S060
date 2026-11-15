@@ -49,6 +49,7 @@ namespace RearrangedS060
         private static void Set(ResourceContainer container, float capacity, float amount)
         {
             CapacityField.SetValue(container, capacity);
+            if (!S060MultiplayerSync.IsSimulationAuthority) return;
             container.capacityReadOutPort.Value = capacity;
             container.amountReadOut.Value = Math.Max(0f, Math.Min(amount, capacity));
             container.normalizedReadOutPort.Value = container.amountReadOut.Value / capacity;

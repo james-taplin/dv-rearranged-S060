@@ -115,6 +115,7 @@ namespace RearrangedS060
             {
                 Play(confirmSound);
                 Reset();
+                if (S060MultiplayerSync.IsClient) display.SetContent(message);
             }
             else
             {

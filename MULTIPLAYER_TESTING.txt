@@ -1,0 +1,49 @@
+REARRANGED S060 0.3.6-mp - MULTIPLAYER CANDIDATE
+
+This candidate ports the current Rearranged S282 multiplayer integration.
+It includes the S060 0.3.5 switching, buffer and fixed-sleeve repairs.
+Build and offline checks pass. Live multiplayer acceptance awaits James.
+
+SETUP
+
+Every player must use this identical complete ZIP and its normal requirements.
+Use DV Multiplayer 0.1.16.0-beta (API 1.1), the donor's supported API target.
+Rearranged S282 is not required. Both rearranger mods can be installed together.
+Multiplayer supplies MultiplayerAPI.dll. Do not copy that DLL into this mod.
+Multiplayer remains optional for single-player use.
+
+USE
+
+Use the S060 Wheel Rearranger on your own radio, or the UMM arrangement buttons.
+The host checks each requested change and sends the result to all players.
+The host can permit all guests or lock individual guests in the S060 UMM panel.
+Locked guests continue to receive arrangements. Random spawn choices use the
+host's settings. Each player's saved preferences remain local.
+All existing stopped-car and Meyer rear-clearance rules apply on the host.
+
+JAMES'S ACCEPTANCE CHECKS
+
+1. Verify ordinary single-player use with Multiplayer disabled, then with its
+   internal single-player mode. There should be no multiplayer lock or status.
+2. Host and join with the same ZIP. From each player's radio, select stock,
+   short-wheelbase 0-6-0 and each other arrangement. Check identical geometry.
+3. Lock all guests, then one guest. Check that requests are refused while
+   incoming changes remain visible. Unlock and retry.
+4. Try a request while moving or with the regulator open. Check host refusal.
+   Try Meyer with the rear coupled, hose connected or track occupied.
+5. Drive Meyer and Dockside, including a slipping powered group. Compare each
+   group's wheel motion, sparks and sound. Check Shay shafts, wheels and crank
+   in both directions, with cylinder cocks open and closed.
+6. Join a running session containing rearranged locomotives. Check their
+   arrangements, motion and effects, then switch back to stock while stopped.
+7. Save/reload on the host and reconnect. Check arrangements, damage, oil and
+   Meyer resources. Let a locomotive unload/reload and check it again.
+8. If S282 is also installed, check that its radio and permissions stay separate.
+   An old or different S060 package must fail the matching-build check.
+
+Also drive a fresh Meyer, stop with the regulator closed, select Dockside and
+drive again. Repeat from Shay. Check buffers while coupling and uncoupling.
+
+Record the actual mod versions and both Player.log files for any failure.
+Offline fixtures do not establish live transport, rail dynamics, audible sound,
+real saved-world acceptance or coexistence with another running multiplayer mod.

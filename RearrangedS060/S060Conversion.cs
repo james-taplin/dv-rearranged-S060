@@ -163,6 +163,7 @@ namespace RearrangedS060
         // stationary-only rule; these are the same conditions its radio checks.
         internal static void RequireStationary(TrainCar car)
         {
+            if (S060MultiplayerSync.ApplyingRemote) return; // already validated by host; late joins may be moving
             if (car.derailed || car.isExploded)
                 throw new InvalidOperationException("Use a repaired, rerailed locomotive.");
             float speed = Mathf.Abs(car.GetForwardSpeed());
@@ -238,6 +239,7 @@ namespace RearrangedS060
 
         internal static void SwitchTo(TrainCar car, S060Selection selection, bool restoring = false)
         {
+            if (!S060MultiplayerSync.BeforeSwitch(car)) throw new InvalidOperationException("Only the host can apply arrangements.");
             if (!S060Parts.IsS060(car)) throw new InvalidOperationException("Select an S060.");
             if (!S060Selection.IsSupported((int)selection.Arrangement) || !S060Selection.IsValidScale(selection.Scale))
                 throw new ArgumentException("Invalid S060 arrangement or driver size.", nameof(selection));
@@ -250,7 +252,7 @@ namespace RearrangedS060
 #if B99_S060_ARTICULATED
             var support = car.GetComponent<S060MeyerSupport>();
             bool extended = support != null && support.Active;
-            if (!restoring && ((extended && selection.Arrangement != S060Arrangement.Meyer) ||
+            if (!restoring && !S060MultiplayerSync.ApplyingRemote && ((extended && selection.Arrangement != S060Arrangement.Meyer) ||
                 (!previous.Equals(selection) && selection.Arrangement == S060Arrangement.Meyer && !extended)))
             {
                 S060MeyerSupport.RequireRearFree(car);

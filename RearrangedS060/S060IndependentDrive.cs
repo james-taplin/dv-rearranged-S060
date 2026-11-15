@@ -38,6 +38,7 @@ namespace RearrangedS060
             internal int Count;
             internal float Radius, Rpm, Velocity, Demand, Force, Brake;
             internal Port OriginalSlotRpm, OriginalEngineRpm, RpmPort;
+            internal S060IndependentDriveReplication.Channel Replication;
         }
         private static readonly ConditionalWeakTable<SimulationFlow, S060IndependentDrive> Flows = new ConditionalWeakTable<SimulationFlow, S060IndependentDrive>();
         private static readonly Dictionary<DrivingForce, S060IndependentDrive> Forces = new Dictionary<DrivingForce, S060IndependentDrive>();
@@ -48,6 +49,8 @@ namespace RearrangedS060
         private DrivingForce drivingForce;
         private S060NativeSlipRuntimeState state;
         private Group[] groups;
+        private S060IndependentDriveReplication replication;
+        private bool authority;
         private int[,] contactCounts;
         private bool[] drivenBogies;
         private float[] transmittedForces, bogieForces;
@@ -57,7 +60,10 @@ namespace RearrangedS060
         // Retained donor diagnostic seam: never a release preference or an
         // adhesion boost. Native fixtures can reduce one group's grip only.
         internal float DiagnosticFirstGroupGrip = 1f;
-        internal bool IsOwning => active && !released && state != null && state.Ready && state.HasCompletedSample;
+        internal bool IsOwning => active && !released && (authority
+            ? S060MultiplayerSync.IsSimulationAuthority && state != null && state.Ready && state.HasCompletedSample
+            : S060MultiplayerSync.IsClient && replication != null &&
+                replication.Matches(S060MultiplayerSync.SessionEpoch, S060MultiplayerSync.RevisionFor(car.CarGUID), groups.Length));
         internal static S060IndependentDrive For(TrainCar host) =>
             host?.SimController?.drivingForce != null && Forces.TryGetValue(host.SimController.drivingForce, out var owner) && !owner.released ? owner : null;
         internal bool Settled
@@ -66,7 +72,7 @@ namespace RearrangedS060
             {
                 if (!active) return true;
                 for (int i = 0; i < groups.Length; i++)
-                    if (Mathf.Abs(groups[i].Rpm) >= .1f || state.GetOutput(i).wheelslip != 0) return false;
+                    if (Mathf.Abs(authority ? groups[i].Rpm : groups[i].Replication.Rpm.Value) >= .1f || Slip(i) != 0) return false;
                 return true;
             }
         }
@@ -90,11 +96,14 @@ namespace RearrangedS060
         {
             if (groups != null || sim?.Flow == null || host.SimController?.drivingForce == null ||
                 host.SimController.wheelslipController == null || host.Bogies == null || host.Bogies.Length == 0 ||
-                definitions == null || definitions.Length < 2)
+                definitions == null || definitions.Length < 2 || definitions.Length > S060IndependentDriveReplication.MaximumGroups)
                 throw new InvalidOperationException("Independent engine/contact map is incomplete.");
             if (Forces.ContainsKey(host.SimController.drivingForce) || Flows.TryGetValue(sim.Flow, out _))
                 throw new InvalidOperationException("Native drive already has an independent owner.");
             car = host; simulation = sim; flow = sim.Flow; drivingForce = host.SimController.drivingForce;
+            authority = S060MultiplayerSync.IsSimulationAuthority;
+            replication = new S060IndependentDriveReplication(flow, host.CarGUID);
+            if (authority) replication.Clear();
             nativeRadius = drivingForce.wheelRadius;
             if (!Positive(nativeRadius)) throw new InvalidOperationException("Native wheel radius is invalid.");
             groups = new Group[definitions.Length];
@@ -122,7 +131,7 @@ namespace RearrangedS060
                 if (count == 0 || count > ushort.MaxValue) throw new InvalidOperationException("Independent group has invalid driven contacts.");
                 powered = checked(powered + count);
                 groups[i] = new Group { Slot = d.Slot, Engine = d.Slot.Selected, Root = d.EngineRoot,
-                    Radius = d.Radius, Role = d.Role, Count = count,
+                    Radius = d.Radius, Role = d.Role, Count = count, Replication = replication.Groups[i],
                     OriginalSlotRpm = d.Slot.crankRpm.port, OriginalEngineRpm = d.Slot.Selected.crankRpm.port,
                     Rpm = host.GetForwardSpeed() * 60f / (2f * Mathf.PI * d.Radius),
                     RpmPort = new Port(d.Slot.id, new PortDefinition(PortType.READONLY_OUT, PortValueType.RPM, "INDEPENDENT_RPM")) };
@@ -131,7 +140,7 @@ namespace RearrangedS060
                 throw new InvalidOperationException("Independent contacts do not match native powered axles.");
             ValidateContacts(host);
             Flows.Add(flow, this); Forces.Add(drivingForce, this);
-            TryCreateState();
+            if (authority) TryCreateState(); else active = true;
         }
         private void ValidateContacts(TrainCar host)
         {
@@ -165,14 +174,27 @@ namespace RearrangedS060
             try
             {
                 if (!ValidEngines() || car.derailed || car.isExploded) { Release(); return; }
-                TryCreateState();
+                if (authority != S060MultiplayerSync.IsSimulationAuthority)
+                {
+                    // A native session can start/stop while the car is present.
+                    // Retire helper force entities before handing authority over.
+                    state?.Dispose(); state = null; active = false;
+                    foreach (var group in groups)
+                    {
+                        if (ReferenceEquals(group.Slot.crankRpm.port, group.RpmPort)) group.Slot.crankRpm.port = group.OriginalSlotRpm;
+                        if (ReferenceEquals(group.Engine.crankRpm.port, group.RpmPort)) group.Engine.crankRpm.port = group.OriginalEngineRpm;
+                    }
+                    authority = S060MultiplayerSync.IsSimulationAuthority;
+                    if (authority) replication.Clear(); else active = true;
+                }
+                if (authority) TryCreateState();
                 if (IsOwning) S060GroupSlipEffects.Tick(car, this);
             }
             catch (Exception error) { Failed(error); }
         }
         private void TryCreateState()
         {
-            if (released || state != null || car?.entity == null || !car.entity.IsConverted ||
+            if (!authority || !S060MultiplayerSync.IsSimulationAuthority || released || state != null || car?.entity == null || !car.entity.IsConverted ||
                 DVConvertToEntity.ConvertSystem == null || DVConvertToEntity.ConvertSystem.World != car.entity.EntityManager.World) return;
             try
             {
@@ -197,6 +219,8 @@ namespace RearrangedS060
             if (released) return;
             Main.Logger.Warning("S060 independent drive unavailable; restoring native drive: " + error);
             Release();
+            if (S060MultiplayerSync.IsClient)
+                S060MultiplayerSync.ReportFailure?.Invoke("S060 independent wheel presentation failed: " + error.Message);
         }
         private void Prepare()
         {
@@ -205,6 +229,7 @@ namespace RearrangedS060
         }
         private void PrepareCore()
         {
+            if (!authority || !S060MultiplayerSync.IsSimulationAuthority) return;
             if (released || !ValidEngines() || car.derailed || car.isExploded) { Release(); return; }
             if (!DV.TimeUtil.IsFlowing || SingletonBehaviour<CarSpawner>.Instance.PoolSetupInProgress ||
                 SingletonBehaviour<PausePhysicsHandler>.Instance.PhysicsHandlingInProcess) return;
@@ -235,7 +260,8 @@ namespace RearrangedS060
         }
         private void Sample()
         {
-            if (released || state == null || !state.HasCompletedSample || active) return;
+            if (!authority || !S060MultiplayerSync.IsSimulationAuthority || released || state == null || !state.HasCompletedSample) return;
+            if (active) { PublishReplication(); return; }
             try
             {
                 for (int i = 0; i < groups.Length; i++)
@@ -247,12 +273,13 @@ namespace RearrangedS060
                     group.Engine.crankRpm.port = group.RpmPort;
                 }
                 active = true;
+                PublishReplication();
             }
             catch (Exception error) { Failed(error); }
         }
         private static void BeforeTick(SimulationFlow __instance, float delta)
         {
-            if (Flows.TryGetValue(__instance, out var owner) && owner.IsOwning)
+            if (Flows.TryGetValue(__instance, out var owner) && owner.authority && S060MultiplayerSync.IsSimulationAuthority && owner.IsOwning)
                 try { owner.PublishRpm(delta); } catch (Exception error) { owner.Failed(error); }
         }
         private void PublishRpm(float delta)
@@ -274,7 +301,10 @@ namespace RearrangedS060
         }
         private static bool BeforeForce(DrivingForce __instance)
         {
-            if (!Forces.TryGetValue(__instance, out var owner) || !owner.IsOwning) return true;
+            if (!Forces.TryGetValue(__instance, out var owner)) return true;
+            // A replica must never fall back to local force while awaiting ports.
+            if (!S060MultiplayerSync.IsSimulationAuthority) return false;
+            if (!owner.authority || !owner.IsOwning) return true;
             owner.forceApplicationStarted = false;
             try { return owner.ApplyForce(__instance); }
             catch (Exception error)
@@ -287,6 +317,7 @@ namespace RearrangedS060
         }
         private bool ApplyForce(DrivingForce original)
         {
+            if (!authority || !S060MultiplayerSync.IsSimulationAuthority) return false;
             if (!ValidEngines() || car.derailed || car.isExploded) { Release(); return true; }
             if (!DV.TimeUtil.IsFlowing || SingletonBehaviour<PausePhysicsHandler>.Instance.PhysicsHandlingInProcess) return false;
             // Finish all validation before applying any force, so a bad contact
@@ -329,7 +360,7 @@ namespace RearrangedS060
             if (!IsOwning || wheel == null || wheel.wheelTransform == null) return false;
             for (int i = 0; i < groups.Length; i++)
                 if (wheel.wheelTransform.IsChildOf(groups[i].Root))
-                { slip = state.GetOutput(i).wheelslip; rpm = groups[i].Rpm; return true; }
+                { slip = Slip(i); rpm = authority ? groups[i].Rpm : groups[i].Replication.Rpm.Value; return true; }
             return false;
         }
         internal bool TryGetWheelRadius(PoweredWheel wheel, out float radius)
@@ -339,6 +370,20 @@ namespace RearrangedS060
             for (int i = 0; i < groups.Length; i++)
                 if (wheel.wheelTransform.IsChildOf(groups[i].Root)) { radius = groups[i].Radius; return true; }
             return false;
+        }
+        private float Slip(int i) => authority ? state?.GetOutput(i).wheelslip ?? 0f : groups[i].Replication.Slip.Value;
+        private void PublishReplication()
+        {
+            if (!authority || !S060MultiplayerSync.IsSimulationAuthority || replication == null || state == null) return;
+            for (int i = 0; i < groups.Length; i++)
+            {
+                var group = groups[i]; var output = state.GetOutput(i);
+                // S060's native stable engine ports already drive both sides'
+                // absolute crank animation. Replicate slip/RPM for sparks/audio.
+                float phase = Mathf.Repeat(group.Slot.crankRotationReadOut.Value, 1f);
+                group.Replication.Publish(active, group.Rpm, output.wheelslip, phase, Mathf.Repeat(phase + .25f, 1f), group.Force, output.totalForceLimit);
+            }
+            replication.PublishMarker(S060MultiplayerSync.SessionEpoch, S060MultiplayerSync.RevisionFor(car.CarGUID), active ? groups.Length : 0);
         }
         internal JObject Report()
         {
@@ -365,6 +410,7 @@ namespace RearrangedS060
                 if (ReferenceEquals(group.Engine.crankRpm.port, group.RpmPort)) group.Engine.crankRpm.port = group.OriginalEngineRpm;
                 group.Force = 0;
             }
+            if (authority && S060MultiplayerSync.IsSimulationAuthority) replication?.Clear();
             var retired = state; state = null;
             try { retired?.Dispose(); }
             catch (Exception error) { Main.Logger.Warning("S060 native slip helpers cleanup failed: " + error); }

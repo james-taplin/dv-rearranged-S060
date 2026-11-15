@@ -1,6 +1,6 @@
 {
   "Id": "RearrangedS060",
-  "Version": "0.3.5",
+  "Version": "0.3.6-mp",
   "DisplayName": "Rearranged S060",
   "Author": "james-taplin, forked from SatiricRug's Rearranged S282",
   "EntryMethod": "RearrangedS060.Main.Load",
@@ -10,6 +10,8 @@
     "DVCustomCarLoader"
   ],
   "LoadAfter": [
-    "Gauge"
-  ]
+    "Gauge",
+    "Multiplayer"
+  ],
+  "MultiplayerCompatibility": "All"
 }

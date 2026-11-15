@@ -4,7 +4,19 @@ Change the S060's running gear through a dedicated comms-radio mode in Derail
 Valley. This project forks the Rearranged S282 B99/Re:Arranged branch, based on
 Peter Schinske / SatiricRug's original Rearranged S282.
 
-## Current candidate: S060 0.3.3, Meyer assets 0.7.0, Dockside assets 0.8.1
+## Current candidate: S060 0.3.6-mp
+
+Optional multiplayer support from the current S282 integration, based on the
+0.3.5 repairs, including buffers, switching and baked Dockside sleeves. Includes host-checked radio/UMM changes, guest permissions,
+late-join synchronization and native replication of independent slip and Shay
+motion. Normal single-player use does not require Multiplayer.
+
+Build and offline checks pass; live peer acceptance awaits James. Installed 15 November 2026.
+See [implementation and validation](docs/MULTIPLAYER-0.3.6.md) and
+[James's checklist](MULTIPLAYER_TESTING.txt). Build with `Build.Multiplayer.ps1`
+and package with `Package.Multiplayer.ps1`; asset bundles are reused unchanged.
+
+## Previous release: S060 0.3.3, Meyer assets 0.7.0, Dockside assets 0.8.1
 
 0.3.3 combines original geared Shay exhaust audio and smoother pipe bends,
 the requested Meyer rear steam-return route through its step brackets,

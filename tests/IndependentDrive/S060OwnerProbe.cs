@@ -69,6 +69,9 @@ internal static class S060OwnerProbe
             var loggerType = CandidateRuntime.Type("Main").GetProperty("Logger").PropertyType;
             SetStatic(CandidateRuntime.Type("Main"), "<Logger>k__BackingField", Activator.CreateInstance(loggerType, new object[] { "S060 offline slip fixture" }));
             var car = root.AddComponent<TrainCar>();
+            Set(car, "couplers", new Coupler[2]);
+            var logic = FormatterServices.GetUninitializedObject(typeof(DV.Logic.Job.Car));
+            Set(logic, "carGuid", "ba54f08c-bbea-458f-aad2-d057916b46ce"); Set(car, "logicCar", logic);
             var rb = root.GetComponent<Rigidbody>() ?? root.AddComponent<Rigidbody>(); rb.isKinematic = true; Set(car, "rb", rb);
             Set(car, "numberOfAxles", 4); Set(car, "<isEligibleForSleep>k__BackingField", false);
             var sim = root.AddComponent<SimController>();
@@ -130,6 +133,18 @@ internal static class S060OwnerProbe
             Call(bank, "Select", Enum.ToObject(CandidateRuntime.Type("S060EngineMode"), 2));
             var flow = (SimulationFlow)FormatterServices.GetUninitializedObject(typeof(SimulationFlow));
             Set(flow, "OrderedSimComps", slots.Cast<SimComponent>().ToList()); Set(simOwner, "Flow", flow); Set(sim, "simFlow", flow);
+            // This fixture formerly had no port registry. Use the production
+            // definition extension and real native implementations for the MP port contract.
+            var replicationType = CandidateRuntime.Assembly.GetType("RearrangedS060.S060IndependentDriveReplication");
+            if (replicationType != null)
+            {
+                var defs = (SimComponentDefinition[])CandidateRuntime.InvokeType(replicationType, null, "AppendDefinitions", (GameObject)Get(simOwner, "definitions"), new SimComponentDefinition[0]);
+                var comps = slots.Cast<SimComponent>().Concat(defs.Select(d => d.InstantiateImplementation())).ToList();
+                var ports = comps.SelectMany(c => c.GetAllPorts()).ToList();
+                Set(flow, "OrderedSimComps", comps); Set(flow, "AllPorts", ports);
+                Set(flow, "fullPortIdToPort", new System.Collections.ObjectModel.ReadOnlyDictionary<string, Port>(ports.ToDictionary(p => p.id)));
+                check(defs.Length == 38 && ports.Select(p => p.id).Distinct().Count() == ports.Count, "Actual DLL creates 38 unique native independent-drive replication outputs");
+            }
             var driveType = CandidateRuntime.Type("S060IndependentDrive"); var definitionType = driveType.GetNestedType("Definition", Flags);
             var definitions = Array.CreateInstance(definitionType, 2);
             for (int i = 0; i < 2; i++)
@@ -245,6 +260,57 @@ internal static class S060OwnerProbe
             check((bool)CandidateRuntime.InvokeType(driveType, null, "BeforeForce", force), "Return to a conventional single engine uses native traction");
             check(NativeSlipRuntimeState.StateCount == 0, "Coordinator cleanup leaves no registered native helper state");
             check(root.GetComponent<TrainCar>() == car && ReferenceEquals(car.SimController.simFlow, flow), "Coordinator does not replace native car or simulation flow");
+            if (replicationType != null)
+            {
+                // Seed real native ports as the transport would, then run the
+                // exact guest coordinator. No API or game networking is started.
+                var syncType = CandidateRuntime.Type("S060MultiplayerSync");
+                Call(bank, "Select", Enum.ToObject(CandidateRuntime.Type("S060EngineMode"), 2));
+                var published = Activator.CreateInstance(replicationType, Flags, null, new object[] { flow, car.CarGUID }, null);
+                var channels = (Array)Get(published, "Groups");
+                for (int i = 0; i < 2; i++) Call(channels.GetValue(i), "Publish", true, 123f + i, .25f * i, .1f, .35f, 100f, 200f);
+                Call(published, "PublishMarker", 77L, 1L, 2);
+                CandidateRuntime.InvokeType(syncType, null, "BeginClient");
+                CandidateRuntime.InvokeType(syncType, null, "AcceptClient", true, "fixture");
+                var lifecycleArgs = new object[] { car, CandidateRuntime.Type("S060Selection").GetProperty("Stock", Flags).GetValue(null), null, false };
+                check(!(bool)CandidateRuntime.Type("S060Lifecycle").GetMethod("ApplyLocal", Flags).Invoke(null, lifecycleArgs), "Actual lifecycle refuses direct guest application before touching the native car");
+                bool rearRefused = false;
+                try { CandidateRuntime.InvokeType(CandidateRuntime.Type("S060MeyerSupport"), null, "RequireRearFree", car); }
+                catch (InvalidOperationException) { rearRefused = true; }
+                check(rearRefused, "Meyer still rejects an unready rear coupling outside host-approved replay");
+                SetStatic(syncType, "applyingCar", car);
+                try
+                {
+                    CandidateRuntime.InvokeType(CandidateRuntime.Type("S060MeyerSupport"), null, "RequireRearFree", car);
+                    check(true, "Host-approved replica skips the redundant local Meyer coupling gate");
+                }
+                finally { SetStatic(syncType, "applyingCar", null); }
+                CandidateRuntime.InvokeType(syncType, null, "ReceiveState", new JObject { ["Epoch"] = 77L, ["CarGuid"] = car.CarGUID, ["Arrangement"] = 5, ["Revision"] = 1L }.ToString());
+                owner = CandidateRuntime.InvokeType(driveType, null, "Attach", car, simOwner, definitions);
+                check(Get(owner, "state") == null && NativeSlipRuntimeState.StateCount == 0, "Guest coordinator creates no force/slip helper entities");
+                check((bool)Get(owner, "IsOwning"), "Guest presentation activates only for matching native GUID/epoch/revision ports");
+                ClearForces(); check(!(bool)CandidateRuntime.InvokeType(driveType, null, "BeforeForce", force) && calls.Count == 0, "Guest never applies local traction or permits native force fallback");
+                var replicaWheel = new object[] { poweredWheels[2], 0f, 0f };
+                check((bool)driveType.GetMethod("TryGetWheelState", Flags).Invoke(owner, replicaWheel) && (float)replicaWheel[1] == .25f && (float)replicaWheel[2] == 124f, "Guest sparks/audio receive host group slip and RPM");
+                var portValues = flow.AllPorts.Select(p => p.Value).ToArray();
+                foreach (var slot in slots) slot.Tick(.02f);
+                Call(bank, "Select", Enum.ToObject(CandidateRuntime.Type("S060EngineMode"), 1));
+                check(portValues.SequenceEqual(flow.AllPorts.Select(p => p.Value)), "Guest engine ticks and mode selection preserve every replicated native output");
+                Call(bank, "Select", Enum.ToObject(CandidateRuntime.Type("S060EngineMode"), 2));
+                release();
+                check(portValues.SequenceEqual(flow.AllPorts.Select(p => p.Value)), "Guest drive release does not clear host-owned native ports");
+                CandidateRuntime.InvokeType(syncType, null, "EndSession");
+                check((bool)syncType.GetProperty("IsSimulationAuthority", Flags).GetValue(null), "Native session end restores single-player authority");
+                Call(bank, "Select", Enum.ToObject(CandidateRuntime.Type("S060EngineMode"), 3));
+                var shay = selected(slots[0]);
+                for (int i = 0; i < 100; i++) { input["CRANK_RPM"].Value = 80f; ((Port)Get(bank, "ShayRpm")).Value = 344f; slots[0].Tick(.02f); }
+                Near(((Port)Get(slots[0], "GearedTurns")).Value, (float)(double)Get(shay, "GearTurns"), check, "Shay multi-turn gear phase is published through a real native port");
+                CandidateRuntime.InvokeType(syncType, null, "BeginClient");
+                var gearedPort = (Port)Get(slots[0], "GearedTurns"); gearedPort.Value = 31.25f;
+                slots[0].Tick(1f); Call(slots[0], "Publish");
+                check(gearedPort.Value == 31.25f, "Guest cannot overwrite host Shay transmission phase");
+                CandidateRuntime.InvokeType(syncType, null, "EndSession");
+            }
             Call(bank, "Select", Enum.ToObject(CandidateRuntime.Type("S060EngineMode"), 2));
             owner = attach(); for (int i = 0; i < 4; i++) { slots[0].torqueOut.Value = 10; slots[1].torqueOut.Value = 10; stepWorld(); }
             bindEffects(); Object.DestroyImmediate(force); release();

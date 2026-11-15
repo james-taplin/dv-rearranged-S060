@@ -9,6 +9,7 @@ namespace RearrangedS060
     internal sealed class S060ShayMotion : MonoBehaviour
     {
         private S060ShayEngine engine;
+        private LocoSim.Implementations.Port gearedTurns;
         private float cylinderPitch, valveAxisX;
         private S060ShayTransmission transmission;
         private Transform[] levels, axles, cranks, reversed;
@@ -24,6 +25,7 @@ namespace RearrangedS060
         internal void Bind(S060EngineBank bank, Transform root, TextAsset data, Transform[] all)
         {
             engine = bank.Main.Engines[3] as S060ShayEngine ?? throw new InvalidOperationException("Native Shay engine unavailable.");
+            gearedTurns = bank.Main.GearedTurns;
             var model = root.Find("Engine");
             S060ShayAssets.ValidateMotion(data);
             // Revision 2 is exported at its final dimensions, without an R2 refit.
@@ -64,7 +66,8 @@ namespace RearrangedS060
         private void LateUpdate()
         {
             if (engine == null || transmission == null) return;
-            double turns=engine.GearTurns, fraction=turns-Math.Floor(turns);
+            double turns=S060MultiplayerSync.IsSimulationAuthority ? engine.GearTurns : gearedTurns.Value;
+            double fraction=turns-Math.Floor(turns);
             Updates++; LastFrame=Time.frameCount; LastTurns=turns;
             for(int lod=0;lod<levels.Length;lod++)
             {

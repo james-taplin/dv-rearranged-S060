@@ -9,6 +9,7 @@ namespace RearrangedS060
     {
         public static UnityModManager.ModEntry.ModLogger Logger { get; private set; }
         public static string ModPath { get; private set; }
+        internal static string RunningVersion => typeof(Main).Assembly.GetName().Version.ToString();
         internal static S060Settings Options { get; private set; }
 
         private static bool Load(UnityModManager.ModEntry entry)
@@ -37,6 +38,8 @@ namespace RearrangedS060
 #if B99_MEYER
                 MeyerRuntime.Register(harmony);
 #endif
+                S060MultiplayerSync.Initialize();
+                entry.OnUpdate = (mod, dt) => S060MultiplayerSync.Tick();
                 entry.OnGUI = mod => S060OptionsWindow.Draw();
                 entry.OnSaveGUI = mod => Options.Save(mod);
                 // Conversions and per-car state must not outlive their patches.

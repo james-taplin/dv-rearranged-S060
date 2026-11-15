@@ -83,6 +83,7 @@ namespace RearrangedS060
             Bank.Select(mode);
             // These sums are also refreshed immediately, so saving or querying
             // before the next tick cannot expose the previous mode's output.
+            if (S060MultiplayerSync.IsSimulationAuthority)
             foreach (string id in new[] { "rs060Intake", "rs060Torque", "rs060Exhaust", "rs060MaxFlow" })
                 Flow.OrderedSimComps.Single(c => c.id == id).Tick(0);
             // DV caches max blast flow here. This touches no engine/resource state.
@@ -144,7 +145,7 @@ namespace RearrangedS060
             }
             // Compound: HP alone draws boiler steam; LP alone reaches blast.
             // Stable slots publish zero for the internal transfer on each side.
-            owned.executionOrder = extended.ToArray(); owned.connections = wires.ToArray(); owned.portReferenceConnections = refs.ToArray();
+            owned.executionOrder = S060IndependentDriveReplication.AppendDefinitions(definitions, extended.ToArray()); owned.connections = wires.ToArray(); owned.portReferenceConnections = refs.ToArray();
             originalDamagers = damage.mechanicalPTDamagerPortIds;
             originalHealth = damage.mechanicalPTHealthStateExternalInPortIds;
             Require(originalDamagers.Contains(RearId + ".GENERATED_MECHANICAL_DAMAGE") && originalHealth.Contains(RearId + ".HEALTH_STATE_EXT_IN"), "Native S060 service wiring missing.");

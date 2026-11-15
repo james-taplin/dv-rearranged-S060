@@ -32,6 +32,13 @@ namespace RearrangedS060
         {
             if (!Enum.IsDefined(typeof(S060EngineMode), mode)) throw new ArgumentOutOfRangeException(nameof(mode));
             if (mode == Mode) return;
+            if (!S060MultiplayerSync.IsSimulationAuthority)
+            {
+                Mode = mode;
+                if (mode == S060EngineMode.Meyer || mode == S060EngineMode.Dockside) FrontConditionMode = (int)mode;
+                Main.Publish(); Auxiliary.Publish();
+                return;
+            }
             var main = Main.Selected;
             var auxiliary = Auxiliary.Selected ?? Auxiliary.Engines[FrontConditionMode] ?? main;
             var mainTarget = Main.Engines[(int)mode];
@@ -86,6 +93,7 @@ namespace RearrangedS060
         private readonly Port[][] outputs;
         private readonly Port[] published;
         internal readonly Port BlastCapacity;
+        internal readonly Port GearedTurns;
         internal ReciprocatingSteamEngine Selected => Engines[(int)Bank.Mode];
 
         internal S060EngineSlot(S060EngineSlotDefinition definition) : base(definition)
@@ -98,6 +106,7 @@ namespace RearrangedS060
             outputs = Engines.Select(e => e == null ? null : published.Select(p => e.GetAllPorts().Single(
                 q => S060EngineState.Suffix(q.id) == S060EngineState.Suffix(p.id))).ToArray()).ToArray();
             BlastCapacity = AddPort(new PortDefinition(PortType.READONLY_OUT, PortValueType.MASS_RATE, "BLAST_CAPACITY"), auxiliary ? 0 : definition.throttleMaxFlow);
+            GearedTurns = AddPort(new PortDefinition(PortType.READONLY_OUT, PortValueType.STATE, "GEARED_TURNS"), 0);
             healthStateExtIn.ValueUpdatedInternally += value =>
             {
                 foreach (var engine in Engines.Where(e => e != null))
@@ -132,6 +141,7 @@ namespace RearrangedS060
         }
         public override void Tick(float delta)
         {
+            if (!S060MultiplayerSync.IsSimulationAuthority) return;
             var engine = Selected;
             if (engine != null)
             {
@@ -144,8 +154,14 @@ namespace RearrangedS060
         internal void Publish()
         {
             var selected = Selected;
+            if (!S060MultiplayerSync.IsSimulationAuthority)
+            {
+                if (selected != null) numCylinders = selected.numCylinders;
+                return; // native Multiplayer owns these stable published ports
+            }
             var values = outputs[(int)Bank.Mode];
             BlastCapacity.Value = selected == null || (!auxiliary && Bank.Mode == S060EngineMode.Meyer) ? 0 : selected.throttleMaxFlow;
+            GearedTurns.Value = selected is S060ShayEngine geared ? (float)geared.GearTurns : 0f;
             for (int i = 0; i < published.Length; i++)
                 published[i].Value = values == null ? 0 : values[i].Value;
             if (selected == null) return;

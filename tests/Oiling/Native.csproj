@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework><DefineConstants>B99_S060_FUNCTIONAL;B99_S060_ARTICULATED</DefineConstants><NuGetAudit>false</NuGetAudit><NoWarn>SYSLIB0050</NoWarn><ManagedPath>B:\SteamLibrary\steamapps\common\Derail Valley\DerailValley_Data\Managed</ManagedPath></PropertyGroup>
   <ItemGroup>
+    <Compile Include="../OfflineAuthority.cs" />
     <Compile Include="..\..\RearrangedS060\S060Oiling.cs" />
     <Compile Include="..\..\RearrangedS060\S060OilingTopology.cs" />
     <Compile Include="..\..\RearrangedS060\S060OilCupPorts.cs" />

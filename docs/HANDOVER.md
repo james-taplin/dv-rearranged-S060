@@ -1,35 +1,29 @@
 # Rearranged S060 — handover
 
-## 0.3.5 — arrangement switching and fixed Dockside sleeves, 15 November 2026
+## 0.3.6-mp — installed 15 November 2026
 
-Read [REPAIR-0.3.5.md](REPAIR-0.3.5.md). James authorised fixing the reported
-Dockside/Meyer transition failures and installing 0.3.5 for his next game test.
-He required prebuilt body-fixed sleeves with the steam-pipe material. The repair
-removes per-frame sleeve generation, fixes authored axle identification and
-native endpoint/interpolated support placement, and removes the static residual
-torque deadlock while retaining the motion/regulator/slip/slide checks. Keep
-audio work paused and 0.4 plus separate multiplayer work untouched.
+James requested integrating f835781 into the multiplayer release and installing.
+Completed with prerequisite f35266f buffer repairs and the verified baked-sleeve
+Dockside bundle. Read [MULTIPLAYER-0.3.6.md](MULTIPLAYER-0.3.6.md) for the code
+review, exact build/test/package evidence, fixture correction and installation.
+One production build, zero warnings/errors; offline regression checks passed.
+Settings preserved; no DV launch. Live multiplayer/game acceptance belongs to
+James. Audio work remains paused and separate 0.4 work remains untouched.
 
-Native fixtures reproduce the old axle exception and check the corrected path.
-Offline pipe timing improves from about 27.3 ms to about 0.4 ms per update;
-gameplay FPS and the complete explosion mechanism remain for James to verify.
-Use build/035-repair/validation.json and the 0.3.5 installation receipt for the
-final status. Do not launch DV or enable his performance probe automatically.
+## 0.3.5-mp.1 multiplayer port — STAGED ONLY, 14 November 2026
 
-## 0.3.5-hotfix — buffer repair, 14 November 2026
-
-Read [BUFFER-HOTFIX-0.3.5.md](BUFFER-HOTFIX-0.3.5.md). James paused sound work
-and requested finishing, committing and installing the buffer-only hotfix.
-He explicitly authorised replacing the live 0.4.5-indev mod; 0.4 source and
-staged builds remain separate. The exact package and installation status are
-recorded in build/hotfix/validation.json and install-receipt.json.
-
-The native buffer rig now keeps its controller, scanner and anchors together.
-Hook, chain and hose retain the corrected coupling pocket. Native coupled
-compression and release pass 248 checks; lamp/stem/LOD and restoration pass
-7,596 checks. Native UMM extraction, bundle reopening and installer fixtures
-pass. Audio code and all three bundles are unchanged. No DV launch or gameplay
-testing; James owns in-game acceptance. Missing chuffs remain unresolved.
+Ported the current S282 3.0.4-indev optional multiplayer integration onto this
+0.3.4 release source. Read [MULTIPLAYER-0.3.5.md](MULTIPLAYER-0.3.5.md) for
+source provenance, S060 adaptation, exact validation and remaining acceptance.
+The candidate adds host-authoritative radio/UMM requests, permissions, late-join
+state, host-only independent traction and native guest presentation, including
+Shay's multi-turn gear clock. Existing assets and saved identities are retained.
+Final core/bridge build has zero warnings/errors; 3,500 bounded offline checks
+pass. The 14-entry UMM ZIP is staged in build/multiplayer-0.3.5/package and the
+Documents project outputs folder. No install, game launch, publication or Git
+commit/push. Source remains here; separate 0.4 development is untouched by this
+task. James owns live peer/gameplay acceptance. Do not treat offline fixtures
+as multiplayer acceptance or install the candidate without separate consent.
 
 ## 0.3.4 donor visibility — STAGED ONLY, 14 November 2026
 
