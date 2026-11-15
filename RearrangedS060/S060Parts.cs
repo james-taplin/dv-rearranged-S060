@@ -108,7 +108,11 @@ namespace RearrangedS060
                 foreach (var axle in bogie.Axles)
                 {
                     if (axle.transform == null) continue;
-                    var position = car.transform.InverseTransformPoint(axle.transform.position);
+                    // Identify native axles in their authored support frame.
+                    // Live bogies can yaw, suspend or be repositioned on track;
+                    // their instantaneous world pose does not change axle ID.
+                    var position = S060AxleGeometry.FromSupport(bogie.startingLocalPosition,
+                        bogie.startingLocalRotation, bogie.transform.InverseTransformPoint(axle.transform.position));
 #if B99_S060_ARTICULATED
                     var support = car.GetComponent<S060MeyerSupport>();
                     if (support != null && support.Active) position = support.OriginalAxlePosition(bogie, axle.transform);

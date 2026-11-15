@@ -9,7 +9,7 @@ $env:S060_AUDIT_MANAGED = Join-Path $config.GamePath 'DerailValley_Data\Managed'
 $env:S060_AUDIT_MODS = Join-Path $config.GamePath 'Mods'
 $output = Join-Path $PSScriptRoot ("build\radio-$($config.Version)\runtime-audits-" + [DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss'))
 $project = Join-Path $PSScriptRoot 'Meyer\UnityProject'
-foreach ($source in @('MeyerSmoothSteamAudit.cs','MeyerRearUnderframeAudit.cs','MeyerRunningGearAudit.cs','NativeCouplingPreview.cs','DocksideSleeveNativeAudit.cs','ExhaustNativeAudit.cs','ExhaustFailureNativeAudit.cs','PipeRuntimeAudit.cs','MeyerRefillNativeAudit.cs','MeyerRearCouplingNativeAudit.cs','CockNativeAudit.cs','CleanupNativeAudit.cs','TransactionsNativeAudit.cs','MeyerCollisionAudit.cs','ConventionalNativeAudit.cs','SteamNativePreview.cs','SteamMeshContact.cs','MeyerInwardBodyAudit.cs','MeyerInwardPhaseAudit.cs','InwardPipeRuntimeAudit.cs')) {
+foreach ($source in @('S060SwitchNativeAudit.cs','MeyerSmoothSteamAudit.cs','MeyerRearUnderframeAudit.cs','MeyerRunningGearAudit.cs','NativeCouplingPreview.cs','DocksideSleeveNativeAudit.cs','ExhaustNativeAudit.cs','ExhaustFailureNativeAudit.cs','PipeRuntimeAudit.cs','MeyerRefillNativeAudit.cs','MeyerRearCouplingNativeAudit.cs','CockNativeAudit.cs','CleanupNativeAudit.cs','TransactionsNativeAudit.cs','MeyerCollisionAudit.cs','ConventionalNativeAudit.cs','SteamNativePreview.cs','SteamMeshContact.cs','MeyerInwardBodyAudit.cs','MeyerInwardPhaseAudit.cs','InwardPipeRuntimeAudit.cs')) {
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot "Meyer\Authoring\$source") -Destination (Join-Path $project 'Assets\Editor') -Force
 }
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'RearrangedS060\S060MeyerCollision.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
@@ -47,6 +47,7 @@ $meyerBundle=Get-ChildItem (Join-Path $PSScriptRoot 'build\meyer') -Directory -F
 $env:S060_MEYER_AUDIT_BUNDLE=Join-Path $meyerBundle.FullName 'RS060_Meyer_0440\ccl_bundle'
 $env:S060_DOCKSIDE_AUDIT_BUNDLE=if ($DocksideBundle) { (Resolve-Path -LiteralPath $DocksideBundle).Path } else { Join-Path $PSScriptRoot 'build\dockside\authoring-20261022-223705\RS060_Franklin_Dockside_0440\ccl_bundle' }
 $entries = @(
+    @{ name='conversion-native'; method='S060SwitchNativeAudit.RunBatch'; env='S060_SWITCH_OUTPUT'; report='switch-validation.json' },
     @{ name='dockside-sleeves'; method='DocksideSleeveNativeAudit.RunBatch'; env='S060_DOCKSIDE_SLEEVE_OUTPUT'; report='dockside-sleeve-validation.json' },
     @{ name='meyer-rear-coupling'; method='MeyerRearCouplingNativeAudit.RunBatch'; env='S060_COUPLING_OUTPUT'; report='rear-coupling-validation.json' },
     @{ name='meyer-inward-pipes'; method='MeyerSmoothSteamAudit.RunBatch'; env='S060_SMOOTH_STEAM_OUTPUT'; report='smooth-steam-validation.json' },

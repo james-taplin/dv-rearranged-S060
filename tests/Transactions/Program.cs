@@ -16,6 +16,21 @@ static class Program
     static void Clean(TrainCar car) { Faults.Reset(); S060Conversion.Release(car); Check(!Faults.Resources.Contains(car), "Owned resource released"); }
     static void Main()
     {
+        var residual = Car(); residual.SimController.drivingForce.generatedForce = 12000;
+        S060Conversion.SwitchTo(residual, Four);
+        Check(S060Conversion.Current(residual)?.Selection.Equals(Four) == true,
+            "Closed-regulator stationary native residual cylinder torque does not deadlock selection");
+        Clean(residual);
+        foreach (int unsafeState in new[] { 0, 1, 2, 3 })
+        {
+            var unsafeCar = Car(); unsafeCar.SimController.drivingForce.generatedForce = 12000;
+            if (unsafeState == 0) unsafeCar.Speed = .02f;
+            if (unsafeState == 1) unsafeCar.SimController.simFlow.Throttle.Value = .01f;
+            if (unsafeState == 2) unsafeCar.SimController.wheelslipController.IsWheelslipping = true;
+            if (unsafeState == 3) unsafeCar.adhesionController.IsWheelSliding = true;
+            Fail(() => S060Conversion.SwitchTo(unsafeCar, Four));
+            Check(Faults.ApplyCalls == 0, "Residual-torque allowance never bypasses speed, throttle, slip or slide guards");
+        }
         var unsettled = Car();
         unsettled.Independent = new S060IndependentDrive { Settled = false };
         Check(Fail(() => S060Conversion.SwitchTo(unsettled, Four)).Message.Contains("both powered sets"),
@@ -128,10 +143,11 @@ public class TrainCar
     internal S060IndependentDrive Independent;
     public UnityEngine.Transform transform = new();
     public Sim SimController = new(); public Adhesion adhesionController = new();
-    public float GetForwardSpeed() => 0;
+    public float Speed;
+    public float GetForwardSpeed() => Speed;
     public T GetComponent<T>() where T : class => null;
     public class Sim { public Flow simFlow = new(); public Force drivingForce = new(); public Slip wheelslipController = new(); }
-    public class Flow { public bool TryGetPort(string _, out Port port) { port = new(); return true; } }
+    public class Flow { public Port Throttle = new(); public bool TryGetPort(string _, out Port port) { port = Throttle; return true; } }
     public class Port { public float Value; }
     public class Force { public float generatedForce; }
     public class Slip { public bool IsWheelslipping; }
@@ -193,7 +209,7 @@ namespace RearrangedS060
         internal static void Refresh(TrainCar _) => Faults.Throw(ref Faults.CupRefreshFailures, "injected cup refresh");
         internal static void Release(TrainCar _) => Faults.Throw(ref Faults.CupReleaseFailures, "injected cup release");
     }
-    internal class S060MeyerSupport { internal bool Active = false; internal static void RequireRearFree(TrainCar _) {} internal void Restore() {} }
+    internal class S060MeyerSupport { internal bool Active = false; internal static void RequireRearFree(TrainCar _) {} internal void Restore() {} internal void PreflightRestore() {} }
     internal enum S060EngineMode { Simple }
     internal class S060ArticulatedSimulation { internal TrainCar.Flow Flow = null; internal static void Ensure(TrainCar _) {} internal void Select(S060EngineMode _) {} }
     internal static class S060Articulated { internal static void Preflight(bool _) => Faults.Throw(ref Faults.PreflightFailures, "injected donor preflight"); }

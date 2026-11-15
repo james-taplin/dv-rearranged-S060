@@ -65,16 +65,42 @@ public static class DocksideSleeveNativeAudit
             car = Object.Instantiate(bundle.LoadAllAssets<CustomCarPack>().Single().Cars[0].liveries[0].prefab);
             var front = car.transform.Find("BogieF/bogie_car"); var rear = car.transform.Find("BogieR/bogie_car");
             var frontHome = car.transform.InverseTransformPoint(front.position); var rearHome = car.transform.InverseTransformPoint(rear.position);
+            var baked = front.GetComponentsInChildren<MeshFilter>(true).Where(f => f.name.StartsWith("[Dockside smokebox sleeve ", StringComparison.Ordinal)).Select(f => f.sharedMesh).ToArray();
             var native = SteamNativePreview.CreatePipeFixture(car.transform, owned); var originalBody = native.GetComponent<MeshFilter>().sharedMesh;
             var bind = type.GetMethod("Bind", Flags); var update = type.GetMethod("UpdateGeometry", Flags);
             owner = (IDisposable)bind.Invoke(null, new object[] { car.transform, front, rear, native });
             var sleeves = car.GetComponentsInChildren<MeshFilter>(true).Where(f => f.name.StartsWith("[Dockside smokebox sleeve ", StringComparison.Ordinal)).ToArray();
             Check(sleeves.Length == 2, "Both fitted smokebox sleeves required.");
             var sleeveMeshes = sleeves.Select(f => f.sharedMesh).ToArray();
+            if (baked.Length == 2)
+                Check(baked.Length == 2 && sleeveMeshes.All(baked.Contains), "Runtime must use the two prebuilt asset meshes directly.");
+            var fixedVertices = sleeves.Select(f => f.sharedMesh.vertices).ToArray();
+            var timings = new List<double>();
+            for (int pass = 0; pass < 4; pass++)
+            {
+                GC.Collect();
+                var timer = System.Diagnostics.Stopwatch.StartNew();
+                for (int frame = 0; frame < 90; frame++)
+                {
+                    float yaw = Mathf.Sin(frame * .17f) * 2;
+                    SteamBogiePoseAudit.Pose(car.transform, front, frontHome, true, yaw);
+                    SteamBogiePoseAudit.Pose(car.transform, rear, rearHome, false, -yaw);
+                    update.Invoke(owner, null);
+                }
+                timer.Stop(); if (pass > 0) timings.Add(timer.Elapsed.TotalMilliseconds / 90);
+            }
+            timings.Sort();
+            File.WriteAllText(Path.Combine(output, "dockside-pipe-timing.json"),
+                "{\"millisecondsPerUpdateMedian\":" + timings[1].ToString("R", System.Globalization.CultureInfo.InvariantCulture) +
+                ",\"updatesPerPass\":90,\"measuredPasses\":3,\"warmupPasses\":1,\"gameplayFps\":false}");
+            front.localPosition = frontHome; front.localRotation = Quaternion.identity;
+            rear.localPosition = rearHome; rear.localRotation = Quaternion.identity; update.Invoke(owner, null);
             foreach (var sleeve in sleeves)
             {
                 Check(sleeve.transform.parent == car.transform, "Sleeve follows rigid native body, not a swivelling bogie.");
-                Check(sleeve.GetComponent<MeshRenderer>().sharedMaterial.name == "S060 Shay dirty gunmetal", "Same proven Shay gunmetal finish required.");
+                if (baked.Length == 2)
+                    Check(sleeve.GetComponent<MeshRenderer>().sharedMaterial == native.GetComponent<MeshRenderer>().sharedMaterial, "Fixed sleeves use the native steam-pipe material.");
+                else Check(sleeve.GetComponent<MeshRenderer>().sharedMaterial.name == "S060 Shay dirty gunmetal", "Baseline finish required.");
                 var mesh = sleeve.sharedMesh; var v = mesh.vertices;
                 Check(v.Length % 18 == 0, "Fitted hollow seven-course cuff topology required; oversized circular cup rejected.");
                 Check(mesh.normals.Length == v.Length && mesh.tangents.Length == v.Length && mesh.uv.Length == v.Length, "Complete smooth-wall attributes required.");
@@ -102,6 +128,8 @@ public static class DocksideSleeveNativeAudit
                 SteamBogiePoseAudit.Pose(car.transform, front, frontHome, true, yaw); SteamBogiePoseAudit.Pose(car.transform, rear, rearHome, false, -yaw); update.Invoke(owner, null);
                 foreach (var sleeve in sleeves)
                 {
+                    if (baked.Length == 2)
+                        Check(sleeve.sharedMesh.vertices.SequenceEqual(fixedVertices[Array.IndexOf(sleeves, sleeve)]), "Bogie movement must never modify the prebuilt sleeve mesh.");
                     int side=sleeve.name.Contains(" L]") ? -1 : 1;
                     var manifold=front.Find("[S060 manifold "+(side<0?"L":"R")+"]");
                     var matrix=car.transform.worldToLocalMatrix*manifold.localToWorldMatrix;
@@ -123,15 +151,21 @@ public static class DocksideSleeveNativeAudit
                             Check(gap<.001f,"Upper cuff must touch the actual angled native pipe within 1 mm, not surround an envelope: "+gap);tested++;
                         }
                         float lowerGap=Distance(bottom,lower);maxManifoldFit=Mathf.Max(maxManifoldFit,lowerGap);
-                        Check(lowerGap<.001f,"Lower cuff must follow actual manifold section within 1 mm throughout support motion: "+lowerGap);
+                        Check(lowerGap<.001f,"Lower cuff must follow actual manifold section within 1 mm throughout support motion: "+lowerGap+" yaw="+yaw+" bodyYaw="+bodyYaw+" side="+side+" point="+bottom.ToString("R")+" cap="+manifold.Find("[boiler datum]").position.ToString("R"));
                     }
                     Check(tested>10,"Native exposed pipe profile was not adequately sampled.");
                 }
             }
             owner.Dispose(); owner = null;
-            Check(sleeveMeshes.All(m => m == null), "Sleeve meshes survive disposal.");
+            Check(baked.Length == 2 ? sleeveMeshes.All(m => m != null) : sleeveMeshes.All(m => m == null), "Shared asset meshes must survive disposal; baseline owned meshes must not.");
             Check(car.GetComponentsInChildren<Transform>(true).All(t => !t.name.StartsWith("[Dockside smokebox sleeve ", StringComparison.Ordinal)), "Sleeve objects survive disposal.");
             Check(native.GetComponent<MeshFilter>().sharedMesh == originalBody, "Native neck mesh is not restored.");
+            if (baked.Length == 2)
+                foreach (var mesh in baked)
+                {
+                    var part = new GameObject("[Dockside smokebox sleeve " + (mesh.name.EndsWith("L") ? "L" : "R") + "]"); part.transform.SetParent(front, false);
+                    part.AddComponent<MeshFilter>().sharedMesh = mesh; part.AddComponent<MeshRenderer>();
+                }
             owner = (IDisposable)bind.Invoke(null, new object[] { car.transform, front, rear, native });
             Check(car.GetComponentsInChildren<MeshFilter>(true).Count(f => f.name.StartsWith("[Dockside smokebox sleeve ", StringComparison.Ordinal)) == 2, "Repeated binding duplicates sleeves.");
             owner.Dispose(); owner = null;

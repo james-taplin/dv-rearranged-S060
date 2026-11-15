@@ -79,6 +79,7 @@ public static class DocksideDraftBuilder
                 foreach (var unit in new[] { front, rear }) SteamBogieVisuals.PositionEffects(unit, DocksidePlan.DriverRadius, DocksidePlan.CylinderZ, .22f);
                 foreach (var unit in new[] { front, rear }) SteamEffectsAuthoring.Apply(unit);
                 SteamPipeAuthoring.Apply(front, rear, folder, DocksidePlan.DriverRadius, DocksidePlan.CylinderZ, .22f, .22f);
+                DocksideFixedSleeves.Bake(root, folder);
                 MeyerMechanicalAuthoring.Apply(root);
                 foreach (var collider in root.transform.Find("[colliders]/[bogies]").GetComponentsInChildren<CapsuleCollider>())
                 {

@@ -1,4 +1,4 @@
-REARRANGED S060 0.3.5-hotfix
+REARRANGED S060 0.3.5
 
 Change the S060 wheel arrangement through WHEEL REARRANGER on the comms radio.
 You can also use the arrangement menu in Unity Mod Manager.
@@ -37,8 +37,8 @@ INSTALLATION
 2. Install the requirements.
 3. Remove separate RS060_Meyer_0440 or RS060_Franklin_Dockside_0440 entries from UMM, if present.
 4. Keep Rearranged S060 and its Settings.xml file.
-5. Drag RearrangedS060-0.3.5-hotfix-UMM.zip into the UMM Mods tab.
-6. Make sure that version 0.3.5-hotfix is enabled.
+5. Drag RearrangedS060-0.3.5-UMM.zip into the UMM Mods tab.
+6. Make sure that version 0.3.5 is enabled.
 7. Start the game.
 
 USE

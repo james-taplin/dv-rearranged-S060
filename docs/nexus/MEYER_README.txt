@@ -1,4 +1,4 @@
-REARRANGED S060 0.3.5-hotfix - MEYER
+REARRANGED S060 0.3.5 - MEYER
 
 This package includes the Meyer 0-4+4-0T parts.
 Use WHEEL REARRANGER on the S060 to select Meyer.

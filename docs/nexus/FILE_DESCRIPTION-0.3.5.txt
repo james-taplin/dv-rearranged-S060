@@ -1,0 +1,6 @@
+Rearranged S060 0.3.5
+
+Corrects arrangement changes after driving and repairs Meyer rear buffer compression.
+Uses fixed Dockside steam-pipe sleeves to remove repeated mesh rebuilding.
+Includes all arrangements and required asset parts.
+Install the requirements. Then drag this ZIP into Unity Mod Manager.

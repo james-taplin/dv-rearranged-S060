@@ -66,7 +66,7 @@ public static class DocksideBundleAudit
             // Cube/Cylinder are built-in Unity shapes used by SDK couplers and
             // dummy plates; the other four are supplied by the existing SDK.
             var sdkMeshes = new[] { "Buffer07", "HookPlate", "CableBase_01", "HeadEndPowerConnectorBase", "Cube", "Cylinder" };
-            Require(franklinMeshes.Length > 0 && meshes.All(m => franklinMeshes.Contains(m) || sdkMeshes.Contains(m.name) || m.name.StartsWith("DocksideDetail") || m.name.StartsWith("DocksideRod") || m.name.StartsWith("SteamManifold") || m.name.StartsWith("SteamTransfer")), "Unexpected mesh outside custom Franklin geometry and standard SDK coupler models: " + string.Join(",", meshes.Select(m => m.name)));
+            Require(franklinMeshes.Length > 0 && meshes.All(m => franklinMeshes.Contains(m) || sdkMeshes.Contains(m.name) || m.name.StartsWith("DocksideDetail") || m.name.StartsWith("DocksideRod") || m.name.StartsWith("DocksideFixedSteam") || m.name.StartsWith("SteamManifold") || m.name.StartsWith("SteamTransfer")), "Unexpected mesh outside custom Franklin geometry and standard SDK coupler models: " + string.Join(",", meshes.Select(m => m.name)));
             bool first = true; Bounds bounds = default(Bounds);
             foreach (var filter in gear.SelectMany(t => t.GetComponentsInChildren<MeshFilter>(true)).Where(f => f.GetComponent<Renderer>()?.enabled == true))
             {

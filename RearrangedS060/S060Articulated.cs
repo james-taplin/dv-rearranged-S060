@@ -71,6 +71,9 @@ namespace RearrangedS060
                 if (Mathf.Abs(donor.prefab.transform.InverseTransformPoint(frames[0].position).z - MeyerPlan.RearCentre) > .01f)
                     throw new InvalidOperationException("Meyer needs the attached rear steam-bogie asset pack 0.6.0.");
             }
+            else if (frames[1].Find("[Dockside smokebox sleeve L]")?.GetComponent<MeshFilter>()?.sharedMesh == null ||
+                frames[1].Find("[Dockside smokebox sleeve R]")?.GetComponent<MeshFilter>()?.sharedMesh == null)
+                throw new InvalidOperationException("Dockside needs the 0.3.5 pack with prebuilt steam-pipe sleeves.");
             return frames;
         }
 

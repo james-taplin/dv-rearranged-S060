@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using DV;
+using DV.PointSet;
 using HarmonyLib;
 using UnityEngine;
 
@@ -162,19 +163,44 @@ namespace RearrangedS060
         {
             if (bogie == null || bogie.HasDerailed) throw new InvalidOperationException("Meyer requires two rerailed native bogies.");
             var world = bogie.Car.transform.TransformPoint(position);
-            var (track, point) = RailTrack.GetClosest(world, 2f);
-            if (track == null || !point.HasValue) throw new InvalidOperationException("No track beneath the requested Meyer engine pivot.");
+            TrackPose(world);
+        }
+        internal void PreflightRestore()
+        {
+            foreach (var home in homes) if (home.Bogie != null) CheckTrack(home.Bogie, home.Start);
+        }
+        private static (RailTrack track, PointSetTraveller point) TrackPose(Vector3 world, ICollection<RailTrack> allTracks = null)
+        {
+            // GetClosest's second argument excludes track ENDS, not distant
+            // tracks. Excluding two metres could move a stopped bogie over a
+            // metre at a junction. Keep endpoints and interpolate the nearest
+            // native segment rather than snapping onto a half-metre sample.
+            var (track, closest) = RailTrack.GetClosest(world, 0f, allTracks);
+            if (track == null || !closest.HasValue) throw new InvalidOperationException("No track beneath the requested S060 engine pivot.");
+            var points = track.GetKinkedPointSet();
+            Vector3 target = world - WorldMover.currentMove;
+            double span = closest.Value.span; float best = float.PositiveInfinity;
+            for (int i = Math.Max(0, closest.Value.index - 1); i <= Math.Min(points.points.Length - 2, closest.Value.index); i++)
+            {
+                var a = points.points[i]; var b = points.points[i + 1];
+                Vector3 start = (Vector3)a.position, edge = (Vector3)(b.position - a.position);
+                if (edge.sqrMagnitude <= 1e-12f) continue;
+                float t = Mathf.Clamp01(Vector3.Dot(target - start, edge) / edge.sqrMagnitude);
+                float distance = (start + edge * t - target).sqrMagnitude;
+                if (distance < best) { best = distance; span = a.span + a.spanToNextPoint * t; }
+            }
+            if (best > .5f * .5f) throw new InvalidOperationException("No track within half a metre of the requested S060 engine pivot.");
+            var point = new PointSetTraveller(points); point.MoveToSpan(span);
+            return (track, point);
         }
         private void Relocate(Bogie bogie, Vector3 position, Quaternion rotation, Vector3? originalAnchor)
         {
             var desired = car.transform.TransformPoint(position);
-            var (track, point) = RailTrack.GetClosest(desired, 2f);
-            if (track == null || !point.HasValue) throw new InvalidOperationException("Could not restore the S060 bogie to track.");
-            var p = point.Value;
-            var forward = p.forward; if (Vector3.Dot(forward, car.transform.forward) < 0) forward = -forward;
+            var (track, p) = TrackPose(desired);
+            var forward = p.worldForward; if (Vector3.Dot(forward, car.transform.forward) < 0) forward = -forward;
             bogie.startingLocalPosition = position; bogie.startingLocalRotation = rotation;
-            bogie.transform.position = (Vector3)p.position + WorldMover.currentMove;
-            bogie.transform.rotation = Quaternion.LookRotation(forward, p.up);
+            bogie.transform.position = (Vector3)p.worldPosition + WorldMover.currentMove;
+            bogie.transform.rotation = Quaternion.LookRotation(forward, p.worldUp);
             if (bogie.rb != null) { bogie.rb.position = bogie.transform.position; bogie.rb.rotation = bogie.transform.rotation; }
             var joint = bogie.GetComponent<ConfigurableJoint>();
             if (joint != null)
@@ -182,7 +208,7 @@ namespace RearrangedS060
                 bogie.initialConnectedAnchor = originalAnchor ?? position + rotation * joint.anchor;
                 bogie.SetupJointSettings(car.massController.TotalMass);
             }
-            bogie.SetTrack(track, p.span); bogie.PreventSlopePositionHolding(); bogie.axles = null;
+            bogie.SetTrack(track, p.Span); bogie.PreventSlopePositionHolding(); bogie.axles = null;
         }
         internal void Restore()
         {

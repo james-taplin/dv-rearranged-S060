@@ -174,8 +174,10 @@ namespace RearrangedS060
                 throw new InvalidOperationException("The native simulation is not ready yet.");
             if (sim.simFlow.TryGetPort("throttle.EXT_IN", out var throttle) && throttle.Value > 0.001f)
                 throw new InvalidOperationException("Close the regulator first.");
-            if (sim.drivingForce != null && Mathf.Abs(sim.drivingForce.generatedForce) > 500f)
-                throw new InvalidOperationException("Wait for the driving force to settle.");
+            // DV retains steam-chest pressure and static cylinder torque at a
+            // closed regulator. It cannot run that torque down while the wheels
+            // are held still, so generatedForce is not a settling condition.
+            // Keep the actual motion, regulator, wheelspin and slide gates.
 #if B99_S060_ARTICULATED
             var independent = S060IndependentDrive.For(car);
             if (independent != null && !independent.Settled)
@@ -253,6 +255,7 @@ namespace RearrangedS060
             {
                 S060MeyerSupport.RequireRearFree(car);
             }
+            if (extended && !previous.Equals(selection)) support.PreflightRestore();
 #endif
             if (previous.Equals(selection))
             {

@@ -1,5 +1,21 @@
 # Rearranged S060 — handover
 
+## 0.3.5 — arrangement switching and fixed Dockside sleeves, 15 November 2026
+
+Read [REPAIR-0.3.5.md](REPAIR-0.3.5.md). James authorised fixing the reported
+Dockside/Meyer transition failures and installing 0.3.5 for his next game test.
+He required prebuilt body-fixed sleeves with the steam-pipe material. The repair
+removes per-frame sleeve generation, fixes authored axle identification and
+native endpoint/interpolated support placement, and removes the static residual
+torque deadlock while retaining the motion/regulator/slip/slide checks. Keep
+audio work paused and 0.4 plus separate multiplayer work untouched.
+
+Native fixtures reproduce the old axle exception and check the corrected path.
+Offline pipe timing improves from about 27.3 ms to about 0.4 ms per update;
+gameplay FPS and the complete explosion mechanism remain for James to verify.
+Use build/035-repair/validation.json and the 0.3.5 installation receipt for the
+final status. Do not launch DV or enable his performance probe automatically.
+
 ## 0.3.5-hotfix — buffer repair, 14 November 2026
 
 Read [BUFFER-HOTFIX-0.3.5.md](BUFFER-HOTFIX-0.3.5.md). James paused sound work
