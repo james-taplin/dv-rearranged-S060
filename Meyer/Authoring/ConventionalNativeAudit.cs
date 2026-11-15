@@ -308,6 +308,14 @@ public static class ConventionalNativeAudit
         Check(nativeWheelHomes.All(p=>p.Key.sharedMaterial==p.Value),"Finish recovery preserves native wheel UVs and wheel materials");
         if(Environment.GetEnvironmentVariable("S060_SHAY_PREVIEW_ONLY")=="1")
         {
+            if(Environment.GetEnvironmentVariable("S060_PIPE_SWEEP_PREVIEW")=="1")
+            {
+                ValidateShayPipes(root.transform,model.transform,bodyFilter,markers);
+                if(model.transform.Find("Shay compressor exhaust branch")!=null) ValidateShayCompressorBranch(root.transform,model.transform);
+            }
+            RenderWide(root,"shay-pipe-profile",new Vector3(9,2.85f,2.4f),new Vector3(1.0f,2.65f,2.4f),1.05f);
+            RenderWide(root,"shay-pipe-front-quarter",new Vector3(4.5f,1.6f,6.3f),new Vector3(1.05f,2.65f,2.75f),.95f);
+            RenderWide(root,"shay-pipe-top-quarter",new Vector3(4,6,4.3f),new Vector3(1.0f,2.65f,2.5f),1.10f);
             File.WriteAllText(Path.Combine(output,"shay-fitted-body.json"),JsonUtility.ToJson(new Entry{name="Fitted native Shay body",vertices=bodyFilter.sharedMesh.vertices.Select(v=>root.transform.InverseTransformPoint(bodyFilter.transform.TransformPoint(v))).ToArray(),triangles=bodyFilter.sharedMesh.triangles}));
             RenderWide(root,"shay-offside",new Vector3(-9,1.7f,.3f),new Vector3(0,1.7f,.3f),2.7f);
             RenderWide(root,"shay-front-low",new Vector3(-5,.7f,8),new Vector3(0,1.0f,2.8f),1.6f);
@@ -318,10 +326,7 @@ public static class ConventionalNativeAudit
         }
         ValidateShayPipes(root.transform,model.transform,bodyFilter,markers);
         var exhaustReturn=model.GetComponentsInChildren<MeshFilter>(true).Single(f=>f.name=="Shay single-chimney exhaust return");
-        var pumpJoin=new Bounds(new Vector3(1.31f,2.85f,3.45f),Vector3.one*.16f);
-        Check(model.transform.Find("Trucks/BODY_ROOT/SHAY_FRAME_DETAILS").GetComponentsInChildren<MeshFilter>(true)
-            .Where(f=>f.name.EndsWith("LOD0")).Any(f=>new SteamMeshContact.Shell(f,root.transform,pumpJoin)
-                .Intersects(new SteamMeshContact.Shell(exhaustReturn,root.transform,pumpJoin))),"Broader Shay elbow retains the actual compressor exhaust tee");
+        ValidateShayCompressorBranch(root.transform,model.transform);
         // Native TrainCarPlate prefab: 10 x 320 x 1300 mm at the measured
         // S060 anchors (+/-1.30, 2.065, 1.871). Include it in this fixture:
         // it is generated separately and was absent from the body-only check.
@@ -379,6 +384,16 @@ public static class ConventionalNativeAudit
         Object.DestroyImmediate(root);bundle.Unload(true);
     }
 
+    private static void ValidateShayCompressorBranch(Transform space,Transform model)
+    {
+        var main=model.Find("Shay single-chimney exhaust return").GetComponent<MeshFilter>();
+        var branch=model.Find("Shay compressor exhaust branch")?.GetComponent<MeshFilter>() ?? main;
+        var pumpJoin=new Bounds(new Vector3(1.31f,2.85f,3.45f),Vector3.one*.16f);
+        Check(model.Find("Trucks/BODY_ROOT/SHAY_FRAME_DETAILS").GetComponentsInChildren<MeshFilter>(true)
+            .Where(f=>f.name.EndsWith("LOD0")).Any(f=>new SteamMeshContact.Shell(f,space,pumpJoin)
+                .Intersects(new SteamMeshContact.Shell(branch,space,pumpJoin))),"Shay exhaust remains connected to the original compressor takeoff");
+        if(branch!=main)Check(new SteamMeshContact.Shell(branch,space).Intersects(new SteamMeshContact.Shell(main,space)),"Swept compressor branch joins the main exhaust pipe");
+    }
     private static void ValidateShayPipes(Transform space,Transform model,MeshFilter body,Transform[] markers)
     {
         // Exact triangle clipping keeps the rest of each long pipe in the test;
@@ -398,7 +413,7 @@ public static class ConventionalNativeAudit
         }
         var targets=new[]{body}.Concat(model.Find("Engine/LOD0/FIXED").GetComponentsInChildren<MeshFilter>(true))
             .Concat(model.Find("Trucks/BODY_ROOT/SHAY_FRAME_DETAILS").GetComponentsInChildren<MeshFilter>(true).Where(f=>f.name.EndsWith("LOD0"))).ToArray();
-        foreach(var f in model.GetComponentsInChildren<MeshFilter>(true).Where(f=>f.name.StartsWith("Shay ")&&(f.name.EndsWith("feed")||f.name.EndsWith("riser")||f.name.EndsWith("return"))))
+        foreach(var f in model.GetComponentsInChildren<MeshFilter>(true).Where(f=>f.name.StartsWith("Shay ")&&(f.name.EndsWith("feed")||f.name.EndsWith("riser")||f.name.EndsWith("return")||f.name=="Shay compressor exhaust branch")))
         {
             Debug.Log("Checking main Shay pipe: "+f.name);
             var v=f.sharedMesh.vertices.Select(p=>space.InverseTransformPoint(f.transform.TransformPoint(p))).ToArray();var t=f.sharedMesh.triangles;

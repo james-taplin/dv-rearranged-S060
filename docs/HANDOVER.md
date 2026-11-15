@@ -1,3 +1,26 @@
+## Final 0.3.6-mp pipe and 0-4-0 stage — 15 November 2026
+
+James approved the pipe renders and authorized full articulation checks, commit
+and stage. He also requested removing the floating 0-4-0 middle brake gear.
+Read [FINAL-STAGE-0.3.6-mp.md](FINAL-STAGE-0.3.6-mp.md). The calipers were
+already hidden; the separate six-shoe native mesh kept the middle pair. The
+repair removes that pair in an owned copy and restores the exact original on
+cleanup. Full results and source checkpoint are in build/release-0.3.6-mp-final.
+Do not install this stage without separate authorization. No DV game test.
+
+---
+## Pipe sweep preview — STAGED ONLY, 15 November 2026
+
+James requested shallower Shay smokebox-entry and Meyer rear upper cab-pipe
+sweeps, with renders before committing. He then explicitly said stage only.
+Read [PIPE-SWEEPS-0.3.6-mp.md](PIPE-SWEEPS-0.3.6-mp.md). The two production
+geometry changes and preview fixtures are uncommitted. One clean build,
+focused native clearance checks and actual before/after Unity renders are in
+build/pipe-sweeps-0.3.6-mp. No commit, installation or DV launch. The installed
+release remains unchanged. Await James's visual review; do not treat this as a
+new released package or full articulation/gameplay acceptance.
+
+---
 ## Approved old-source cleanup — 15 November 2026
 
 James approved all 12 old working folders and all 14 loose release files.

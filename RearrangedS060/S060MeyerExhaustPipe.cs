@@ -66,15 +66,16 @@ namespace RearrangedS060
                 owner.RearJoint = owner.Marker(owner.RearRoot, "[LP unit union]", RearBallPosition);
                 owner.BodyJoint = owner.Marker(owner.BodyRoot, "[LP body union]", BodyBallPosition);
                 owner.Render(owner.BodyRoot, "Single cab-roof steam trunk", OpenEnds(SmoothPathMesh(new[] {
-                    BodyBallPosition, new Vector3(1.47f,3.65f,-3.80f),
-                    new Vector3(1.47f,4.03f,-3.80f),new Vector3(.85f,4.03f,-3.25f),new Vector3(.85f,4.03f,-.70f),
+                    BodyBallPosition, new Vector3(1.47f,3.05f,-3.80f),
+                    new Vector3(1.47f,3.55f,-3.60f),new Vector3(1.32f,4.03f,-3.05f),
+                    new Vector3(.85f,4.03f,-2.35f),new Vector3(.85f,4.03f,-.70f),
                     new Vector3(1.12f,3.08f,-.12f),new Vector3(1.12f,3.08f,1.85f),
                     SmokeboxSurface+SmokeboxNormal*.38f,SmokeboxPosition },Radius,.38f),true,false));
                 owner.SmokeboxJoint = owner.Marker(owner.BodyRoot, "[LP smokebox socket]", SmokeboxPosition);
                 owner.Render(owner.BodyRoot, "Smokebox inlet flange", SmoothPathMesh(new[] { SmokeboxSurface-SmokeboxNormal*.02f, SmokeboxPosition }, .125f));
                 // Two restrained straps meet the measured native roof, rather
                 // than hanging a pipe from guessed roof coordinates.
-                foreach (float z in new[] { -2.95f, -2.05f })
+                foreach (float z in new[] { -2.10f, -1.30f })
                 {
                     float roof = RoofHeight(body, nativeShell, .85f, z);
                     owner.Render(owner.BodyRoot, "Roof saddle " + z, SmoothPathMesh(new[] {

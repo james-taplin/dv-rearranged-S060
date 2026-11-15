@@ -17,6 +17,11 @@ public static class InwardPipeRuntimeAudit
 {
     private const BindingFlags All = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
     private static int checks, poses, highlightedTriangles;
+    public static void RunDocksideBatch()
+    {
+        Environment.SetEnvironmentVariable("S060_INWARD_DOCKSIDE_ONLY","1");
+        RunBatch();
+    }
     public static void RunBatch()
     {
         string output = Environment.GetEnvironmentVariable("S060_INWARD_PIPE_AUDIT_OUTPUT"); Directory.CreateDirectory(output);
@@ -28,14 +33,15 @@ public static class InwardPipeRuntimeAudit
         try
         {
             string candidate = Environment.GetEnvironmentVariable("S060_EXHAUST_AUDIT_RUNTIME"); var runtime = Assembly.LoadFrom(candidate);
-            Validate(runtime, Environment.GetEnvironmentVariable("S060_MEYER_AUDIT_BUNDLE"), true);
+            bool docksideOnly=Environment.GetEnvironmentVariable("S060_INWARD_DOCKSIDE_ONLY")=="1";
+            if(!docksideOnly)Validate(runtime, Environment.GetEnvironmentVariable("S060_MEYER_AUDIT_BUNDLE"), true);
             Validate(runtime, Environment.GetEnvironmentVariable("S060_DOCKSIDE_AUDIT_BUNDLE"), false);
             File.WriteAllText(Path.Combine(output, "inward-pipe-runtime-validation.json"), JsonUtility.ToJson(new Report {
                 passed = true, checks = checks, poses = poses, runtimeSha256 = Hash(candidate),
                 meyerBundleSha256 = Hash(Environment.GetEnvironmentVariable("S060_MEYER_AUDIT_BUNDLE")),
                 docksideBundleSha256 = Hash(Environment.GetEnvironmentVariable("S060_DOCKSIDE_AUDIT_BUNDLE")),
                 nativeFixtureSha256 = Hash(Environment.GetEnvironmentVariable("S060_NATIVE_PREVIEW")),
-                inwardMeyerConnected = true, docksideLegacyUnchanged = true, cabEntryClear = true, liveMaterialsAndCleanup = true,
+                inwardMeyerConnected = !docksideOnly, docksideLegacyUnchanged = true, cabEntryClear = true, liveMaterialsAndCleanup = true,
                 sampledRunningGearClearance = true, returnRouteSeparate = true, redundantUpperCourseRemoved = true,
                 assembledSidePreview = true, forwardStockDropHighlightTriangles = highlightedTriangles
             }, true));
@@ -66,6 +72,12 @@ public static class InwardPipeRuntimeAudit
             }
             root.SetActive(true);
             var beforeAssembly = root.GetComponentsInChildren<MeshFilter>(true).Where(f => f.sharedMesh != null).ToDictionary(f => f, f => f.sharedMesh);
+            // The 0.3.5 baked sleeve objects belong to this donor clone. Pipe
+            // disposal removes those objects, while their shared asset meshes
+            // must survive. Every other original filter must restore normally.
+            var consumedSleeves=beforeAssembly.Where(p=>p.Key.name.StartsWith("[Dockside smokebox sleeve ",StringComparison.Ordinal)).ToDictionary(p=>p.Key,p=>p.Value);
+            Check(consumedSleeves.Count==0||(!meyer&&consumedSleeves.Count==2),"Only the two baked Dockside sleeve objects may be consumed");
+            bool Restored(Dictionary<MeshFilter,Mesh> snapshot)=>snapshot.All(p=>consumedSleeves.ContainsKey(p.Key)?p.Key==null&&p.Value!=null:p.Key!=null&&p.Key.sharedMesh==p.Value);
             var stockBody = beforeAssembly.First(p => p.Key.name == "s060_body");
             if (meyer)
             {
@@ -231,14 +243,14 @@ public static class InwardPipeRuntimeAudit
                 frontMotion.GetType().GetMethod("ApplyPose", All).Invoke(frontMotion, null); update.Invoke(owner, null);
             }
             owner.Dispose(); owner.Dispose(); owner = null;
-            Check(source.All(p => p.Key.sharedMesh == p.Value), "Both layouts restore their exact source meshes.");
+            Check(Restored(source), "Original source meshes restore; consumed sleeve objects release without destroying their asset meshes.");
             Check(ownedMeshes.All(m => m == null), "New inward and return pipe meshes are released idempotently.");
             clearance?.Dispose(); clearance = null;
-            Check(beforeClearance.All(p => p.Key.sharedMesh == p.Value), "Combined pipe/clearance cleanup restores original native aliases.");
+            Check(Restored(beforeClearance), "Combined pipe/clearance cleanup restores original native aliases.");
             equipment?.Dispose(); equipment = null; bodywork?.Dispose(); bodywork = null;
             frontMounts?.Dispose(); frontMounts = null; rearMounts?.Dispose(); rearMounts = null;
             frontMotion?.Dispose(); frontMotion = null;
-            Check(beforeAssembly.All(p => p.Key.sharedMesh == p.Value), "Assembled front fitting and equipment restore original donor/native meshes.");
+            Check(Restored(beforeAssembly), "Assembled front fitting and equipment restore original donor/native meshes.");
         }
         finally { owner?.Dispose(); clearance?.Dispose(); equipment?.Dispose(); bodywork?.Dispose(); frontMounts?.Dispose(); rearMounts?.Dispose(); frontMotion?.Dispose(); if (root != null) Object.DestroyImmediate(root); foreach (var item in native) if (item != null) Object.DestroyImmediate(item); if (bundle != null) bundle.Unload(true); }
     }

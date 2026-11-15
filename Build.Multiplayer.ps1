@@ -1,7 +1,7 @@
 param(
     [string]$GamePath = 'B:\SteamLibrary\steamapps\common\Derail Valley',
     [string]$MultiplayerApiPath = 'B:\GitHub repo\dads-decals\lib\MultiplayerAPI.dll',
-    [string]$OutputDirectory = (Join-Path $PSScriptRoot 'build\multiplayer-0.3.6\final')
+    [string]$OutputDirectory = (Join-Path $PSScriptRoot 'build\release-0.3.6-mp-final\runtime')
 )
 $ErrorActionPreference = 'Stop'
 if (-not (Test-Path -LiteralPath $MultiplayerApiPath)) { throw 'Provide the API 1.1 assembly supplied by DV Multiplayer 0.1.16.0-beta.' }

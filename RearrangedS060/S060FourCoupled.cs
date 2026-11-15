@@ -22,6 +22,8 @@ namespace RearrangedS060
 
         private readonly List<Renderer> hiddenCalipers = new List<Renderer>();
         private readonly List<Transform> hiddenWheels = new List<Transform>();
+        private readonly List<(MeshFilter filter, Mesh original, Mesh owned)> brakeShoes =
+            new List<(MeshFilter, Mesh, Mesh)>();
         private Transform droppedAxle;
         private S060FourCoupledAirEquipment airEquipment;
 
@@ -41,6 +43,29 @@ namespace RearrangedS060
                 if (!caliper.enabled) continue;
                 caliper.enabled = false;
                 hiddenCalipers.Add(caliper);
+            }
+            // LMS separates the calipers, but the native heated shoe renderer
+            // still contains all six shoes. Retain its renderer/material/heat
+            // binding and remove only the pair beside the missing middle axle.
+            foreach (var filter in Parts.Body.GetComponentsInChildren<MeshFilter>(true)
+                .Where(f => f.name.IndexOf("brake_shoes", StringComparison.OrdinalIgnoreCase) >= 0 && f.sharedMesh != null))
+            {
+                var original = filter.sharedMesh;
+                if (!original.isReadable) throw new InvalidOperationException("Readable native S060 brake shoes required.");
+                var positions = original.vertices.Select(v => Parts.Body.InverseTransformPoint(filter.transform.TransformPoint(v))).ToArray();
+                bool Middle(int i) => positions[i].z >= .6f && positions[i].z <= 1.31f;
+                var copy = UnityEngine.Object.Instantiate(original);
+                brakeShoes.Add((filter, original, copy));
+                copy.name = original.name + " (0-4-0 outer shoes)";
+                for (int sub = 0; sub < original.subMeshCount; sub++)
+                {
+                    var triangles = original.GetTriangles(sub); var keep = new List<int>();
+                    for (int i = 0; i < triangles.Length; i += 3)
+                        if (!(Middle(triangles[i]) && Middle(triangles[i + 1]) && Middle(triangles[i + 2])))
+                            keep.AddRange(new[] { triangles[i], triangles[i + 1], triangles[i + 2] });
+                    copy.SetTriangles(keep, sub);
+                }
+                filter.sharedMesh = copy;
             }
 
             // BogieAxlesPatch drops inactive axles from the rebuilt list, and nulling
@@ -65,7 +90,22 @@ namespace RearrangedS060
         }
 
         protected override void ReleasePresentationMeshes()
-        { airEquipment?.Dispose(); airEquipment = null; }
+        {
+            try { airEquipment?.Dispose(); airEquipment = null; }
+            finally
+            {
+                foreach (var shoe in brakeShoes)
+                {
+                    if (shoe.filter != null) shoe.filter.sharedMesh = shoe.original;
+                    if (shoe.owned != null)
+                    {
+                        if (Application.isPlaying) UnityEngine.Object.Destroy(shoe.owned);
+                        else UnityEngine.Object.DestroyImmediate(shoe.owned);
+                    }
+                }
+                brakeShoes.Clear();
+            }
+        }
 
         protected override void Undo()
         {

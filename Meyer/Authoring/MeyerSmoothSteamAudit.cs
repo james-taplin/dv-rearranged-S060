@@ -147,6 +147,20 @@ public static class MeyerSmoothSteamAudit
             Check(Mathf.Abs((float)lp.GetType().GetField("HeaderY",All).GetRawConstantValue()-1.40f)<.00001f,"Collector lowered 40 mm; clears native chest covers.");
             Check(Vector3.Distance((Vector3)lp.GetType().GetField("BodyBallPosition",All).GetValue(null),new Vector3(1.47f,1.65f,-3.80f))<.00001f,"Flexible outlet joins the early downpipe beside the native steps.");
             var earlyTrunk=lpBody.Find("Single cab-roof steam trunk").GetComponent<MeshFilter>();
+            if(Environment.GetEnvironmentVariable("S060_PIPE_SWEEP_PREVIEW")=="1")
+            {
+                var sheet=root.GetComponentsInChildren<MeshFilter>().Single(f=>f.name=="s060_body");
+                var upperRear=new Bounds(new Vector3(1.2f,3.6f,-3.25f),new Vector3(1.5f,1.3f,2.2f));
+                Check(!new SteamMeshContact.Shell(earlyTrunk,root.transform,upperRear).Intersects(new SteamMeshContact.Shell(sheet,root.transform,upperRear),out var hit),"Upper rear sweep clears the actual native cab and roof: "+hit);
+                var bend=lpBody.Find("Rear articulated bend").GetComponent<MeshFilter>();
+                foreach(var bracket in stepBrackets)
+                    Check(new[]{earlyTrunk,bend}.Any(f=>new SteamMeshContact.Shell(f,root.transform,bracket).Intersects(new SteamMeshContact.Shell(sheet,root.transform,bracket))),"Revised trunk retains both native step bracket contacts");
+                Render(root,"meyer-pipe-profile",new Vector3(10,3.5f,-2.85f),new Vector3(1.1f,3.45f,-2.85f),1.30f);
+                Render(root,"meyer-pipe-rear-quarter",new Vector3(6,5.8f,-7),new Vector3(1.05f,3.4f,-2.85f),1.5f);
+                Render(root,"meyer-pipe-front-quarter",new Vector3(3,5.2f,1),new Vector3(1.05f,3.55f,-2.85f),1.30f);
+                File.WriteAllText(Path.Combine(output,"pipe-sweep-preview.json"),"{\"previewOnly\":true,\"runtimeSha256\":\""+Hash(Environment.GetEnvironmentVariable("S060_EXHAUST_AUDIT_RUNTIME"))+"\",\"nativeGeometry\":true,\"upperRearSweepClear\":true,\"bothStepBracketsRetained\":true,\"gameplayValidated\":false}");
+                EditorApplication.Exit(0);return;
+            }
             var lowerTurn=lpBody.Find("Rear articulated bend").GetComponent<MeshFilter>();
             var nativeSheet=root.GetComponentsInChildren<MeshFilter>().Single(f=>f.name=="s060_body");
             foreach(var bracket in stepBrackets)
@@ -246,8 +260,11 @@ public static class MeyerSmoothSteamAudit
             pipeOwner.Dispose();owners.Remove(pipeOwner);foreach(var h in rendererHomes)Check(h.Key.enabled==h.Value,"Original renderer visibility restored.");foreach(var h in source)Check(h.Key.sharedMesh==h.Value,"Exact original mesh identity restored.");
             for(int i=owners.Count-1;i>=0;i--)owners[i]?.Dispose();owners.Clear();detailAudit.CheckRestored();Check(underframe.Removed,"Added fixed and swivelling underframes removed on restoration.");Object.DestroyImmediate(root);root=null;
             foreach(var o in native)if(o!=null)Object.DestroyImmediate(o);native.Clear();bundle.Unload(true);bundle=null;
+            var report=new Report{passed=true,checks=checks,poses=poses,runtimeSha256=Hash(Environment.GetEnvironmentVariable("S060_EXHAUST_AUDIT_RUNTIME")),singleRearTrunk=true,sourceRoutePreview=fittingReturn!=null||Environment.GetEnvironmentVariable("S060_DRAWGEAR_FIT_SOURCE")=="1",inwardMeyerConnected=true,docksideLegacyUnchanged=false,cabEntryClear=true,liveMaterialsAndCleanup=true,noPipeBodyContacts=true,hpDiameter=.170f,frontValveEmbed=originalCoupling.frontEmbed,rearValveEmbed=originalCoupling.rearEmbed};
+            File.WriteAllText(Path.Combine(output,"meyer-articulation-validation.json"),JsonUtility.ToJson(report,true));
             typeof(InwardPipeRuntimeAudit).GetMethod("Validate",All).Invoke(null,new object[]{runtime,Environment.GetEnvironmentVariable("S060_DOCKSIDE_AUDIT_BUNDLE"),false});
-            File.WriteAllText(Path.Combine(output,"smooth-steam-validation.json"),JsonUtility.ToJson(new Report{passed=true,checks=checks,poses=poses,runtimeSha256=Hash(Environment.GetEnvironmentVariable("S060_EXHAUST_AUDIT_RUNTIME")),singleRearTrunk=true,sourceRoutePreview=fittingReturn!=null||Environment.GetEnvironmentVariable("S060_DRAWGEAR_FIT_SOURCE")=="1",inwardMeyerConnected=true,docksideLegacyUnchanged=true,cabEntryClear=true,liveMaterialsAndCleanup=true,noPipeBodyContacts=true,hpDiameter=.170f,frontValveEmbed=originalCoupling.frontEmbed,rearValveEmbed=originalCoupling.rearEmbed},true));
+            report.docksideLegacyUnchanged=true;
+            File.WriteAllText(Path.Combine(output,"smooth-steam-validation.json"),JsonUtility.ToJson(report,true));
             EditorApplication.Exit(0);
         }
         catch(Exception ex){File.WriteAllText(Path.Combine(output,"error.txt"),ex.ToString());Debug.LogException(ex);EditorApplication.Exit(1);}

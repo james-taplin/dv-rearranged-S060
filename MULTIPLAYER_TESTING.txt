@@ -45,5 +45,7 @@ Also drive a fresh Meyer, stop with the regulator closed, select Dockside and
 drive again. Repeat from Shay. Check buffers while coupling and uncoupling.
 
 Record the actual mod versions and both Player.log files for any failure.
+For 0-4-0, check that the middle wheel, calipers and brake shoes are absent.
+Change back to stock and check that the middle wheel and brakes return.
 Offline fixtures do not establish live transport, rail dynamics, audible sound,
 real saved-world acceptance or coexistence with another running multiplayer mod.

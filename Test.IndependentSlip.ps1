@@ -35,7 +35,9 @@ if ($ReusePlayerFrom) {
     $previous = (Resolve-Path -LiteralPath $ReusePlayerFrom).Path
     $oldReceipt = Get-Content (Join-Path $previous 'receipt.json') -Raw | ConvertFrom-Json
     $bootstrapSource = Join-Path $PSScriptRoot 'tests\IndependentDrive\IndependentSlipPlayerBootstrap.cs'
-    $oldBootstrap = @($oldReceipt.sourceHashes | Where-Object Path -eq $bootstrapSource)
+    # Historical receipts retain their original location after consolidation.
+    # Require the unique bootstrap filename and exact source hash, not its old path.
+    $oldBootstrap = @($oldReceipt.sourceHashes | Where-Object { [IO.Path]::GetFileName($_.Path) -eq [IO.Path]::GetFileName($bootstrapSource) })
     if ($oldBootstrap.Count -ne 1 -or $oldBootstrap[0].Hash -ne (Get-FileHash $bootstrapSource).Hash -or
         -not (Test-Path (Join-Path $previous 'player\IndependentSlipFixture.exe'))) { throw 'Private player bootstrap provenance mismatch.' }
     Copy-Item -LiteralPath (Join-Path $previous 'player') -Destination $run -Recurse

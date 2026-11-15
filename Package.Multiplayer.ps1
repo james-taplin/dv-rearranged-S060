@@ -1,7 +1,7 @@
 param(
-    [string]$BuildDirectory = (Join-Path $PSScriptRoot 'build\multiplayer-0.3.6\final'),
+    [string]$BuildDirectory = (Join-Path $PSScriptRoot 'build\release-0.3.6-mp-final\runtime'),
     [string]$SeedArchive = 'B:\GitHub repo\rearranged-s060\source-0.3.5\build\nexus-0.3.5-single\RearrangedS060-0.3.5-UMM.zip',
-    [string]$OutputDirectory = (Join-Path $PSScriptRoot 'build\multiplayer-0.3.6\package')
+    [string]$OutputDirectory = (Join-Path $PSScriptRoot 'build\release-0.3.6-mp-final\package')
 )
 $ErrorActionPreference = 'Stop'
 $expectedSeed = '598760CC3E639A64965B53D857287A094EB91597E1A7EC2A81FEE211D7F993EA'
@@ -40,6 +40,11 @@ $changelog = Join-Path $mod 'CHANGELOG.txt'
 $history = Get-Content -LiteralPath $changelog -Raw
 @"
 0.3.6-mp
+Changed the Shay upper exhaust pipe to follow the body and enter the smokebox diagonally.
+Changed the Meyer rear upper steam pipe to use a longer sweep above the cab.
+Kept the Shay compressor exhaust connection and both Meyer step brackets.
+Removed the two middle brake shoes from the 0-4-0. Outer brakes remain visible.
+Restoring stock restores the original brake-shoe mesh and all calipers.
 Added optional multiplayer support from the current Rearranged S282 integration.
 Added host-checked radio and UMM requests, guest permissions and late-join state.
 Kept stock and short-wheelbase 0-6-0 as separate selections.

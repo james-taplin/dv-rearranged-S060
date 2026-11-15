@@ -29,12 +29,19 @@ namespace RearrangedS060
                 owner.Pipe("Shay offside under-boiler feed",.060f,new[]{Socket(-1)-Vector3.up*.10f,new Vector3(-.7052183f,1.74f,3.1679118f),new Vector3(-1.48f,1.74f,3.1679118f),new Vector3(-1.48f,1.35f,2.85f),new Vector3(-1.48f,1.35f,.72f),new Vector3(-1.48f,.88f,.80f),new Vector3(.90f,.88f,.80f),new Vector3(1.48f,.88f,.80f),junction});
                 owner.Pipe("Shay main admission riser",.070f,new[]{junction,new Vector3(1.48f,.88f,-.12f),new Vector3(1.48f,1.20f,-.48f),new Vector3(1.48f,inlet.y,-.48f),inlet});
                 var normal=new Vector3(.88192f,.47140f,0);
-                var exhaustCourse=new[]{exhaust,new Vector3(1.64f,exhaust.y,exhaust.z),new Vector3(1.64f,2.72f,.96f),new Vector3(1.53f,2.86f,3.45f),smokebox+normal*.24f,smokebox-normal*.015f};
+                // Approach along the boiler before entering on a 45-degree
+                // diagonal. The former forward overshoot forced a short turn
+                // back into the radial smokebox socket.
+                var entryAxis=(normal-Vector3.forward).normalized;
+                var exhaustCourse=new[]{exhaust,new Vector3(1.64f,exhaust.y,exhaust.z),new Vector3(1.64f,2.72f,.96f),new Vector3(1.37f,2.78f,2.18f),smokebox+entryAxis*.65f,smokebox-entryAxis*.08f};
                 owner.Pipe("Shay single-chimney exhaust return",.070f,exhaustCourse);
+                // Retain the original compressor takeoff with a small swept
+                // branch to the earlier main-pipe approach.
+                owner.Pipe("Shay compressor exhaust branch",.024f,new[]{new Vector3(1.31f,2.85f,3.45f),new Vector3(1.31f,2.85f,3.18f),smokebox+entryAxis*.40f});
                 var exhaustCentres=Rounded(exhaustCourse);
                 owner.Flange(inlet,Vector3.right,.095f,.026f);
                 owner.Flange(exhaust,Vector3.right,.105f,.026f);
-                owner.Flange(smokebox+normal*.004f,normal,.115f,.042f);
+                owner.Flange(smokebox+entryAxis*.14f,entryAxis,.115f,.042f);
                 foreach(int side in new[]{-1,1})
                 {
                     owner.Sleeve(Socket(side),owner.branches.BoilerSocketRadius(side));
