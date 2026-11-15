@@ -1,3 +1,21 @@
+## Approved old-source cleanup — 15 November 2026
+
+James approved all 12 old working folders and all 14 loose release files.
+Fresh SHA256 checks verified all 41,152 source/workspace files plus the 14
+loose files against their preserved copies or documented pre-relocation backups.
+The latest Documents Git metadata and old shared-worktree metadata are preserved
+under `_consolidation/2026-11-15/at-removal`.
+
+All 14 loose files and 11 old folders were deleted. The old Documents workspace
+`C:\Users\james\Documents\ChatGPT\REARRANGED S060` contains no files or folders;
+Windows refused removal of its empty outer directory because another process
+has it open. No delayed deletion is queued. The old linked worktree was removed
+through native Git; its branch/history remains. All eight consolidated junctions
+resolve and all three source repositories pass Git connectivity checks.
+Read `_consolidation/2026-11-15/removal-receipt.json` for exact paths and status.
+The earlier pending-approval consolidation entry below is historical.
+
+---
 ## Source consolidation — 15 November 2026
 
 Canonical home: `B:\GitHub repo\rearranged-s060`. Read its `START HERE.md`.
