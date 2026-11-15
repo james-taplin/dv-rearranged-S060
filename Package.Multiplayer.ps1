@@ -1,6 +1,6 @@
 param(
     [string]$BuildDirectory = (Join-Path $PSScriptRoot 'build\multiplayer-0.3.6\final'),
-    [string]$SeedArchive = 'C:\Users\james\.codex\worktrees\s060-035-hotfix\rearranged-s060\build\nexus-0.3.5-single\RearrangedS060-0.3.5-UMM.zip',
+    [string]$SeedArchive = 'B:\GitHub repo\rearranged-s060\source-0.3.5\build\nexus-0.3.5-single\RearrangedS060-0.3.5-UMM.zip',
     [string]$OutputDirectory = (Join-Path $PSScriptRoot 'build\multiplayer-0.3.6\package')
 )
 $ErrorActionPreference = 'Stop'

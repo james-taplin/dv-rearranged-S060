@@ -1,3 +1,29 @@
+## Source consolidation — 15 November 2026
+
+Canonical home: `B:\GitHub repo\rearranged-s060`. Read its `START HERE.md`.
+Current 0.3.6-mp source: `current-0.3.x/source`; plain 0.3.5:
+`source-0.3.5`; separate 0.4 development: `development-0.4/v0.4-work`.
+The older source at the outer repository root is preserved history.
+
+All 12 discovered old working folders are copied with SHA256 verification,
+including ignored/untracked source, Git metadata, authoring, build evidence
+and shared staging. Eight junctions are recreated; six operational scripts
+have path-only updates. The historical chart output dependency now points to
+the currently installed Codex runtime because its old runtime target was gone.
+Historical receipts keep their original paths. No production build, install,
+DV launch, push or publication was performed. James reports 0.3.x working great;
+0.4 and untested multiplayer scenarios are not newly certified by this move.
+
+Originals remain pending James's explicit approval of
+`_consolidation/2026-11-15/deletion-list.md`. Reverify originals before removal;
+do not follow junctions into shared targets or queue delayed removal.
+The Documents original Git metadata is also sealed in the audit ZIP.
+Current 0.3.6 snapshot retained its as-found packaging/document differences
+from checkpoint 6d6a7cc; runtime/authoring comparison with end-of-line whitespace
+ignored found no differences. Use its specialised multiplayer packager and
+retained release evidence; the pre-existing plain packager gate is unchanged.
+
+---
 # Rearranged S060 — handover
 
 ## 0.3.6-mp — installed 15 November 2026
