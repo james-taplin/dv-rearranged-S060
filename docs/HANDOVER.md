@@ -1,3 +1,18 @@
+﻿## Final 0.3.6-mp installed - 15 November 2026
+
+James explicitly authorized installing the staged final package after commit
+5d81079. This supersedes the stage-only restriction below. Installed the exact
+ZIP with SHA256 6FA55A03422B12DC68FECD774F040CC210F5D188DF041C9B4C2CE951F6B02A2B.
+All 14 installed files match the validated payload. Settings and unrelated mod
+manifests retain their hashes. Runtime SHA256 is
+E3959B44D4324AFEBEFCC8C2BA23C0A8FD534043952861EA3466D68C5AB6E252.
+The guarded installer accepts an explicit PackageDirectory so it selects the
+final stage and retains previous package receipts. All three bundled assets
+match the retained Unity reopening evidence. No rebuild or DV launch.
+Installation receipt: build/release-0.3.6-mp-final/nexus/install-receipt-latest.json.
+James owns the next gameplay test of the pipe sweeps and 0-4-0 brakes.
+
+---
 ## Final 0.3.6-mp pipe and 0-4-0 stage — 15 November 2026
 
 James approved the pipe renders and authorized full articulation checks, commit

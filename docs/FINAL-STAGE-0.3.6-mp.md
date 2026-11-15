@@ -1,3 +1,7 @@
+﻿Installed after James's explicit authorization on 15 November 2026. All 14
+package files were hash verified and settings were preserved. The stage-only
+status below records the earlier state. Current installation evidence is in
+build/release-0.3.6-mp-final/nexus/install-receipt-latest.json. DV was not launched.
 # Final 0.3.6-mp stage â€” 15 November 2026
 
 James approved the rendered pipe sweeps and requested the full articulation

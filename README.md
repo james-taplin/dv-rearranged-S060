@@ -1,4 +1,4 @@
-# Rearranged S060
+﻿# Rearranged S060
 
 Change the S060's running gear through a dedicated comms-radio mode in Derail
 Valley. This project forks the Rearranged S282 B99/Re:Arranged branch, based on
@@ -11,7 +11,7 @@ Optional multiplayer support from the current S282 integration, based on the
 late-join synchronization and native replication of independent slip and Shay
 motion. Normal single-player use does not require Multiplayer.
 
-The final pipe-sweep and 0-4-0 brake-shoe repair is staged separately from the installed build. See [final staging record](docs/FINAL-STAGE-0.3.6-mp.md). James owns gameplay and live peer acceptance.
+The final pipe-sweep and 0-4-0 brake-shoe repair was installed on 15 November 2026. See [final staging record](docs/FINAL-STAGE-0.3.6-mp.md). James owns gameplay and live peer acceptance.
 See [implementation and validation](docs/MULTIPLAYER-0.3.6.md) and
 [James's checklist](MULTIPLAYER_TESTING.txt). Build with `Build.Multiplayer.ps1`
 and package with `Package.Multiplayer.ps1`; asset bundles are reused unchanged.

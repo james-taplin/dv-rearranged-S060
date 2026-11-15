@@ -1,11 +1,11 @@
-param([string]$GamePath='', [string]$Version='')
+param([string]$GamePath='', [string]$Version='', [string]$PackageDirectory='')
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot 'Build.Config.ps1')
 $config=Get-S060BuildConfig -GamePath $GamePath
 if(-not $Version){$Version=$config.Version}
 if($Version -notmatch '^\d+\.\d+\.\d+(?:-[0-9A-Za-z]+(?:[.-][0-9A-Za-z]+)*)?$'){throw 'Invalid version.'}
 if(Get-Process -Name DerailValley -ErrorAction SilentlyContinue){throw 'Close Derail Valley before installation.'}
-$output=Join-Path $PSScriptRoot "build\nexus-$Version-single"
+$output=if($PackageDirectory){[IO.Path]::GetFullPath($PackageDirectory)}else{Join-Path $PSScriptRoot "build\nexus-$Version-single"}
 $receiptPath=Join-Path $output 'nexus-package-receipt.json'
 $receipt=Get-Content $receiptPath -Raw | ConvertFrom-Json
 $proof=Get-ChildItem $output -Directory -Filter 'umm-proof-*' | Where-Object {Test-Path (Join-Path $_.FullName 'native-umm-validation.json')} | Sort-Object Name -Descending | Select-Object -First 1
