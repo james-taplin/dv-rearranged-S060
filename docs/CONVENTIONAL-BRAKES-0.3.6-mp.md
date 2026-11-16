@@ -1,3 +1,7 @@
+Installed on 16 November 2026 after James explicitly requested installation and
+confirmed DV closed. All 14 payload files and preserved settings were verified.
+The installation-pending text below is historical. No game launch or backup.
+
 Release update, 16 November 2026: the exact tested DLL is now packaged.
 Installation remains pending by James's explicit choice after DV started.
 Read [RELEASE-0.3.6-mp-20261116.md](RELEASE-0.3.6-mp-20261116.md).

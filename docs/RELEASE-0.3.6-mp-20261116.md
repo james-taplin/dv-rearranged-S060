@@ -1,3 +1,7 @@
+Installed on 16 November 2026 after James explicitly requested installation and
+confirmed DV closed. All 14 payload files and preserved settings were verified.
+The installation-pending text below is historical. No game launch or backup.
+
 # Updated 0.3.6-mp release - 16 November 2026
 
 The release now includes `00b129e`, the native heated-brake repair for 0-10-0,

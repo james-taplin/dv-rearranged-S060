@@ -1,3 +1,15 @@
+## Conventional-brake release installed - 16 November 2026
+
+James explicitly requested installation now and confirmed DV closed. Installed
+the exact updated 0.3.6-mp ZIP ADD909DE, including the 00b129e conventional-brake
+repair. All 14 installed payload files match their hashes; settings and unrelated
+mod manifests are preserved. Installed core SHA256:
+4379CFCE72ED1203B4D304205EA5A722BC612566F595499423BE2780148C4ED1.
+This supersedes the installation-pending instruction below. No backup or game
+launch. Receipt: build/release-0.3.6-mp-conventional-brakes-20261116/nexus/install-receipt-latest.json.
+James owns driving, heat/glow development and cooling, restoration and save/reload.
+
+---
 ## Updated 0.3.6-mp release - installation pending, 16 November 2026
 
 Packaged the exact tested 00b129e conventional native-brake DLL with the existing
