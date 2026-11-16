@@ -31,6 +31,7 @@ $env:S060_CONTACT_AUDIT_RUNTIME = $runtime
 $env:S060_NATIVE_PREVIEW = Join-Path $config.QAPath 'native-preview.json'
 $env:S060_DOCKSIDE_SUPPORTS = Join-Path $config.QAPath 's060-support-pivots.json'
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Meyer\Authoring\SteamBogiePoseAudit.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Meyer\Authoring\SteamNormalRodAudit.cs') -Destination (Join-Path $project 'Assets\Editor') -Force
 $env:S060_COUPLING_FIXTURE = Join-Path $config.QAPath 'meyer-rear-coupling-native.json'
 $env:S060_COUPLING_BASELINE = '0'
 $env:S060_DETAIL_NATIVE = Join-Path $config.QAPath 'meyer-running-gear-native.json'
@@ -65,6 +66,7 @@ $entries = @(
     @{ name='collision'; method='MeyerCollisionAudit.RunBatch'; env='S060_COLLISION_AUDIT_OUTPUT'; report='meyer-collision-validation.json' },
     @{ name='contacts'; method='CollisionContactPlayMode.RunBatch'; env='S060_CONTACT_AUDIT_OUTPUT'; report='native-contact-delivery.json' },
     @{ name='conventional'; method='ConventionalNativeAudit.RunBatch'; env='S060_CONVENTIONAL_OUTPUT'; report='conventional-validation.json' },
+    @{ name='conventional-rods'; method='ConventionalNativeAudit.RunRodBatch'; env='S060_CONVENTIONAL_OUTPUT'; report='conventional-validation.json' },
     @{ name='quartering'; method='QuarteringPlayMode.RunBatch'; env='S060_QUARTERING_AUDIT_OUTPUT'; report='quartering-validation.json' },
     @{ name='shay-effects'; method='ShayEffectsPlayMode.RunBatch'; env='S060_SHAY_EFFECTS_AUDIT_OUTPUT'; report='shay-effects-validation.json' }
 )

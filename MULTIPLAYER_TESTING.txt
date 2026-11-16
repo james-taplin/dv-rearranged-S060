@@ -52,3 +52,12 @@ sides while moving and braking. Check heat glow and cooling, then change back
 to stock and check restoration. Save and reload the fitted arrangements.
 Offline fixtures do not establish live transport, rail dynamics, audible sound,
 real saved-world acceptance or coexistence with another running multiplayer mod.
+
+Check every arrangement for floating or duplicate oil cups on both sides.
+On stock/short 0-6-0, 0-4-0, 0-8-0, 0-10-0 and 0-6-2, the guide cups should
+remain seated on the upper slidebars. Added big-end cups should follow their
+native coupling-rod bosses. Check at rest and while moving slowly.
+Check Meyer and Dockside cups through curves and the Shay cups on its bearings
+and off-side shelves. Confirm oil-can refill, lid controls and saved oil levels.
+On 0-4-0, 0-8-0 and 0-10-0, check the native rod profile at near/far distances,
+then restore stock and reload to check that no old cups or rods remain.

@@ -5,10 +5,53 @@ using Object = UnityEngine.Object;
 
 namespace RearrangedS060
 {
-    // Author-owned rod geometry. Native wheel/rod animation and live material
-    // remain authoritative; no unreadable game mesh export is needed.
+    // Native-derived fitted rods retain the game's profile, atlas and animation.
+    // The primitive recipe below remains for the authored Dockside mechanism.
     public static class S060RodMesh
     {
+        public static Mesh NativeConventional(Mesh source, Vector2[] pins)
+        {
+            if (source == null || !source.isReadable || pins == null || pins.Length < 2 || pins.Length > 5)
+                throw new ArgumentException("Readable native S060 coupling rod and two to five pins required.");
+            var vertices = source.vertices; var normals = source.normals; var uv = source.uv; var tangents = source.tangents;
+            var output = new List<Vector3>(); var ns = new List<Vector3>(); var coords = new List<Vector2>(); var ts = new List<Vector4>();
+            var triangles = new List<int>[source.subMeshCount]; for (int sub = 0; sub < triangles.Length; sub++) triangles[sub] = new List<int>();
+            // Native eyes are at Z 0, 1.55, 3.1. Retain the first terminal
+            // eye/web, repeat the middle eye/web as needed, then the last eye.
+            // Classify faces by their centres: LOD1's bevel vertices extend
+            // slightly past LOD0's web ends and must not be dropped.
+            for (int section = 0; section < pins.Length; section++)
+            {
+                int nativeSection = section == 0 ? 0 : section == pins.Length - 1 ? 2 : 1;
+                float origin = nativeSection * 1.55f;
+                var remap = new Dictionary<int, int>();
+                int Map(int index)
+                {
+                    if (remap.TryGetValue(index, out int mapped)) return mapped;
+                    var p = vertices[index]; bool next = nativeSection != 2 && p.z > origin + .775f;
+                    int pin = section + (next ? 1 : 0); float station = origin + (next ? 1.55f : 0);
+                    p.y += pins[pin].x; p.z += pins[pin].y - station;
+                    mapped = output.Count; remap.Add(index, mapped); output.Add(p); ns.Add(normals[index]); coords.Add(uv[index]);
+                    if (tangents.Length == vertices.Length) ts.Add(tangents[index]);
+                    return mapped;
+                }
+                for (int sub = 0; sub < triangles.Length; sub++)
+                {
+                    var sourceTriangles = source.GetTriangles(sub);
+                    for (int i = 0; i < sourceTriangles.Length; i += 3)
+                    {
+                        float z = (vertices[sourceTriangles[i]].z + vertices[sourceTriangles[i + 1]].z + vertices[sourceTriangles[i + 2]].z) / 3;
+                        int region = z < 1.3f ? 0 : z < 2.8f ? 1 : 2;
+                        if (region != nativeSection) continue;
+                        for (int k = 0; k < 3; k++) triangles[sub].Add(Map(sourceTriangles[i + k]));
+                    }
+                }
+            }
+            var mesh = new Mesh { name = source.name + " (fitted native coupling rod)" };
+            mesh.SetVertices(output); mesh.SetNormals(ns); mesh.SetUVs(0, coords); if (ts.Count == output.Count) mesh.SetTangents(ts);
+            mesh.subMeshCount = triangles.Length; for (int sub = 0; sub < triangles.Length; sub++) mesh.SetTriangles(triangles[sub], sub);
+            mesh.RecalculateBounds(); return mesh;
+        }
         // B99 native rods are readable. Retain their bearing ends, bevels,
         // normals and atlas islands; change only the distance between pins.
         // The stock coupling rod has three eyes: use its first web and two
@@ -191,7 +234,7 @@ namespace RearrangedS060
         private Mesh owned;
         public S060RodMeshSwap(MeshFilter filter, Vector2[] pins)
         {
-            this.filter = filter; original = filter.sharedMesh; owned = S060RodMesh.Build("[S060 fitted coupling rod]", pins, .105f, .0595f); filter.sharedMesh = owned;
+            this.filter = filter; original = filter.sharedMesh; owned = S060RodMesh.NativeConventional(original, pins); filter.sharedMesh = owned;
         }
         public void Dispose()
         {

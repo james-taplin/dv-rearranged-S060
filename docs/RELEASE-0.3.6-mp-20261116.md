@@ -1,70 +1,60 @@
-Installed on 16 November 2026 after James explicitly requested installation and
-confirmed DV closed. All 14 payload files and preserved settings were verified.
-The installation-pending text below is historical. No game launch or backup.
+# Installed 0.3.6-mp release — 16 November 2026
 
-# Updated 0.3.6-mp release - 16 November 2026
+The current installed build includes the conventional rod/oil-cup repair and
+all-arrangement cup-support check. It retains the native heated brakes, approved
+Shay/Meyer pipe sweeps, 0-4-0 brake repair, 0.3.5 fixes and optional multiplayer.
+Version remains **0.3.6-mp**. James owns gameplay and live peer acceptance.
 
-The release now includes `00b129e`, the native heated-brake repair for 0-10-0,
-0-8-0 and short-wheelbase 0-6-0. It retains the approved Shay/Meyer pipe sweeps,
-0-4-0 middle-brake repair, 0.3.5 fixes and optional multiplayer integration.
-Version remains 0.3.6-mp. Read
-[CONVENTIONAL-BRAKES-0.3.6-mp.md](CONVENTIONAL-BRAKES-0.3.6-mp.md) for the cause,
-implementation, native-contact baseline and exact validation limits.
+Read [the repair and exact validation limits](OIL-CUPS-NATIVE-RODS-0.3.6-mp.md).
 
-James requested release/docs updates and installation. The new ZIP passed its
-checks, but DV started before installation. The guarded installer refused all
-game writes. James then explicitly selected **leave installation pending**.
-Do not install automatically when the game closes; await a new request.
+## Current package
 
-## Artifact and provenance
+- ZIP: `build/release-0.3.6-mp-oil-rods-20261116/package/RearrangedS060-0.3.6-mp-UMM.zip`
+- ZIP SHA256: `5C607B4268330E54061E96CC08F43903D63E5F443479C1A135A99B253563DF32`
+- Core SHA256: `1FADD8473957BE5054177CA0820B9C0A8C74E6F27B42C48D51B1F8E5C1DCE792`
+- Bridge SHA256: `B6821A71DE44055362D70284E0E73AE6F21C6904DAB3D779EF21A7A748ED3C3D`
 
-Canonical ZIP:
-`build/release-0.3.6-mp-conventional-brakes-20261116/package/RearrangedS060-0.3.6-mp-UMM.zip`.
-SHA256: `ADD909DEEDF9EEB2DBD4849DD7AC4D6DEEE42863D560A823C8BD33C8A1A51B63`.
+0-4-0, 0-8-0 and 0-10-0 coupling rods now use fitted native S060 rod sections
+at both LODs. Three-axle rods and the native main connecting rods remain intact.
+Conventional guide cups stay on their body-mounted slidebars when a mechanism
+is resized or translated. Added cup necks meet the native rod-eye profile.
+Every selection passed its bounded offline cup-support check; no additional
+Meyer, Dockside or Shay cup repair was needed. Circuits and saved oil are retained.
 
-This packages the exact tested core DLL, SHA256
-`4379CFCE72ED1203B4D304205EA5A722BC612566F595499423BE2780148C4ED1`.
-The 00b129e implementation already built with zero warnings/errors and passed
-300 bounded native brake checks, 45 conversion-boundary checks and 49 managed
-multiplayer-core checks. This release pass verifies the recorded build sources
-and binary hashes and reuses that DLL; no unchanged production rebuild.
+## Validation
 
-The existing optional bridge DLL is retained, SHA256
-`41D8586309097BF7C03031A172E213AC5E15C58B56D9178BD3685966D94AE042`.
-Its source/project hashes match its build receipt. This core change adds brake
-presentation and does not change the bridge API or network schema. The matching
-package check still requires every peer to use the identical complete ZIP.
+One integrated build passed with zero warnings/errors. Bounded native checks
+cover conventional cup/rod support, production four/five-axle geometry, native
+rod profiles through rotation, 0-4-0 air-equipment clearance and restoration.
+Existing native oiling, managed conversion and multiplayer-core regressions
+also passed. See the linked note for counts, fixtures, inherited diagnostics
+and the distinction between explicit fixture motion and actual gameplay.
 
-All three asset bundles match the verified 0.3.5 seed and retained Unity reopening
-proof. No native exports, private renders, game assemblies or API DLLs are shipped.
-No backup or rollback copy was created; the existing built ZIPs are reinstall
-sources. The prior release and its receipts remain intact.
+The exact 14 ZIP entries were read back against staging. Native UMM fresh
+install, repeated update and legacy migration passed 66 checks in an isolated
+fixture. All three bundles are unchanged and retain their exact-hash Unity
+reopening evidence. No private native exports, QA renders, game DLLs or API
+assemblies are shipped. The public package README, changelog and player test
+checklist include the rod/cup repair and retain the prior release changes.
 
-## Release validation and documents
+## Installation
 
-- The 14 ZIP entries were read back and compared with their staged hashes.
-- Actual UMM fresh installation, update and migration passed 66 checks in an
-  isolated fixture directory. No gameplay session was created.
-- Core build inputs, retained bridge inputs and all three asset hashes match
-  their recorded evidence. The final native brake previews and test reports
-  remain under `build/conventional-brakes-20261116`.
-- The packaged changelog and README describe fitted conventional brakes and
-  retained native heating/material/LOD behavior. The player checklist now covers
-  both sides, braking, heat/cooling, stock restoration and save/reload.
+James separately authorized installation if Derail Valley was closed. The
+installer verified that condition and installed all 14 hash-matching payload
+files. Settings and unrelated mod manifests retained their hashes. Receipt:
+`build/release-0.3.6-mp-oil-rods-20261116/nexus/install-receipt-latest.json`.
 
-The 300 brake checks use native methods and rest-pose geometry. Eighteen existing
-caliper/own-wheel contacts reproduce with the original profiles; no new rest-pose
-contact pairs were found. This is not a full animation or gameplay-clearance
-acceptance claim. Earlier articulation evidence applies to unchanged pipe and
-Shay geometry only. James owns driving, actual heat development/cooling,
-arrangement changes, save/reload and live peer acceptance.
+No game launch, backup, push or publication. Existing built ZIPs are reinstall
+sources. James should check slow motion/curves, oil-can servicing and lids,
+streaming, arrangement changes, save/reload and live peers using
+`MULTIPLAYER_TESTING.txt`.
 
-## Installation state
+## Preceding installed revision
 
-Installation is pending by James's explicit choice. The live runtime remains
-`E3959B44D4324AFEBEFCC8C2BA23C0A8FD534043952861EA3466D68C5AB6E252`,
-the preceding pipe/0-4-0 release. Its version label is also 0.3.6-mp; use the hash
-to distinguish it from this new conventional-brake package.
-
-No installation, DV launch, push or publication occurred. The latest package
-and evidence are in `build/release-0.3.6-mp-conventional-brakes-20261116`.
+The preceding native-brake package remains preserved at
+`build/release-0.3.6-mp-conventional-brakes-20261116/package/RearrangedS060-0.3.6-mp-UMM.zip`,
+SHA256 `ADD909DEEDF9EEB2DBD4849DD7AC4D6DEEE42863D560A823C8BD33C8A1A51B63`.
+Its core was `4379CFCE72ED1203B4D304205EA5A722BC612566F595499423BE2780148C4ED1`.
+It is superseded by the installed rod/cup revision above. Brake evidence is
+in [the retained brake note](CONVENTIONAL-BRAKES-0.3.6-mp.md); earlier installation
+and staging states remain historical in the handover.

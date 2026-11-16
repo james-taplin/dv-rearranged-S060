@@ -25,6 +25,8 @@ public static class ConventionalNativeAudit
     private static Assembly runtime;
     private static Material material;
     private static string output;
+    public static Action<object,GameObject> OilCupAudit;
+    public static void RunRodBatch() { Environment.SetEnvironmentVariable("S060_CONVENTIONAL_RODS_ONLY","1"); RunBatch(); }
     public static void RunBatch()
     {
         output = Environment.GetEnvironmentVariable("S060_CONVENTIONAL_OUTPUT"); Directory.CreateDirectory(output);
@@ -37,13 +39,15 @@ public static class ConventionalNativeAudit
             var texture = new Texture2D(2, 2); texture.LoadImage(File.ReadAllBytes(Path.Combine(Path.GetDirectoryName(Environment.GetEnvironmentVariable("S060_NATIVE_PREVIEW")), "native-preview-atlas.png"))); owned.Add(texture);
             material = new Material(Shader.Find("Standard")); material.mainTexture = texture; owned.Add(material);
             if(Environment.GetEnvironmentVariable("S060_ONLY_SHAY")!="1")foreach (bool ten in new[] { false, true }) Validate(data, bodyData, ten);
-            if(!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("S060_SHAY_AUDIT_BUNDLE"))) ValidateShay(data,bodyData);
-            if(!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("S060_MEYER_AUDIT_BUNDLE"))) if(Environment.GetEnvironmentVariable("S060_ONLY_SHAY")!="1")ValidateMeyerBody(data,bodyData);
-            if(Environment.GetEnvironmentVariable("S060_ONLY_SHAY")!="1")ValidateFixedValveGear(bodyData);
+            bool rodsOnly=Environment.GetEnvironmentVariable("S060_CONVENTIONAL_RODS_ONLY")=="1";
+            if(!rodsOnly&&!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("S060_SHAY_AUDIT_BUNDLE"))) ValidateShay(data,bodyData);
+            if(!rodsOnly&&!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("S060_MEYER_AUDIT_BUNDLE"))) if(Environment.GetEnvironmentVariable("S060_ONLY_SHAY")!="1")ValidateMeyerBody(data,bodyData);
+            if(!rodsOnly&&Environment.GetEnvironmentVariable("S060_ONLY_SHAY")!="1")ValidateFixedValveGear(bodyData);
+            if(rodsOnly) SteamNormalRodAudit.Validate(output);
             bool preview=Environment.GetEnvironmentVariable("S060_SHAY_PREVIEW_ONLY")=="1",shayOnly=Environment.GetEnvironmentVariable("S060_ONLY_SHAY")=="1";
             File.WriteAllText(Path.Combine(output, "conventional-validation.json"), JsonUtility.ToJson(new Report { passed = true, checks = checks,
                 actualNativeMeshes = true, candidateGeometry = true, fiveDrivenAxles = !shayOnly, fullSizeCylinders = !preview, tenOilSites = !shayOnly, cleanup = true, crankSweep = !preview, tyreClearance = !shayOnly, previewOnly=preview, runtimeSha256 = Hash(dll),
-                shayNativeWheelReuse = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("S060_SHAY_AUDIT_BUNDLE")),
+                shayNativeWheelReuse = !rodsOnly&&!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("S060_SHAY_AUDIT_BUNDLE")),
                 shayBundleSha256 = Hash(Environment.GetEnvironmentVariable("S060_SHAY_AUDIT_BUNDLE")) }, true));
             EditorApplication.Exit(0);
         }
@@ -200,9 +204,12 @@ public static class ConventionalNativeAudit
                 var filter=rod.GetComponent<MeshFilter>();var vertices=filter.sharedMesh.vertices;
                 for(int i=0;i<wheels.Length;i++)
                 {
-                    var boss=Vector3.zero;for(int v=i*512;v<(i+1)*512;v++)boss+=vertices[v]/512f;var centre=filter.transform.TransformPoint(boss);
                     var pin=wheels[i].TransformPoint(new Vector3(.98730177f,-crank,0));
-                    Check(Mathf.Abs(centre.y-pin.y)<.00003f&&Mathf.Abs(centre.z-pin.z)<.00003f,"Every fitted coupling boss stays on its driven pin through crank motion.");
+                    var local=filter.transform.InverseTransformPoint(pin);
+                    var cap=vertices.Where(v=>new Vector2(v.y-local.y,v.z-local.z).sqrMagnitude<.000001f).ToArray();
+                    Check(cap.Length>=2,"Each native bearing eye retains both original cap centres");
+                    var centre=filter.transform.TransformPoint(cap.Aggregate(Vector3.zero,(sum,v)=>sum+v)/cap.Length);
+                    Check(Mathf.Abs(centre.y-pin.y)<.00015f&&Mathf.Abs(centre.z-pin.z)<.00015f,"Native coupling-eye centres follow their pins within the retained source-mesh precision.");
                 }
             }
             foreach(var wheel in wheels)wheel.localRotation=originals[wheel];rod.localPosition=rest;
@@ -265,6 +272,7 @@ public static class ConventionalNativeAudit
         var returned=(Array)Call(owner,"BuildModels",prefab,pony);
         Check(nativeDoor.sharedMesh==doorMesh&&nativeDoor.gameObject.activeInHierarchy&&nativeDoor.GetComponent<MeshRenderer>().enabled,"Shay conversion preserves the separate native smokebox door");
         Check(returned.Length==4,"Shay geometry returns four real native PoweredWheel objects");
+        OilCupAudit?.Invoke(owner,root);
         var markers=(Transform[])owner.GetType().GetProperty("Markers",All).GetValue(owner,null);
         var model=(GameObject)owner.GetType().GetProperty("Root",All).GetValue(owner,null);
         var aliases=markers.SelectMany(t=>t.GetComponents<MeshFilter>()).Where(f=>f.name.Contains("_NATIVE_")).ToArray();

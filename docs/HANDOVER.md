@@ -1,3 +1,26 @@
+## Native rods and all-arrangement oil-cup check installed — 16 November 2026
+
+James requested native conventional rods, the floating cup pair investigation,
+and cup checks on every arrangement. Read
+[OIL-CUPS-NATIVE-RODS-0.3.6-mp.md](OIL-CUPS-NATIVE-RODS-0.3.6-mp.md).
+The guide cups followed resized mechanisms while their slidebars stayed on the
+body. They now seat on the actual native body rail. 0-4-0/0-8-0/0-10-0 coupling
+rods use fitted native sections at both LODs. Other native rods remain intact.
+All nine selections passed the bounded offline support check; no further
+articulated cup repair was needed. Native oil circuits and saved values remain.
+
+One clean production build; native geometry/motion, oiling, restoration, managed
+boundary and exact-package UMM checks passed. Exact evidence/fixture limits are
+in the linked note. James authorized installation if DV was closed; the guarded
+installer installed and hash-verified all 14 files and preserved settings.
+Installed core: 1FADD8473957BE5054177CA0820B9C0A8C74E6F27B42C48D51B1F8E5C1DCE792.
+Canonical ZIP: build/release-0.3.6-mp-oil-rods-20261116/package/RearrangedS060-0.3.6-mp-UMM.zip,
+SHA256 5C607B4268330E54061E96CC08F43903D63E5F443479C1A135A99B253563DF32.
+Version remains 0.3.6-mp. No game launch, backup, push or publication.
+James owns moving/curving visuals, servicing/lids, streaming, save/reload and
+live peer testing. This entry supersedes installation states below.
+
+---
 ## Conventional-brake release installed - 16 November 2026
 
 James explicitly requested installation now and confirmed DV closed. Installed

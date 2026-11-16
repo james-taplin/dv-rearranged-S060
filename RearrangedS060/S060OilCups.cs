@@ -132,7 +132,7 @@ namespace RearrangedS060
                 var wheels = frame.Cast<Transform>().Where(w => w.name.StartsWith("s060_Wheels_0", StringComparison.Ordinal) && !w.name.Contains("LOD") && w.gameObject.activeInHierarchy).ToArray();
                 foreach (var wheel in wheels)
                     result.Add(new Site { Frame = frame, Wheel = wheel, Left = left, Native = wheel.name == "s060_Wheels_01",
-                        X = .938477f, Lift = .14f * Mathf.Abs(frame.localScale.y), Boss = .105f * Mathf.Abs(frame.localScale.y) });
+                        X = .938477f, Lift = .14f * Mathf.Abs(frame.localScale.y), Boss = .114062f * Mathf.Abs(frame.localScale.y) });
             }
             return result;
         }
@@ -173,6 +173,8 @@ namespace RearrangedS060
                 }
                 else
                 {
+                    int guideIndex = left ? 0 : 3;
+                    if (circuits.Contains(guideIndex)) FitConventionalGuide(S060OilCupInteractables.Consumer(readers[guideIndex]), body: car.transform.Find("LocoS060_Body"));
                     // Native cups stay native; added big ends go furthest from the native crank first.
                     float nativeZ = side.Single(s => s.Native).Wheel.localPosition.z;
                     var free = side.Where(s => !s.Native).OrderByDescending(s => Mathf.Abs(s.Wheel.localPosition.z - nativeZ)).ToList();
@@ -215,6 +217,19 @@ namespace RearrangedS060
             var mount = NewMount(site, cup, cup.syncTag); mount.Original = provider; mount.OriginalRotation = cup.transform.localRotation;
             mount.CupOrientation = orientation;
         }
+        // The native upper slidebar is part of the rigid body, not the resized
+        // mechanism. Keep its cup at the original body station, seated on the
+        // live native rail, rather than scaling/translating its old provider.
+        private void FitConventionalGuide(PositionSyncConsumer cup, Transform body)
+        {
+            var provider = car.GetComponentsInChildren<PositionSyncProvider>(true).Single(p => p.syncTag == cup.syncTag && !p.name.StartsWith("[S060 oil", StringComparison.Ordinal));
+            var reference = provider.transform.localPosition;
+            reference.x *= Mathf.Sign(provider.transform.parent.localScale.x);
+            var seat = S060OilCupGeometry.GuideSeat(body, reference);
+            var mount = NewMount(new Site { Frame = body }, cup, cup.syncTag);
+            mount.Original = provider; mount.OriginalRotation = cup.transform.localRotation;
+            mount.Fixed = body; mount.FixedPoint = seat;
+        }
         // A native cup whose circuit is dormant in this layout: not drawn, not reachable.
         private void Hide(PositionSyncConsumer cup)
         {
@@ -232,7 +247,7 @@ namespace RearrangedS060
             // cup thread; it does not use the mesh origin as its attachment.
             var stem = GameObject.CreatePrimitive(PrimitiveType.Cylinder); stem.name = "[S060 oil mounting neck]";
             stem.transform.SetParent(site.Frame, false);
-            var collider = stem.GetComponent<Collider>(); collider.enabled = false; Object.Destroy(collider);
+            var collider = stem.GetComponent<Collider>(); collider.enabled = false; DestroyOwned(collider);
             if (stemMesh == null)
             {
                 stemMesh = Object.Instantiate(stem.GetComponent<MeshFilter>().sharedMesh); stemMesh.name = "[S060 oil neck iron patch]";
@@ -289,10 +304,11 @@ namespace RearrangedS060
             foreach (var r in hiddenRenderers) if (r != null) r.enabled = true; hiddenRenderers.Clear();
             foreach (var c in hiddenColliders) if (c != null) c.enabled = true; hiddenColliders.Clear();
             interactables?.Dispose(); interactables = null;
-            foreach (var support in supports.Where(s => s != null)) { support.SetActive(false); Object.Destroy(support); }
+            foreach (var support in supports.Where(s => s != null)) { support.SetActive(false); DestroyOwned(support); }
             supports.Clear(); CupCount = 0;
-            if (stemMesh != null) Object.Destroy(stemMesh); stemMesh = null; stemMaterialSource = null; stemMaterial = null;
+            if (stemMesh != null) DestroyOwned(stemMesh); stemMesh = null; stemMaterialSource = null; stemMaterial = null;
         }
+        private static void DestroyOwned(Object value) { if (Application.isPlaying) Object.Destroy(value); else Object.DestroyImmediate(value); }
     }
 }
 #endif

@@ -1,7 +1,7 @@
 param(
-    [string]$BuildDirectory = (Join-Path $PSScriptRoot 'build\release-0.3.6-mp-conventional-brakes-20261116\runtime'),
+    [string]$BuildDirectory = (Join-Path $PSScriptRoot 'build\release-0.3.6-mp-oil-rods-20261116\runtime'),
     [string]$SeedArchive = 'B:\GitHub repo\rearranged-s060\source-0.3.5\build\nexus-0.3.5-single\RearrangedS060-0.3.5-UMM.zip',
-    [string]$OutputDirectory = (Join-Path $PSScriptRoot 'build\release-0.3.6-mp-conventional-brakes-20261116\package')
+    [string]$OutputDirectory = (Join-Path $PSScriptRoot 'build\release-0.3.6-mp-oil-rods-20261116\package')
 )
 $ErrorActionPreference = 'Stop'
 $expectedSeed = '598760CC3E639A64965B53D857287A094EB91597E1A7EC2A81FEE211D7F993EA'
@@ -36,6 +36,7 @@ This is an offline-validated candidate awaiting James's live peer testing.
 "@
     if ($name -eq 'README.md') {
         $content += "`r`n`r`nBRAKES`r`n`r`nThe 0-10-0, 0-8-0 and short-wheelbase 0-6-0 use fitted native brake shoes`r`nand calipers. Native brake heating, materials and levels of detail are retained.`r`nChanging back to stock restores the original brake meshes.`r`n"
+        $content += "`r`nRODS AND OIL CUPS`r`n`r`nThe 0-4-0, 0-8-0 and 0-10-0 use fitted native S060 coupling-rod sections`r`nat both levels of detail. The three-axle layouts retain their native rods.`r`nConventional guide oil cups stay seated on the body-mounted slidebars when`r`nthe mechanism is resized or shifted. Added cup necks meet the native rod bosses.`r`nMeyer, Dockside and Shay cups were checked against their drawn supports offline.`r`n"
     }
     Set-Content -LiteralPath $path -Value $content -Encoding utf8
 }
@@ -43,6 +44,11 @@ $changelog = Join-Path $mod 'CHANGELOG.txt'
 $history = Get-Content -LiteralPath $changelog -Raw
 @"
 0.3.6-mp
+Replaced generated conventional coupling rods with fitted native S060 sections.
+Retained native rod profiles, texture mapping, materials and both levels of detail.
+Kept conventional guide oil cups seated on the body-mounted slidebars.
+Matched added oil-cup necks to the native coupling-rod boss height.
+Checked cup support on every arrangement, including Meyer, Dockside and Shay.
 Restored native brake shoes and calipers on 0-10-0, 0-8-0 and short-wheelbase 0-6-0.
 Fitted the brake geometry to the actual wheel positions.
 Retained native brake heating, materials and levels of detail.
