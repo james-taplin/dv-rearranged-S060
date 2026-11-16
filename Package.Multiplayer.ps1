@@ -1,7 +1,7 @@
 param(
-    [string]$BuildDirectory = (Join-Path $PSScriptRoot 'build\release-0.3.6-mp-final\runtime'),
+    [string]$BuildDirectory = (Join-Path $PSScriptRoot 'build\release-0.3.6-mp-conventional-brakes-20261116\runtime'),
     [string]$SeedArchive = 'B:\GitHub repo\rearranged-s060\source-0.3.5\build\nexus-0.3.5-single\RearrangedS060-0.3.5-UMM.zip',
-    [string]$OutputDirectory = (Join-Path $PSScriptRoot 'build\release-0.3.6-mp-final\package')
+    [string]$OutputDirectory = (Join-Path $PSScriptRoot 'build\release-0.3.6-mp-conventional-brakes-20261116\package')
 )
 $ErrorActionPreference = 'Stop'
 $expectedSeed = '598760CC3E639A64965B53D857287A094EB91597E1A7EC2A81FEE211D7F993EA'
@@ -34,12 +34,19 @@ The host selects random arrangements. Late joiners receive the host's layouts.
 Native Multiplayer owns movement and simulation. Read MULTIPLAYER_TESTING.txt.
 This is an offline-validated candidate awaiting James's live peer testing.
 "@
+    if ($name -eq 'README.md') {
+        $content += "`r`n`r`nBRAKES`r`n`r`nThe 0-10-0, 0-8-0 and short-wheelbase 0-6-0 use fitted native brake shoes`r`nand calipers. Native brake heating, materials and levels of detail are retained.`r`nChanging back to stock restores the original brake meshes.`r`n"
+    }
     Set-Content -LiteralPath $path -Value $content -Encoding utf8
 }
 $changelog = Join-Path $mod 'CHANGELOG.txt'
 $history = Get-Content -LiteralPath $changelog -Raw
 @"
 0.3.6-mp
+Restored native brake shoes and calipers on 0-10-0, 0-8-0 and short-wheelbase 0-6-0.
+Fitted the brake geometry to the actual wheel positions.
+Retained native brake heating, materials and levels of detail.
+Restoring stock restores the original brake meshes.
 Changed the Shay upper exhaust pipe to follow the body and enter the smokebox diagonally.
 Changed the Meyer rear upper steam pipe to use a longer sweep above the cab.
 Kept the Shay compressor exhaust connection and both Meyer step brackets.

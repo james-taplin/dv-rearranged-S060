@@ -1,3 +1,8 @@
+Release update, 16 November 2026: the exact tested DLL is now packaged.
+Installation remains pending by James's explicit choice after DV started.
+Read [RELEASE-0.3.6-mp-20261116.md](RELEASE-0.3.6-mp-20261116.md).
+The commit-only status below records the preceding implementation task.
+
 # Conventional native brakes — commit only, 16 November 2026
 
 James requested restoring native heated brake shoes and calipers on the 0-10-0,

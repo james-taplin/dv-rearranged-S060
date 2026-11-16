@@ -47,5 +47,8 @@ drive again. Repeat from Shay. Check buffers while coupling and uncoupling.
 Record the actual mod versions and both Player.log files for any failure.
 For 0-4-0, check that the middle wheel, calipers and brake shoes are absent.
 Change back to stock and check that the middle wheel and brakes return.
+For 0-10-0, 0-8-0 and short-wheelbase 0-6-0, check the fitted brakes on both
+sides while moving and braking. Check heat glow and cooling, then change back
+to stock and check restoration. Save and reload the fitted arrangements.
 Offline fixtures do not establish live transport, rail dynamics, audible sound,
 real saved-world acceptance or coexistence with another running multiplayer mod.

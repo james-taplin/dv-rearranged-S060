@@ -1,4 +1,18 @@
-﻿## Conventional native brakes — commit only, 16 November 2026
+## Updated 0.3.6-mp release - installation pending, 16 November 2026
+
+Packaged the exact tested 00b129e conventional native-brake DLL with the existing
+optional bridge and unchanged bundles. Updated public changelog, README and the
+player test checklist. Native UMM passed 66 exact-ZIP checks; no production rebuild.
+Read [RELEASE-0.3.6-mp-20261116.md](RELEASE-0.3.6-mp-20261116.md).
+
+DV started before installation, so the guarded installer refused all writes.
+James explicitly selected leave installation pending. Do not install automatically
+when DV closes. The installed core remains E3959B44, while the new release core
+is 4379CFCE. Both use version 0.3.6-mp; compare hashes. Existing ZIPs remain the
+reinstall sources; no backup was made. James owns gameplay/live peer testing.
+
+---
+## Conventional native brakes — commit only, 16 November 2026
 
 James selected current 0.3.6-mp for restoring heated native shoes and calipers to
 0-10-0, 0-8-0 and short-wheelbase 0-6-0. Read
