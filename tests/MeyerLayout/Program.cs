@@ -46,8 +46,8 @@ internal static class Program
             var identity = strings.Select(f => f.GetValue(car)).ToArray();
             for (int cycle = 0; cycle < 100; cycle++)
             {
-                S060LogicLength.Set(car, 4.57f - (MeyerPlan.RearCouplerZ + MeyerPlan.RearCouplingCorrectionZ));
-                Check(Math.Abs(car.length - 13.135f) < .001, "Native logic length must reflect the aligned rear coupling anchor.");
+                S060LogicLength.Set(car, 4.57f - MeyerPlan.RearCouplerZ);
+                Check(Math.Abs(car.length - 12.84f) < .001, "Native logic length must reflect the physical rear coupling anchor, independently of the hook pocket.");
                 S060LogicLength.Set(car, 9.14f);
                 Check(Math.Abs(car.length - 9.14f) < .00001, "Native stock length must restore.");
             }

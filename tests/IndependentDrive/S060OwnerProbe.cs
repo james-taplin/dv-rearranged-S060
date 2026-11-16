@@ -182,14 +182,39 @@ internal static class S060OwnerProbe
             var effectType = CandidateRuntime.Type("S060GroupSlipEffects");
             var sparks = Child("native spark controller", root.transform).AddComponent<WheelslipSparksController>();
             Set(sparks, "car", car); Set(sparks, "wheelslipController", slip);
+            // Real S060 layout: stock physics axles are at rail height, stock
+            // visual wheel centres and spark anchors stay on the car, and Meyer
+            // moves the rear bogie from -1.4 to -6.1 m. Replacement axle origins
+            // are visual wheel centres, including the inward front unit.
+            root.transform.SetPositionAndRotation(new Vector3(17, 3, -11), Quaternion.Euler(1, 37, -1));
+            for (int i = 0; i < 2; i++)
+            {
+                bogies[i].transform.localPosition = new Vector3(0, 0, i == 0 ? -6.1f : .9f);
+                bogies[i].transform.localRotation = Quaternion.Euler(0, i == 0 ? -6 : 6, 0);
+                engineRoots[i].localPosition = new Vector3(0, 0, i == 0 ? -.065f : 0);
+                engineRoots[i].localRotation = Quaternion.Euler(0, i == 0 ? 0 : 180, 0);
+            }
+            for (int i = 0; i < poweredWheels.Length; i++)
+            {
+                poweredWheels[i].wheelTransform.localPosition = new Vector3(0, .5f, i % 2 == 0 ? -.8f : .8f);
+                poweredWheels[i].transform.position = poweredWheels[i].wheelTransform.position;
+            }
             var originalSparks = new WheelslipSparksController.WheelSparksDefinition[2];
             for (int i = 0; i < 2; i++)
             {
-                var left = Child("original left spark " + i, poweredWheels[i * 2].transform);
-                var right = Child("original right spark " + i, poweredWheels[i * 2].transform);
+                float stockZ = i == 0 ? -1.4f : 1.7f, sparkOffsetZ = i == 0 ? .002f : .003f;
+                var native = Child("retained stock physics axle " + i, bogies[i].transform).AddComponent<PoweredWheel>();
+                native.transform.localPosition = new Vector3(0, 0, i == 0 ? 0 : .775f);
+                native.wheelTransform = Child("retained stock visual centre " + i, root.transform).transform;
+                native.wheelTransform.localPosition = new Vector3(0, .7121296f, stockZ);
+                native.wheelTransform.localRotation = Quaternion.Euler(123, 0, 0);
+                var left = Child("original left spark " + i, root.transform);
+                var right = Child("original right spark " + i, root.transform);
+                left.transform.localPosition = new Vector3(-.75f, 0, stockZ + sparkOffsetZ);
+                right.transform.localPosition = new Vector3(.75f, 0, stockZ + sparkOffsetZ);
                 var leftParticle = left.AddComponent<ParticleSystem>(); var rightParticle = right.AddComponent<ParticleSystem>();
                 leftParticle.Stop(); rightParticle.Stop();
-                originalSparks[i] = new WheelslipSparksController.WheelSparksDefinition { poweredWheel = poweredWheels[i * 2],
+                originalSparks[i] = new WheelslipSparksController.WheelSparksDefinition { poweredWheel = native,
                     sparksLeftAnchor = left.transform, sparksRightAnchor = right.transform, sparksLeftPS = leftParticle, sparksRightPS = rightParticle };
             }
             Set(sparks, "wheelSparks", originalSparks);
@@ -205,6 +230,19 @@ internal static class S060OwnerProbe
                 CandidateRuntime.InvokeType(effectType, null, "AfterWheelAudio", audio, audioArgs[1]);
                 check(ReferenceEquals(audio.wheelslipAudioDefs, originalAudio), "Native audio definition array is restored after group output update");
                 check(sparks.wheelSparks.Length == 4 && !ReferenceEquals(sparks.wheelSparks, originalSparks), "Native spark leaves bind all four replacement driven axles");
+                foreach (var definition in sparks.wheelSparks)
+                {
+                    int group = Array.IndexOf(poweredWheels, definition.poweredWheel) / 2;
+                    float radial = .5f / .712128f, z = (group == 0 ? .002f : .003f) * radial;
+                    foreach (var side in new[] { (anchor: definition.sparksLeftAnchor, x: -.75f), (anchor: definition.sparksRightAnchor, x: .75f) })
+                    {
+                        var expected = new Vector3(side.x, -.7121296f * radial, z);
+                        check(Vector3.Distance(side.anchor.localPosition, expected) < .00001f,
+                            "Native spark contact follows its replacement wheel centre despite relocated/yawed support and animated stock wheel: " + definition.poweredWheel.name + " / " + side.x);
+                        check(Vector3.Distance(side.anchor.position, definition.poweredWheel.transform.TransformPoint(expected)) < .00001f,
+                            "Spark contact retains actual articulated axle pose under global rotation: " + definition.poweredWheel.name + " / " + side.x);
+                    }
+                }
                 check(originalAudio.All(d => d.poweredWheels.Count == 2), "Each native audio definition maps its own bogie's two replacement axles");
             };
             Action checkEffectsRestored = () => {

@@ -10,8 +10,8 @@ public static class MeyerPlan
     public const float FrontCentre = .90f;
     public const float RearCentre = -6.10f;
     public const float RearCouplerZ = -8.27f;
-    // Runtime R2 hook/hose correction to the fixed hook pocket. The legacy
-    // donor prefab datum above stays unchanged; only its engine frames are used.
+    // Visual-only R2 hook/hose correction to the fixed hook pocket. The
+    // physical coupler keeps the stock buffer offset at RearCouplerZ.
     public const float RearCouplingCorrectionZ = -.295f;
     public const float DeckCentreZ = -.075f;
     public const float DeckLength = 3.05f;

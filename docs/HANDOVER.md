@@ -1,3 +1,28 @@
+## Meyer effects and coupled buffers — STAGED, 16 November 2026
+
+James reported misplaced Meyer wheel-slip effects and a rear buffer gap when
+the following carriage is coupled. Read
+[MEYER-EFFECTS-BUFFERS-0.3.6-mp.md](MEYER-EFFECTS-BUFFERS-0.3.6-mp.md).
+Spark offsets now use the stationary native visual wheel centre rather than
+the relocated rail-height physics axle. The physical rear coupling anchor
+loses the visual-only 295 mm hook-pocket correction; hook/hose positions and
+the complete native buffer rig remain as fitted. Native joint geometry now
+matches the stock buffer offset. No custom solver or asset rebuild.
+
+One integrated build has zero warnings/errors. Installed-DLL baselines fail
+the new placement and coupled-spacing assertions; the candidate passes the
+focused native/managed checks and 66 exact-ZIP native UMM assertions. The note
+records precise fixture limits and a broad synthetic-rod cleanup check that
+fails identically with the installed DLL. No broad cleanup/gameplay pass claim.
+
+Staged ZIP: build/release-0.3.6-mp-meyer-effects-buffers-20261116/package/RearrangedS060-0.3.6-mp-UMM.zip.
+ZIP SHA256: 2FBEFC8AF3C06B310F7FB2F63303CCDB3FFE17D88D50870E5BBBB00861B141D1.
+Core SHA256: 6A7732FD200E810F80DB9DAF60C337FE9F9087B7307F77572B14ABEB03E9DD7E.
+Version remains 0.3.6-mp. Installation is not authorized by this bug report.
+Installed core remains 1FADD847. James owns gameplay/live peer acceptance.
+No backup, installation, game launch, push or publication.
+
+---
 ## Native rods and all-arrangement oil-cup check installed — 16 November 2026
 
 James requested native conventional rods, the floating cup pair investigation,

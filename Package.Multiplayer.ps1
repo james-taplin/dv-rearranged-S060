@@ -35,6 +35,7 @@ Native Multiplayer owns movement and simulation. Read MULTIPLAYER_TESTING.txt.
 This is an offline-validated candidate awaiting James's live peer testing.
 "@
     if ($name -eq 'README.md') {
+        $content += "`r`nMEYER EFFECTS AND COUPLING`r`n`r`nWheel-slip sparks follow the replacement wheel contact positions. The physical`r`nrear coupling anchor retains the native buffer spacing. Hook and hose positions`r`nare retained. Check the coupled buffers and wheel-slip effects in game.`r`n"
         $content += "`r`n`r`nBRAKES`r`n`r`nThe 0-10-0, 0-8-0 and short-wheelbase 0-6-0 use fitted native brake shoes`r`nand calipers. Native brake heating, materials and levels of detail are retained.`r`nChanging back to stock restores the original brake meshes.`r`n"
         $content += "`r`nRODS AND OIL CUPS`r`n`r`nThe 0-4-0, 0-8-0 and 0-10-0 use fitted native S060 coupling-rod sections`r`nat both levels of detail. The three-axle layouts retain their native rods.`r`nConventional guide oil cups stay seated on the body-mounted slidebars when`r`nthe mechanism is resized or shifted. Added cup necks meet the native rod bosses.`r`nMeyer, Dockside and Shay cups were checked against their drawn supports offline.`r`n"
     }
@@ -44,6 +45,9 @@ $changelog = Join-Path $mod 'CHANGELOG.txt'
 $history = Get-Content -LiteralPath $changelog -Raw
 @"
 0.3.6-mp
+Corrected wheel-slip spark positions on the articulated replacement axles.
+Restored native coupled-buffer spacing at the Meyer rear.
+Retained the fitted hook, hose, buffer rig and native compression controls.
 Replaced generated conventional coupling rods with fitted native S060 sections.
 Retained native rod profiles, texture mapping, materials and both levels of detail.
 Kept conventional guide oil cups seated on the body-mounted slidebars.

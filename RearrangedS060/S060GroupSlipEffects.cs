@@ -116,8 +116,8 @@ namespace RearrangedS060
                     if (template.sparksLeftPS == null || template.sparksRightPS == null ||
                         template.sparksLeftAnchor == null || template.sparksRightAnchor == null) { DestroyAnchors(lease); return null; }
                     var definition = new WheelslipSparksController.WheelSparksDefinition { poweredWheel = wheel };
-                    definition.sparksLeftAnchor = Anchor(wheel, template.poweredWheel, template.sparksLeftAnchor, radius, lease);
-                    definition.sparksRightAnchor = Anchor(wheel, template.poweredWheel, template.sparksRightAnchor, radius, lease);
+                    definition.sparksLeftAnchor = Anchor(car, wheel, template.poweredWheel, template.sparksLeftAnchor, radius, lease);
+                    definition.sparksRightAnchor = Anchor(car, wheel, template.poweredWheel, template.sparksRightAnchor, radius, lease);
                     definition.sparksLeftPS = Particle(template.sparksLeftPS, definition.sparksLeftAnchor);
                     definition.sparksRightPS = Particle(template.sparksRightPS, definition.sparksRightAnchor);
                     definitions.Add(definition);
@@ -134,11 +134,16 @@ namespace RearrangedS060
             }
             catch { controller.wheelSparks = original; DestroyAnchors(lease); throw; }
         }
-        private static Transform Anchor(PoweredWheel wheel, PoweredWheel native, Transform original, float radius, SparkLease lease)
+        private static Transform Anchor(TrainCar car, PoweredWheel wheel, PoweredWheel native, Transform original, float radius, SparkLease lease)
         {
             var anchor = new GameObject("[S060 group slip contact]"); lease.Anchors.Add(anchor);
             anchor.transform.SetParent(wheel.transform, false);
-            var offset = native.transform.InverseTransformPoint(original.position);
+            // Stock S060 physics axles are at rail height, while the replacement
+            // axles are at wheel-centre height. Meyer also relocates their native
+            // bogies without moving the stock body-side spark anchors. Measure
+            // from the retained visual centre instead, in the car's fixed axes:
+            // its animated wheel rotation must not rotate the contact offset.
+            var offset = car.transform.InverseTransformVector(original.position - native.wheelTransform.position);
             float radial = radius / S060Parts.DriverRadius;
             anchor.transform.localPosition = new Vector3(offset.x, offset.y * radial, offset.z * radial);
             return anchor.transform;

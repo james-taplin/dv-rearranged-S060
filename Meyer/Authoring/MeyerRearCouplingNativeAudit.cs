@@ -21,7 +21,7 @@ public static class MeyerRearCouplingNativeAudit
     private const BindingFlags Static = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
     private static string managed;
     private static int checks;
-    private static float maximumPocketError, maximumBufferError, minimumCockProjection = float.PositiveInfinity;
+    private static float maximumPocketError, maximumBufferError, maximumCoupledBufferError, minimumCockProjection = float.PositiveInfinity;
     private static readonly List<string> failures = new List<string>();
     public static void RunBatch()
     {
@@ -45,13 +45,16 @@ public static class MeyerRearCouplingNativeAudit
                 ",\"runtimeSha256\":\"" + hash + "\",\"fixtureSha256\":\"" + Hash(Environment.GetEnvironmentVariable("S060_COUPLING_FIXTURE")) +
                 "\",\"maximumPocketErrorMetres\":" + maximumPocketError.ToString("R", CultureInfo.InvariantCulture) +
                 ",\"maximumBufferErrorMetres\":" + maximumBufferError.ToString("R", CultureInfo.InvariantCulture) +
+                ",\"maximumCoupledBufferErrorMetres\":" + maximumCoupledBufferError.ToString("R", CultureInfo.InvariantCulture) +
                 ",\"minimumCockProjectionMetres\":" + minimumCockProjection.ToString("R", CultureInfo.InvariantCulture) +
                 ",\"nativeGeometry\":true,\"gameplayValidated\":false,\"failures\":[" +
                 string.Join(",", failures.Distinct().Select(s => "\"" + s + "\"")) + "]}");
             bool baseline = Environment.GetEnvironmentVariable("S060_COUPLING_BASELINE") == "1";
             bool reproduced = failures.Contains("Hook pocket alignment") && failures.Contains("Angle cock exposed behind sill");
             bool compressionBaseline = Environment.GetEnvironmentVariable("S060_BUFFER_COMPRESSION_BASELINE") == "1";
-            EditorApplication.Exit(compressionBaseline ? (failures.Contains("Native rear buffer compression matches its visible datum") ? 0 : 1) :
+            bool coupledBaseline = Environment.GetEnvironmentVariable("S060_COUPLED_SPACING_BASELINE") == "1";
+            EditorApplication.Exit(coupledBaseline ? (failures.Contains("Coupled rear buffer spacing matches stock native geometry") ? 0 : 1) :
+                compressionBaseline ? (failures.Contains("Native rear buffer compression matches its visible datum") ? 0 : 1) :
                 baseline ? (reproduced ? 0 : 1) : (failures.Count == 0 ? 0 : 1));
         }
         catch (Exception ex) { File.WriteAllText(Path.Combine(output, "error.txt"), ex.ToString()); Debug.LogException(ex); EditorApplication.Exit(1); }
@@ -113,6 +116,7 @@ public static class MeyerRearCouplingNativeAudit
             var lever = hoses.Find("CouplingHoseRig/cock valve/CableBaseLever model");
             Vector3 Local(Transform part) => root.transform.InverseTransformPoint(part.position);
             var originalHookToPlate = Local(hook) - Local(plate); var originalHookToAnchor = Local(hook) - Local(rearAnchor);
+            var originalRigToAnchor = Local(rig) - Local(rearAnchor);
             var bufferHeads = new[] { buffers.Find("Buffer_FR"), buffers.Find("Buffer_FL"), rig.Find("buffer anchor left").GetChild(0), rig.Find("buffer anchor right").GetChild(0) };
             var bufferPositions = bufferHeads.Select(Local).ToArray();
             var originals = root.GetComponentsInChildren<Transform>(true).Select(t => new { t, parent=t.parent, p=t.localPosition, r=t.localRotation, s=t.localScale }).ToArray();
@@ -133,12 +137,14 @@ public static class MeyerRearCouplingNativeAudit
                 float pocketError = Vector3.Distance(Local(hook) - Local(plate), originalHookToPlate);
                 maximumPocketError = Mathf.Max(maximumPocketError, pocketError);
                 Check(pocketError < .0001f, "Hook pocket alignment");
-                Check(Vector3.Distance(Local(hook) - Local(rearAnchor), originalHookToAnchor) < .0001f, "Native hook to physical anchor relationship");
+                Check(Vector3.Distance(Local(hook) - Local(rearAnchor), originalHookToAnchor + new Vector3(0, 0, -.295f)) < .0001f,
+                    "Visual hook correction is independent of the physical anchor");
                 var points = lever.GetComponent<MeshFilter>().sharedMesh.vertices.Select(v => root.transform.InverseTransformPoint(lever.TransformPoint(v))).ToArray();
                 float cockProjection = -7.98f - points.Max(p=>p.z);
                 minimumCockProjection = Mathf.Min(minimumCockProjection, cockProjection);
                 Check(cockProjection > .02f, "Angle cock exposed behind sill");
-                Check(Mathf.Abs(Local(rearAnchor).z + 8.565f) < .0001f, "Aligned physical coupling anchor");
+                Check(Vector3.Distance(Local(rig) - Local(rearAnchor), originalRigToAnchor) < .0001f,
+                    "Physical coupling anchor retains stock buffer offset");
                 float bufferError = Mathf.Max(Vector3.Distance(Local(bufferHeads[2]), bufferPositions[2] + new Vector3(0,0,-3.70f)),
                     Vector3.Distance(Local(bufferHeads[3]), bufferPositions[3] + new Vector3(0,0,-3.70f)));
                 maximumBufferError = Mathf.Max(maximumBufferError, bufferError);
@@ -146,6 +152,7 @@ public static class MeyerRearCouplingNativeAudit
                 Check(Vector3.Distance(Local(bufferHeads[0]), bufferPositions[0]) < .0001f && Vector3.Distance(Local(bufferHeads[1]), bufferPositions[1]) < .0001f, "Front buffers unchanged");
                 Check(frontRig.localPosition == originals.Single(x=>x.t==frontRig).p && frontAnchor.localPosition == originals.Single(x=>x.t==frontAnchor).p, "Front coupling unchanged");
                 ValidateCompression(game, root.transform, bufferController);
+                ValidateCoupledSpacing(game, car, rearCoupler, bufferController, originalRigToAnchor);
                 for (int visibilityCycle = 0; visibilityCycle < 3; visibilityCycle++)
                 {
                     interactionType.GetMethod("Entry_Enabled", Instance).Invoke(interaction, null);
@@ -210,6 +217,66 @@ public static class MeyerRearCouplingNativeAudit
             Check(Mathf.Abs(left.localPosition.z-.3f)<.0001f&&Mathf.Abs(right.localPosition.z-.3f)<.0001f,"Uncoupling restores both native rear buffers");
         }
         finally {Object.DestroyImmediate(reference.gameObject);Object.DestroyImmediate(opponent.gameObject);}
+    }
+    private static void ValidateCoupledSpacing(Assembly game, Component car, Component rearCoupler,
+        Component actual, Vector3 stockRigToAnchor)
+    {
+        // The previous fixture imposed buffer-rig separations directly. Here
+        // car poses use the native tight/loose target separations and actual
+        // joint anchors are read back. Chain adaptation, spring settling and
+        // rail dynamics are not simulated.
+        var carType = car.GetType(); var couplerType = rearCoupler.GetType(); var type = actual.GetType();
+        var left = (Transform)type.GetField("bufferAnchorLeft").GetValue(actual);
+        var right = (Transform)type.GetField("bufferAnchorRight").GetValue(actual);
+        var reference = Group(car.transform, "Stock rear buffer datum at coupled anchor");
+        reference.SetPositionAndRotation(rearCoupler.transform.position + car.transform.TransformVector(stockRigToAnchor), actual.transform.rotation);
+        var opponent = Group(car.transform, "Stock opposing coupled car");
+        var rb = car.gameObject.GetComponent<Rigidbody>();
+        if (rb == null) rb = car.gameObject.AddComponent<Rigidbody>();
+        rb.isKinematic = true;
+        var otherCar = opponent.gameObject.AddComponent(carType);
+        opponent.gameObject.AddComponent<Rigidbody>().isKinematic = true;
+        var otherCoupler = Group(opponent, "front coupler").gameObject.AddComponent(couplerType);
+        couplerType.GetField("train").SetValue(rearCoupler, car);
+        couplerType.GetField("train").SetValue(otherCoupler, otherCar);
+        couplerType.GetField("coupledTo").SetValue(rearCoupler, otherCoupler);
+        couplerType.GetField("coupledTo").SetValue(otherCoupler, rearCoupler);
+        Component Make(Transform rig)
+        {
+            var l = Group(rig, "left"); l.localPosition = new Vector3(-.864f, 0, .3f);
+            var r = Group(rig, "right"); r.localPosition = new Vector3(.864f, 0, .3f);
+            return NativeBuffer(game, rig, l, r);
+        }
+        var expected = Make(reference);
+        var otherRig = Group(opponent, "front buffer rig"); otherRig.localPosition = -stockRigToAnchor;
+        var other = Make(otherRig);
+        try
+        {
+            foreach (float limit in new[] { .2f, .3f })
+            {
+                opponent.SetPositionAndRotation(rearCoupler.transform.position + rearCoupler.transform.forward * (limit - .2f),
+                    rearCoupler.transform.rotation * Quaternion.Euler(0, 180, 0));
+                couplerType.GetMethod("CreateRigidJoint", Instance).Invoke(rearCoupler, null);
+                var joint = (ConfigurableJoint)couplerType.GetField("rigidCJ").GetValue(rearCoupler);
+                Check(Mathf.Abs(Vector3.Distance(car.transform.TransformPoint(joint.anchor),
+                    opponent.TransformPoint(joint.connectedAnchor)) - limit) < .0001f,
+                    "Native coupled anchors exercise tight and loose spacing");
+                type.GetMethod("SetOtherBuffer").Invoke(actual, new object[] { other });
+                type.GetMethod("SetOtherBuffer").Invoke(expected, new object[] { other });
+                type.GetMethod("UpdateBuffers").Invoke(actual, null); type.GetMethod("UpdateBuffers").Invoke(expected, null);
+                float error = Mathf.Max(Vector3.Distance(left.position, ((Transform)type.GetField("bufferAnchorLeft").GetValue(expected)).position),
+                    Vector3.Distance(right.position, ((Transform)type.GetField("bufferAnchorRight").GetValue(expected)).position));
+                maximumCoupledBufferError = Mathf.Max(maximumCoupledBufferError, error);
+                Check(error < .0001f, "Coupled rear buffer spacing matches stock native geometry");
+                Object.DestroyImmediate(joint);
+            }
+        }
+        finally
+        {
+            type.GetMethod("SetOtherBuffer").Invoke(actual, new object[] { null });
+            couplerType.GetField("coupledTo").SetValue(rearCoupler, null);
+            Object.DestroyImmediate(reference.gameObject); Object.DestroyImmediate(opponent.gameObject);
+        }
     }
     private static void PrepareEnableEntry(Assembly game, Component interaction, Transform chain, Transform root)
     {

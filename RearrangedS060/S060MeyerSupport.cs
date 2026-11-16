@@ -128,13 +128,14 @@ namespace RearrangedS060
         }
         private void MoveRearCoupling()
         {
-            // Keep the native hook, hose and physical anchor together at the
-            // R2 hook pocket. Buffer heads are retained at their fixed beam by
-            // S060MeyerLights when it binds the native buffer anchors.
+            // The physical anchor must retain the stock offset from the buffer
+            // rig: native coupling joints use it to set the vehicle spacing.
+            // The visible hook and hose need a separate R2 pocket correction.
             var anchor = rearAnchor;
-            anchor.z = MeyerPlan.RearCouplerZ + MeyerPlan.RearCouplingCorrectionZ;
+            anchor.z = MeyerPlan.RearCouplerZ;
             car.RearCouplerAnchor.localPosition = anchor;
-            MoveCouplingVisuals(car.transform.TransformVector(anchor - rearAnchor));
+            MoveCouplingVisuals(car.transform.TransformVector(anchor - rearAnchor +
+                new Vector3(0, 0, MeyerPlan.RearCouplingCorrectionZ)));
         }
         private void MoveCouplingVisuals(Vector3 delta)
         {

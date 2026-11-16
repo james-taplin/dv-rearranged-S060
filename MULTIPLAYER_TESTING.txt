@@ -43,6 +43,12 @@ JAMES'S ACCEPTANCE CHECKS
 
 Also drive a fresh Meyer, stop with the regulator closed, select Dockside and
 drive again. Repeat from Shay. Check buffers while coupling and uncoupling.
+For Meyer, check sparks at the wheel/rail contacts on both powered groups,
+including curves and both directions. Couple a carriage behind the Meyer and
+tighten the chain: check rear buffer contact under compression. Compare loose
+chain slack with stock behavior, then uncouple and check buffer extension.
+Save/reload a coupled Meyer and check the spacing again. Every peer needs the
+same repaired package even though the version label remains 0.3.6-mp.
 
 Record the actual mod versions and both Player.log files for any failure.
 For 0-4-0, check that the middle wheel, calipers and brake shoes are absent.
