@@ -18,8 +18,7 @@ namespace RearrangedS060
     //   * the native [axle] objects under each bogie — those are repositioned to
     //     match their wheels instead, which is the caller's job;
     //   * the brake shoes and calipers, which are part of the split body. They
-    //     are hidden while a non-stock scale is applied rather than left floating
-    //     around wheels of the wrong size.
+    //     are fitted after the requested conventional axle layout is in place.
     //
     // CylinderFittings translates the full-size stock cylinders and every
     // associated outlet after the arrangement places its mechanisms. The upper
@@ -36,6 +35,7 @@ namespace RearrangedS060
         private readonly S060Parts parts;
         private S060CylinderFittings fittings;
         private S060FixedValveGear fixedValveGear;
+        private S060ConventionalBrakes brakes;
 
         internal float Factor { get; private set; } = Stock;
         internal float DriverRadius => S060Parts.DriverRadius * Factor;
@@ -73,6 +73,7 @@ namespace RearrangedS060
 
         internal void Restore()
         {
+            brakes?.Dispose(); brakes = null;
             fixedValveGear?.Dispose();fixedValveGear=null;
             fittings?.Dispose(); fittings = null;
             foreach (var (mechanism, scale) in originals)
@@ -86,7 +87,13 @@ namespace RearrangedS060
         // Destruction fallback: release owned meshes without touching dead
         // transforms, native physics or detached audio controller lifetimes.
         internal void ReleaseResources()
-        { fixedValveGear?.ReleaseResources();fixedValveGear=null;fittings?.ReleaseResources(); fittings = null; }
+        { brakes?.Dispose(); brakes=null;fixedValveGear?.ReleaseResources();fixedValveGear=null;fittings?.ReleaseResources(); fittings = null; }
+
+        internal void PositionBrakes(IEnumerable<Transform> wheels)
+        {
+            brakes = S060ConventionalBrakes.Apply(parts, Factor, wheels);
+            foreach (var renderer in hiddenBrakes) if (renderer != null) renderer.enabled = true;
+        }
 
         internal void PositionFittings(float forwardOffset)
         {

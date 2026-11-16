@@ -1,4 +1,19 @@
-﻿## Final 0.3.6-mp installed - 15 November 2026
+﻿## Conventional native brakes — commit only, 16 November 2026
+
+James selected current 0.3.6-mp for restoring heated native shoes and calipers to
+0-10-0, 0-8-0 and short-wheelbase 0-6-0. Read
+[CONVENTIONAL-BRAKES-0.3.6-mp.md](CONVENTIONAL-BRAKES-0.3.6-mp.md). Owned native
+mesh copies fit the actual axle stations while original renderers, LODs, materials
+and heat binding remain. One clean production build; 300 bounded native checks,
+45 conversion-boundary checks and 49 managed core checks passed. Actual Unity
+cold/heat previews: `build/conventional-brakes-20261116/final`. Eighteen inherited
+caliper/own-wheel contact pairs reproduce with the exact native profiles; no new
+rest-pose contact pairs were found. No full motion clearance or gameplay claim.
+Version remains 0.3.6-mp. Commit only; no ZIP, install, push, publication or DV
+launch. Installed files remain unchanged. James owns gameplay/live peer tests.
+
+---
+## Final 0.3.6-mp installed - 15 November 2026
 
 James explicitly authorized installing the staged final package after commit
 5d81079. This supersedes the stage-only restriction below. Installed the exact

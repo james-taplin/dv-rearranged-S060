@@ -111,6 +111,8 @@ namespace RearrangedS060
                 state.Apply();
                 if (state is S060FourCoupled || state is S060EightCoupled) state.fittedCouplingRods = S060CouplingRods.Apply(parts);
                 state.Scale.PositionFittings(state.CylinderShift);
+                if (state is S060Rescaled || state is S060EightCoupled)
+                    state.Scale.PositionBrakes(state.AxlePairs.ConvertAll(pair => pair.wheel));
 #if B99_S060_ARTICULATED
                 // Retire body castings after cylinder fitting. Scale.Restore
                 // then releases the mesh copies in reverse ownership order.
