@@ -4,14 +4,15 @@ Change the S060's running gear through a dedicated comms-radio mode in Derail
 Valley. This project forks the Rearranged S282 B99/Re:Arranged branch, based on
 Peter Schinske / SatiricRug's original Rearranged S282.
 
-## Current candidate: S060 0.3.6-mp
+## Current candidate: S060 0.3.7-mp
 
 Optional multiplayer support from the current S282 integration, based on the
 0.3.5 repairs, including buffers, switching and baked Dockside sleeves. Includes host-checked radio/UMM changes, guest permissions,
 late-join synchronization and native replication of independent slip and Shay
 motion. Normal single-player use does not require Multiplayer.
 
-The latest 16 November build adds fitted native conventional coupling rods and seats the guide oil cups on their body-mounted slidebars. All arrangements have bounded offline cup-support checks. It retains the native heated brakes, pipe sweeps and 0-4-0 repairs. This rod/cup update is installed and hash verified. See [current release record](docs/RELEASE-0.3.6-mp-20261116.md). James owns gameplay and live peer acceptance.
+0.3.7-mp (17 November) corrects Meyer wheel-slip spark positions and restores native coupled-buffer spacing at the Meyer rear; it is installed and hash verified. See [0.3.7-mp release record](docs/RELEASE-0.3.7-mp-20261117.md).
+The 16 November 0.3.6-mp build added fitted native conventional coupling rods and seats the guide oil cups on their body-mounted slidebars. All arrangements have bounded offline cup-support checks. It retains the native heated brakes, pipe sweeps and 0-4-0 repairs. See [0.3.6-mp release record](docs/RELEASE-0.3.6-mp-20261116.md). James owns gameplay and live peer acceptance.
 See [implementation and validation](docs/MULTIPLAYER-0.3.6.md) and
 [James's checklist](MULTIPLAYER_TESTING.txt). Build with `Build.Multiplayer.ps1`
 and package with `Package.Multiplayer.ps1`; asset bundles are reused unchanged.

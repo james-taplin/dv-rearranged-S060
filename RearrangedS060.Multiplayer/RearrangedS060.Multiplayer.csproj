@@ -4,7 +4,7 @@
     <RootNamespace>RearrangedS060.Multiplayer</RootNamespace>
     <TargetFramework>net48</TargetFramework>
     <LangVersion>9.0</LangVersion>
-    <Version>0.3.6-mp</Version>
+    <Version>0.3.7-mp</Version>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <GamePath Condition="'$(GamePath)' == ''">B:\SteamLibrary\steamapps\common\Derail Valley</GamePath>
     <ManagedPath>$(GamePath)\DerailValley_Data\Managed</ManagedPath>

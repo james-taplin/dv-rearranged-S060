@@ -1,3 +1,19 @@
+## 0.3.7-mp Meyer effects and coupled buffers — INSTALLED, 17 November 2026
+
+James asked for the staged Meyer repair below to be rebuilt as 0.3.7-mp and
+installed. Read [RELEASE-0.3.7-mp-20261117.md](RELEASE-0.3.7-mp-20261117.md).
+Only version metadata changed; all runtime sources match the validated repair.
+Exact-ZIP native UMM passes 66 assertions; managed multiplayer 219/49/32 pass.
+Unity native fixtures are retained from the identical-source 0.3.6-mp build.
+
+ZIP: build/release-0.3.7-mp-20261117/package/RearrangedS060-0.3.7-mp-UMM.zip,
+SHA256 0B01AA86AB5EBF61C72FF4521FC54D426FB96CC77AC3706F0157A09C6FA630B8.
+Installed and hash verified with DV closed; settings preserved.
+Installed core: 4D2A20B9932FD6CDC3D2B3C564F3683E6800D5FB5AF17E110E291046EE7A17EA.
+No game launch, backup, push or publication. James owns gameplay/live peer
+acceptance. This entry supersedes the installation states below.
+
+---
 ## Meyer effects and coupled buffers — STAGED, 16 November 2026
 
 James reported misplaced Meyer wheel-slip effects and a rear buffer gap when

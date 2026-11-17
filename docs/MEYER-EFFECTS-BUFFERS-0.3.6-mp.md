@@ -1,5 +1,8 @@
 # Meyer wheel-slip effects and coupled buffers — 16 November 2026
 
+> Released and installed as **0.3.7-mp** on 17 November 2026; see
+> [RELEASE-0.3.7-mp-20261117.md](RELEASE-0.3.7-mp-20261117.md).
+
 James reported misplaced Meyer wheel-slip effects and a rear buffer gap
 specifically when a following carriage is coupled. This repair is built,
 packaged and staged only. Version remains 0.3.6-mp. Installation requires

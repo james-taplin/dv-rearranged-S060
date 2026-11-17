@@ -1,7 +1,7 @@
 param(
-    [string]$BuildDirectory = (Join-Path $PSScriptRoot 'build\release-0.3.6-mp-oil-rods-20261116\runtime'),
+    [string]$BuildDirectory = (Join-Path $PSScriptRoot 'build\release-0.3.7-mp-20261117\runtime'),
     [string]$SeedArchive = 'B:\GitHub repo\rearranged-s060\source-0.3.5\build\nexus-0.3.5-single\RearrangedS060-0.3.5-UMM.zip',
-    [string]$OutputDirectory = (Join-Path $PSScriptRoot 'build\release-0.3.6-mp-oil-rods-20261116\package')
+    [string]$OutputDirectory = (Join-Path $PSScriptRoot 'build\release-0.3.7-mp-20261117\package')
 )
 $ErrorActionPreference = 'Stop'
 $expectedSeed = '598760CC3E639A64965B53D857287A094EB91597E1A7EC2A81FEE211D7F993EA'
@@ -44,10 +44,12 @@ This is an offline-validated candidate awaiting James's live peer testing.
 $changelog = Join-Path $mod 'CHANGELOG.txt'
 $history = Get-Content -LiteralPath $changelog -Raw
 @"
-0.3.6-mp
+0.3.7-mp
 Corrected wheel-slip spark positions on the articulated replacement axles.
 Restored native coupled-buffer spacing at the Meyer rear.
 Retained the fitted hook, hose, buffer rig and native compression controls.
+
+0.3.6-mp
 Replaced generated conventional coupling rods with fitted native S060 sections.
 Retained native rod profiles, texture mapping, materials and both levels of detail.
 Kept conventional guide oil cups seated on the body-mounted slidebars.
