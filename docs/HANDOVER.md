@@ -8,7 +8,7 @@ bundle, assets/Shared/s060_stereo_standard, is applied to those materials at
 runtime. The three original bundles are unchanged.
 
 Staged ZIP: build/release-0.3.7-mp-vr-20261119/package/RearrangedS060-0.3.7-mp-UMM.zip,
-SHA256 08D3F51847FFA9C2498AC947983A69CD79547C0B54B3F57603BD1CD8EA603CD1.
+SHA256 B0B668D80358B7095B27221C6987C0C0F4DAB8ABB284FFDF58C2E5A7E013123B.
 UMM 69 and managed multiplayer 219/49/32 pass. VR rendering is unproven
 offline; James must test it in a headset. Not installed; the game currently
 has 0.4.6.3-indev. The 0.4 line needs the same fix.

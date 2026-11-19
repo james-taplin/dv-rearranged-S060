@@ -36,7 +36,7 @@ namespace RearrangedS060
                 catch (Exception ex)
                 {
                     unavailable = true; stereo = null;
-                    Main.Logger.LogException("S060 VR shader bundle unavailable; S060 bundle materials keep their original shader", ex);
+                    Main.Logger?.LogException("S060 VR shader bundle unavailable; S060 bundle materials keep their original shader", ex);
                 }
                 return stereo;
             }
@@ -65,7 +65,7 @@ namespace RearrangedS060
                 if (material == null || material.shader == null || !sources.Contains(material.shader)) continue;
                 Rebind(material, shader); changed++;
             }
-            Main.Logger.Log("S060 VR shaders: " + changed + " bundle materials now use the single-pass stereo Standard shader.");
+            Main.Logger?.Log("S060 VR shaders: " + changed + " bundle materials now use the single-pass stereo Standard shader.");
         }
 
         // Also used for run-time copies made from a bundle template.

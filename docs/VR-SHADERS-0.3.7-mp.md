@@ -50,14 +50,15 @@ their bundles, so all three existing bundles are left byte-identical.
   the earlier 0.3.7-mp package are detected as different.
 
 If the shader bundle is missing, the original shaders are kept and a log line
-explains why.
+explains why. Logging is null-safe, so that fallback also holds outside UMM
+(editor fixtures), as found by the 0.4 port.
 
 ## Package and validation
 
 - ZIP: `build/release-0.3.7-mp-vr-20261119/package/RearrangedS060-0.3.7-mp-UMM.zip`
-- ZIP SHA256: `08D3F51847FFA9C2498AC947983A69CD79547C0B54B3F57603BD1CD8EA603CD1`
-- Core: `BD967F0B4EA3996CB898E5DE5E71D95A68DDCB9D862FF190B75B94ADA6A86025`
-- Adapter: `D1B2F89ED790667DFB51CA76EF3F4A433F9F1C982C3A5E69011BEC2BCB1AD001`
+- ZIP SHA256: `B0B668D80358B7095B27221C6987C0C0F4DAB8ABB284FFDF58C2E5A7E013123B`
+- Core: `D38CED73DFB2D5BD81A8817C1189B1A5987CAAAE7BED715D45A6DA35930FF8EE`
+- Adapter: `7867E387F6716390189E85FD8458CC8285EB6FFE0481D96EC74411831F5F339F`
 - Stereo bundle: `BE6B565D1AD26E946EE7ACA65927FB344D1449760BD4E9EEBAD39B757C2FE9F5`
 
 The package has 15 files: the previous 14 plus the stereo bundle. The Shay,
@@ -66,7 +67,7 @@ retained.
 
 - Production build: zero warnings, zero errors.
 - Native UMM fresh install, update, uninstall and 0.3.0 migration on the
-  exact ZIP: **69 assertions pass** (`nexus/umm-proof-20261119-091702`).
+  exact ZIP: **69 assertions pass** (`nexus/umm-proof-20261119-093149`).
 - Managed multiplayer: bridge 219, core 49, ports 32 pass.
 
 **Not proven offline:** that the swap renders correctly in VR, or exactly
