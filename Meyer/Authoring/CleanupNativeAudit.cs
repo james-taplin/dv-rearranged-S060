@@ -48,7 +48,7 @@ public static class CleanupNativeAudit
                 conversionType.GetField("<CleanupPending>k__BackingField", Instance).SetValue(conversion, cycle % 3 == 0);
                 var root = new GameObject("cleanup audit");
                 var filter = new GameObject("rod").AddComponent<MeshFilter>(); filter.transform.SetParent(root.transform);
-                var original = Triangle(); filter.sharedMesh = original;
+                var original = Triangle(); original.uv = new[] { Vector2.zero, Vector2.up, Vector2.one }; filter.sharedMesh = original; // native rods carry UVs; NativeConventional keeps the atlas
                 var swapType = assembly.GetType("RearrangedS060.S060RodMeshSwap", true);
                 var swap = Activator.CreateInstance(swapType, filter, new[] { new Vector2(0, -1), new Vector2(0, 1) });
                 var rodCopy = filter.sharedMesh;

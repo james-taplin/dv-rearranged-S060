@@ -69,6 +69,10 @@ retained.
 - Native UMM fresh install, update, uninstall and 0.3.0 migration on the
   exact ZIP: **69 assertions pass** (`nexus/umm-proof-20261119-093149`).
 - Managed multiplayer: bridge 219, core 49, ports 32 pass.
+- Native cleanup audit on the staged core D38CED73: **145 checks pass**
+  (`build/radio-0.3.7-mp/runtime-audits-20261119-105002/cleanup`). Its
+  synthetic rod fixture now carries UVs like native rods, matching 0.4; before
+  this, the audit threw on that fixture with every core since a5cc9f7.
 
 **Not proven offline:** that the swap renders correctly in VR, or exactly
 which materials it reaches in the running game. An editor fixture could not

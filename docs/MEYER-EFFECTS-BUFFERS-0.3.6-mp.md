@@ -80,6 +80,8 @@ Managed checks pass: 224 geometry/native-length/pipe, 45 conversion-boundary
 checks across 20 injected scenarios, and 49 multiplayer-core checks. The
 managed boundaries use their documented doubles, not live transport.
 
+(19 November: resolved. The fixture rod now has UVs and the audit passes 145
+checks on the staged 0.3.7-mp core; see VR-SHADERS-0.3.7-mp.md.)
 An additional broad CleanupNativeAudit run fails on its synthetic Triangle
 rod passed to the newer native-rod fitter. The exact installed DLL reproduces
 the same IndexOutOfRangeException. Candidate run: runtime-audits-20261116-232324;
