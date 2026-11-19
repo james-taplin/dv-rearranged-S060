@@ -11,7 +11,7 @@ Optional multiplayer support from the current S282 integration, based on the
 late-join synchronization and native replication of independent slip and Shay
 motion. Normal single-player use does not require Multiplayer.
 
-0.3.7-mp (17 November) corrects Meyer wheel-slip spark positions and restores native coupled-buffer spacing at the Meyer rear; it is installed and hash verified. See [0.3.7-mp release record](docs/RELEASE-0.3.7-mp-20261117.md).
+A staged 0.3.7-mp update (19 November) also fixes the running-gear textures that shift with head movement in VR; see [VR shaders](docs/VR-SHADERS-0.3.7-mp.md). 0.3.7-mp (17 November) corrects Meyer wheel-slip spark positions and restores native coupled-buffer spacing at the Meyer rear; it is installed and hash verified. See [0.3.7-mp release record](docs/RELEASE-0.3.7-mp-20261117.md).
 The 16 November 0.3.6-mp build added fitted native conventional coupling rods and seats the guide oil cups on their body-mounted slidebars. All arrangements have bounded offline cup-support checks. It retains the native heated brakes, pipe sweeps and 0-4-0 repairs. See [0.3.6-mp release record](docs/RELEASE-0.3.6-mp-20261116.md). James owns gameplay and live peer acceptance.
 See [implementation and validation](docs/MULTIPLAYER-0.3.6.md) and
 [James's checklist](MULTIPLAYER_TESTING.txt). Build with `Build.Multiplayer.ps1`

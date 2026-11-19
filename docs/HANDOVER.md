@@ -1,3 +1,19 @@
+## VR running-gear shaders — STAGED 0.3.7-mp, 19 November 2026
+
+James reported Shay running gear (and other modded textures) swimming with
+head movement in VR since 0.3.3. Read [VR-SHADERS-0.3.7-mp.md](VR-SHADERS-0.3.7-mp.md).
+Cause: the Shay/Meyer/Dockside bundles' Standard shader copies lack
+single-pass stereo variants (built with VR off). A new VR-built Standard
+bundle, assets/Shared/s060_stereo_standard, is applied to those materials at
+runtime. The three original bundles are unchanged.
+
+Staged ZIP: build/release-0.3.7-mp-vr-20261119/package/RearrangedS060-0.3.7-mp-UMM.zip,
+SHA256 08D3F51847FFA9C2498AC947983A69CD79547C0B54B3F57603BD1CD8EA603CD1.
+UMM 69 and managed multiplayer 219/49/32 pass. VR rendering is unproven
+offline; James must test it in a headset. Not installed; the game currently
+has 0.4.6.3-indev. The 0.4 line needs the same fix.
+
+---
 ## 0.3.7-mp Meyer effects and coupled buffers — INSTALLED, 17 November 2026
 
 James asked for the staged Meyer repair below to be rebuilt as 0.3.7-mp and

@@ -50,6 +50,7 @@ namespace RearrangedS060
             if (Globals.G?.Types == null || !Globals.G.Types.TryGetLivery(id, out var donor) || donor.prefab == null)
                 throw new InvalidOperationException((meyer ? "Meyer" : "Dockside") + " assets not loaded. Check Custom Car Loader (CCL) and its dependencies, including DV Language Helper, in UMM; restart the game. Packs are bundled. See Player.log for CCL errors.");
             donorRoot = donor.prefab.transform;
+            S060StereoShaders.Apply(donor.prefab);
             var frames = donor.prefab.GetComponentsInChildren<Transform>(true).Where(t => t.name == "bogie_car").OrderBy(t => donor.prefab.transform.InverseTransformPoint(t.position).z).ToArray();
             if (frames.Length != 2) throw new InvalidOperationException("Articulated donor must have exactly two bogie frames.");
             if (frames.Any(f => f.Find("[S060 fitted effects 0.7]") == null))

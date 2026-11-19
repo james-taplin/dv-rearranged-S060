@@ -50,6 +50,9 @@ chain slack with stock behavior, then uncouple and check buffer extension.
 Save/reload a coupled Meyer and check the spacing again. Every peer needs the
 same 0.3.7-mp package.
 
+In VR, look at the Shay, Meyer and Dockside running gear while moving your
+head: textures and finishes should stay fixed to the parts in both eyes.
+
 Record the actual mod versions and both Player.log files for any failure.
 For 0-4-0, check that the middle wheel, calipers and brake shoes are absent.
 Change back to stock and check that the middle wheel and brakes return.

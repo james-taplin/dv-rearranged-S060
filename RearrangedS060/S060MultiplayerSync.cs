@@ -68,7 +68,7 @@ namespace RearrangedS060
                         string Digest(string path) => File.Exists(path)
                             ? BitConverter.ToString(sha.ComputeHash(File.ReadAllBytes(path))).Replace("-", "") : "missing";
                         var parts = new List<string> { "RearrangedS060.dll:" + Digest(typeof(Main).Assembly.Location) };
-                        foreach (string relative in new[] { "RearrangedS060.Multiplayer.dll", "assets/Meyer/ccl_bundle", "assets/Dockside/ccl_bundle", "assets/Shay/shay_running_gear" })
+                        foreach (string relative in new[] { "RearrangedS060.Multiplayer.dll", "assets/Meyer/ccl_bundle", "assets/Dockside/ccl_bundle", "assets/Shay/shay_running_gear", "assets/Shared/s060_stereo_standard" })
                             parts.Add(relative + ":" + Digest(Path.Combine(Main.ModPath, relative)));
                         // Identical DLLs with stale or replaced meshes can still
                         // produce different running gear. Hash the runtime assets

@@ -17,8 +17,10 @@ namespace RearrangedS060
             if (bundle == null) bundle=AssetBundle.LoadFromFile(Path.Combine(Main.ModPath,"assets","Shay","shay_running_gear"));
             if (bundle == null) throw new InvalidOperationException("Shay running-gear bundle is unavailable.");
             ValidateMotion(Motion);
-            return bundle.LoadAsset<GameObject>("assets/shayintegration/s060shay.prefab")
+            var prefab=bundle.LoadAsset<GameObject>("assets/shayintegration/s060shay.prefab")
                 ?? throw new InvalidOperationException("Shay running-gear prefab is unavailable.");
+            S060StereoShaders.Apply(prefab);
+            return prefab;
         }
         internal static TextAsset Motion => bundle.LoadAllAssets<TextAsset>().Single();
         internal static AudioClip Audio(string name)
